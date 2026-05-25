@@ -1,5 +1,8 @@
-import { useState, FormEvent } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import toast from 'react-hot-toast';
 import AuthCard from '@/components/auth/AuthCard';
 import { useAuth } from '@/context/AuthContext';
@@ -7,41 +10,51 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import PasswordInput from '@/components/common/PasswordInput';
-import { prepareLoginPayload } from '@/lib/validation/auth';
+import { isValidPhone, normalizePhone } from '@/lib/validation/auth';
+
+const loginSchema = z.object({
+  phone: z.string().min(1, 'Номер телефону є обовʼязковим').refine(isValidPhone, {
+    message: 'Невірний формат номера телефону. Приклад: +380501234567',
+  }),
+  password: z.string().min(1, 'Пароль є обовʼязковим'),
+});
+
+type LoginFormValues = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
-  const [phone, setPhone] = useState('');
-  const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
 
-  async function handleSubmit(e: FormEvent) {
-    e.preventDefault();
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    watch,
+    formState: { errors, isSubmitting },
+  } = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      phone: '',
+      password: '',
+    },
+  });
+
+  const onSubmit = async (data: LoginFormValues) => {
     setError(null);
-
-    const { errors, payload } = prepareLoginPayload({ phone, password });
-    if (errors.length > 0) {
-      setError(errors[0]);
-      return;
-    }
-
-    setSubmitting(true);
     try {
-      if (payload) {
-        await login(payload);
-        toast.success('Успішний вхід!');
-        navigate('/', { replace: true });
-      }
+      await login({
+        phone: normalizePhone(data.phone.trim())!,
+        password: data.password,
+      });
+      toast.success('Успішний вхід!');
+      navigate('/', { replace: true });
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Error';
       setError(msg);
       toast.error(msg);
-    } finally {
-      setSubmitting(false);
     }
-  }
+  };
 
   return (
     <AuthCard
@@ -51,30 +64,24 @@ export default function LoginPage() {
       footerLink="/register"
       footerLabel="Зареєструватися"
     >
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="phone">Номер телефону</Label>
-          <Input
-            id="phone"
-            type="tel"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            placeholder="+380501234567"
-            required
-          />
+          <Input id="phone" type="tel" placeholder="+380501234567" {...register('phone')} />
+          {errors.phone && <p className="text-sm text-destructive">{errors.phone.message}</p>}
         </div>
         <div className="space-y-2">
           <Label htmlFor="password">Пароль</Label>
           <PasswordInput
             id="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
+            value={watch('password')}
+            onChange={(e) => setValue('password', e.target.value, { shouldValidate: true })}
           />
+          {errors.password && <p className="text-sm text-destructive">{errors.password.message}</p>}
         </div>
         {error && <p className="text-sm text-destructive">{error}</p>}
-        <Button type="submit" className="w-full" disabled={submitting}>
-          {submitting ? 'Вхід...' : 'Увійти'}
+        <Button type="submit" className="w-full" disabled={isSubmitting}>
+          {isSubmitting ? 'Вхід...' : 'Увійти'}
         </Button>
       </form>
     </AuthCard>

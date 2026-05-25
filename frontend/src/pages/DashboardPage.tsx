@@ -1,43 +1,23 @@
-import { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import PageLoader from '@/components/common/PageLoader';
 import { useAuth } from '@/context/AuthContext';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { isAbortError } from '@/api/client';
 import * as healthApi from '@/api/health';
 
 export default function DashboardPage() {
   const { user } = useAuth();
-  const [health, setHealth] = useState<healthApi.HealthResponseDto | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const controller = new AbortController();
+  const {
+    data: health,
+    isLoading: loading,
+    error: fetchError,
+  } = useQuery({
+    queryKey: ['health'],
+    queryFn: ({ signal }) => healthApi.fetchHealth({ signal }),
+  });
 
-    async function load() {
-      try {
-        const healthData = await healthApi.fetchHealth({
-          signal: controller.signal,
-        });
-        setHealth(healthData);
-      } catch (err: unknown) {
-        if (!isAbortError(err)) {
-          setError(err instanceof Error ? err.message : 'Error');
-        }
-      } finally {
-        if (!controller.signal.aborted) {
-          setLoading(false);
-        }
-      }
-    }
-
-    load();
-
-    return () => {
-      controller.abort();
-    };
-  }, []);
+  const error = fetchError ? (fetchError as Error).message : null;
 
   if (loading) {
     return <PageLoader />;
