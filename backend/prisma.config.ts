@@ -16,13 +16,24 @@ if (!process.env.DIRECT_URL) {
   process.env.DIRECT_URL = databaseUrl; // Fallback for local
 }
 
+console.log('PRISMA CONFIG ARGV:', process.argv);
+
+const isMigrate = process.argv.includes('migrate');
+let migrationUrl = process.env.DATABASE_URL;
+
+if (isMigrate) {
+  migrationUrl = process.env.DIRECT_URL || process.env.DATABASE_URL;
+  if (migrationUrl && migrationUrl.includes(':6543')) {
+    migrationUrl = migrationUrl.replace(':6543', ':5432');
+  }
+}
+
 export default defineConfig({
   schema: 'prisma/schema.prisma',
   migrations: {
     path: 'prisma/migrations',
   },
   datasource: {
-    url: process.env.DATABASE_URL,
-    directUrl: process.env.DIRECT_URL,
+    url: migrationUrl,
   },
 });
