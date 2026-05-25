@@ -6,13 +6,14 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { JwtStrategy } from './jwt.strategy';
 import { AdminGuard } from './admin.guard';
+import { getJwtSecret } from './jwt-secret';
 
 @Module({
   imports: [
     UsersModule,
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.register({
-      secret: process.env.JWT_SECRET || 'logistic-dev-secret',
+      secret: getJwtSecret(),
       signOptions: { expiresIn: '7d' },
     }),
   ],
