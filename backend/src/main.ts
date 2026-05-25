@@ -1,31 +1,42 @@
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import helmet from 'helmet';
 import { AppModule } from './app.module';
 
+// Ця функція визначає, з яких веб-сайтів дозволено робити запити до нашого бекенду.
+// Це механізм CORS (Cross-Origin Resource Sharing) - базовий захист браузерів.
 function getCorsOrigins(): string[] {
   const raw = process.env.CORS_ORIGINS;
 
-  // В production CORS_ORIGINS обов'язково має бути задано
+  // В production CORS_ORIGINS обов'язково має бути задано (щоб ніхто чужий не стукав до нас)
   if (!raw && process.env.NODE_ENV === 'production') {
     throw new Error(
       'CORS_ORIGINS must be set in production (comma-separated list of allowed origins)',
     );
   }
 
-  // Для локальної розробки — дозволяємо Vite dev-сервер і Docker-фронтенд
+  // Для локальної розробки (на вашому комп'ютері) дозволяємо запити з локального фронтенду
   if (!raw) {
     return ['http://localhost:5173', 'http://localhost:8080'];
   }
 
+  // Розбиваємо рядок з Render (наприклад "https://site1.com,https://site2.com") на масив
   return raw
     .split(',')
     .map((origin) => origin.trim())
     .filter(Boolean);
 }
 
+// Це головна функція, яка запускає наш бекенд сервер (Entry Point)
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  // 1. HELMET: Додаємо базовий захист безпеки
+  // Він автоматично проставляє правильні HTTP-заголовки (HSTS, X-Frame-Options тощо),
+  // щоб захистити наш сайт від поширених атак (наприклад, щоб наш сайт не вставили в iframe зловмисники).
+  app.use(helmet());
+
+  // 2. CORS: Дозволяємо лише нашому фронтенду (Vercel) робити запити сюди
   app.enableCors({
     origin: getCorsOrigins(),
     methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],

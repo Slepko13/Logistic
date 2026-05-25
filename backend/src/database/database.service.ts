@@ -6,10 +6,14 @@ import { migrations } from './migrations';
 
 @Injectable()
 export class DatabaseService implements OnModuleInit {
+  // Пул з'єднань (Pool) — це набір "відкритих ліній" до вашої бази даних.
+  // Замість того, щоб на кожен запит підключатися заново (що довго), ми тримаємо
+  // кілька з'єднань завжди відкритими і просто перевикористовуємо їх.
   private readonly pool = new Pool(
     process.env.DATABASE_URL
       ? {
           connectionString: process.env.DATABASE_URL,
+          // Вмикаємо SSL, бо Supabase/Render вимагають шифрованого підключення
           ssl: process.env.DB_SSL !== 'false' ? { rejectUnauthorized: false } : undefined,
         }
       : {
@@ -21,16 +25,19 @@ export class DatabaseService implements OnModuleInit {
         },
   );
 
+  // onModuleInit — це магічний метод NestJS. Він запускається АВТОМАТИЧНО,
+  // як тільки стартує цей сервіс, ще до того, як бекенд почне приймати запити.
+  // Тому ми і казали, що окрема "Pre-Deploy Command" на Render вам не потрібна!
   async onModuleInit() {
-    const maxRetries = 30;
+    const maxRetries = 30; // Пробуємо підключитися 30 разів (корисно для Docker)
     for (let i = 0; i < maxRetries; i++) {
       try {
-        await this.initDb();
+        await this.initDb(); // Якщо вдалося — ініціалізуємо БД
         return;
       } catch (err) {
         if (i === maxRetries - 1) {
           console.error('Failed to connect to database:', (err as Error).message);
-          process.exit(1);
+          process.exit(1); // Якщо за 30 разів не вийшло - "вбиваємо" сервер
         }
         console.log(`Waiting for database... (${i + 1}/${maxRetries})`);
         await new Promise((r) => setTimeout(r, 2000));
@@ -38,10 +45,12 @@ export class DatabaseService implements OnModuleInit {
     }
   }
 
+  // Віддає пул з'єднань для інших сервісів (щоб робити запити)
   getPool(): Pool {
     return this.pool;
   }
 
+  // Проста функція-пінг для перевірки "чи жива база?" (використовується в health-check)
   async ping(): Promise<void> {
     await this.pool.query('SELECT 1');
   }
