@@ -1,19 +1,19 @@
 import { Controller, Get, HttpException, HttpStatus } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { DatabaseService } from '../database/database.service';
+import { PrismaService } from '../database/prisma.service';
 import { HealthResponseDto } from './dto/health-response.dto';
 
 @ApiTags('health')
 @Controller('api')
 export class HealthController {
-  constructor(private readonly database: DatabaseService) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   @Get('health')
   @ApiOperation({ summary: 'Health check' })
   @ApiResponse({ status: 200, type: HealthResponseDto })
   async health() {
     try {
-      await this.database.ping();
+      await this.prisma.$queryRaw`SELECT 1`;
       return { status: 'ok', database: 'connected' };
     } catch (err) {
       throw new HttpException(

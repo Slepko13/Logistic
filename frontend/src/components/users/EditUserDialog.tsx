@@ -1,4 +1,7 @@
-import { useEffect, useState, FormEvent } from 'react';
+import { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -11,45 +14,18 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { isValidPhone, normalizePhone, validateName } from '@/lib/validation/auth';
+import { isValidPhone, normalizePhone } from '@/lib/validation/auth';
 import { UserListItemDto, UpdateUserDto } from '@/api/users';
 
-function buildInitialForm(user: UserListItemDto | null): UpdateUserDto {
-  return {
-    last_name: user?.last_name ?? '',
-    first_name: user?.first_name ?? '',
-    phone: user?.phone ?? '',
-  };
-}
+const editUserSchema = z.object({
+  last_name: z.string().min(3, 'Прізвище має містити мінімум 3 символи').trim(),
+  first_name: z.string().min(3, 'Імʼя має містити мінімум 3 символи').trim(),
+  phone: z.string().min(1, 'Номер телефону є обовʼязковим').refine(isValidPhone, {
+    message: 'Невірний формат номера телефону. Приклад: +380501234567',
+  }),
+});
 
-function preparePayload(form: UpdateUserDto): { errors: string[]; payload: UpdateUserDto | null } {
-  const errors: string[] = [];
-  const firstNameError = validateName(form.first_name, 'Імʼя');
-  const lastNameError = validateName(form.last_name, 'Прізвище');
-  const phoneRaw = form.phone?.trim() ?? '';
-
-  if (firstNameError) errors.push(firstNameError);
-  if (lastNameError) errors.push(lastNameError);
-
-  if (!phoneRaw) {
-    errors.push('Номер телефону є обовʼязковим');
-  } else if (!isValidPhone(phoneRaw)) {
-    errors.push('Невірний формат номера телефону. Приклад: +380501234567');
-  }
-
-  if (errors.length > 0) {
-    return { errors, payload: null };
-  }
-
-  return {
-    errors: [],
-    payload: {
-      last_name: form.last_name!.trim(),
-      first_name: form.first_name!.trim(),
-      phone: normalizePhone(phoneRaw)!,
-    },
-  };
-}
+type EditUserFormValues = z.infer<typeof editUserSchema>;
 
 export interface EditUserDialogProps {
   open: boolean;
@@ -68,39 +44,48 @@ export default function EditUserDialog({
   onOpenChange,
   onSave,
 }: EditUserDialogProps) {
-  const [form, setForm] = useState<UpdateUserDto>(buildInitialForm(user));
-  const [localError, setLocalError] = useState<string | null>(null);
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<EditUserFormValues>({
+    resolver: zodResolver(editUserSchema),
+    defaultValues: {
+      first_name: '',
+      last_name: '',
+      phone: '',
+    },
+  });
 
   useEffect(() => {
-    if (open) {
-      setForm(buildInitialForm(user));
-      setLocalError(null);
+    if (open && user) {
+      reset({
+        first_name: user.first_name,
+        last_name: user.last_name,
+        phone: user.phone,
+      });
+    } else if (!open) {
+      reset({
+        first_name: '',
+        last_name: '',
+        phone: '',
+      });
     }
-  }, [open, user]);
+  }, [open, user, reset]);
 
-  function updateField(field: keyof UpdateUserDto, value: string) {
-    setForm((prev) => ({ ...prev, [field]: value }));
-  }
-
-  async function handleSubmit(e: FormEvent) {
-    e.preventDefault();
-    setLocalError(null);
-
-    const { errors, payload } = preparePayload(form);
-    if (errors.length > 0) {
-      setLocalError(errors[0]);
-      return;
-    }
-
-    if (payload) {
-      await onSave(payload);
-    }
-  }
+  const onSubmit = async (data: EditUserFormValues) => {
+    await onSave({
+      first_name: data.first_name,
+      last_name: data.last_name,
+      phone: normalizePhone(data.phone)!,
+    });
+  };
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <AlertDialogHeader>
             <AlertDialogTitle>Редагувати користувача</AlertDialogTitle>
             <AlertDialogDescription>
@@ -111,38 +96,31 @@ export default function EditUserDialog({
           <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="edit-last-name">Прізвище</Label>
-              <Input
-                id="edit-last-name"
-                value={form.last_name || ''}
-                onChange={(e) => updateField('last_name', e.target.value)}
-                minLength={3}
-                required
-              />
+              <Input id="edit-last-name" {...register('last_name')} />
+              {errors.last_name && (
+                <p className="text-sm text-destructive">{errors.last_name.message}</p>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="edit-first-name">Імʼя</Label>
-              <Input
-                id="edit-first-name"
-                value={form.first_name || ''}
-                onChange={(e) => updateField('first_name', e.target.value)}
-                minLength={3}
-                required
-              />
+              <Input id="edit-first-name" {...register('first_name')} />
+              {errors.first_name && (
+                <p className="text-sm text-destructive">{errors.first_name.message}</p>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="edit-phone">Номер телефону</Label>
               <Input
                 id="edit-phone"
                 type="tel"
-                value={form.phone || ''}
-                onChange={(e) => updateField('phone', e.target.value)}
                 placeholder="+380501234567"
-                required
+                {...register('phone')}
               />
+              {errors.phone && (
+                <p className="text-sm text-destructive">{errors.phone.message}</p>
+              )}
             </div>
-            {(localError || error) && (
-              <p className="text-sm text-destructive">{localError || error}</p>
-            )}
+            {error && <p className="text-sm text-destructive">{error}</p>}
           </div>
 
           <AlertDialogFooter>

@@ -5,21 +5,12 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { isValidPhone, normalizePhone, phoneDigits, phoneLookupKeys } from '../common/phone.util';
 import { validateName } from '../auth/auth.validation';
-import { DatabaseService } from '../database/database.service';
+import { PrismaService } from '../database/prisma.service';
 import { UserRole, UserRoleType } from './user-role';
 import { UpdateUserDto } from './dto/update-user.dto';
-
-export interface User {
-  id: number;
-  phone: string;
-  first_name: string;
-  last_name: string;
-  password_hash: string;
-  role: UserRoleType;
-  created_at: string;
-}
 
 export interface PublicUser {
   id: number;
@@ -30,28 +21,36 @@ export interface PublicUser {
 }
 
 export interface UserListItem extends PublicUser {
-  created_at: string;
+  created_at: Date | string;
 }
 
 @Injectable()
 export class UsersService {
-  constructor(private readonly database: DatabaseService) {}
+  constructor(private readonly prisma: PrismaService) {}
 
-  async findByPhone(phone: string): Promise<User | null> {
+  async findByPhone(phone: string) {
     const keys = phoneLookupKeys(phone);
     const digitsVariants = keys.map(phoneDigits).filter(Boolean);
 
-    const { rows } = await this.database.getPool().query<User>(
-      `SELECT id, phone, first_name, last_name, password_hash, role, created_at
-       FROM users
-       WHERE phone = ANY($1::text[])
-          OR regexp_replace(phone, '\\D', '', 'g') = ANY($2::text[])`,
-      [keys, digitsVariants],
-    );
-    return rows[0] ?? null;
+    // Шукаємо по точним співпадінням
+    const exactMatch = await this.prisma.user.findFirst({
+      where: { phone: { in: keys } },
+    });
+    if (exactMatch) return exactMatch;
+
+    // Якщо не знайшли - використовуємо сирий запит для складної логіки з регулярками
+    if (digitsVariants.length > 0) {
+      const rawUsers = await this.prisma.$queryRawUnsafe<any[]>(
+        `SELECT * FROM users WHERE regexp_replace(phone, '\\D', '', 'g') = ANY($1::text[])`,
+        digitsVariants,
+      );
+      return rawUsers[0] ?? null;
+    }
+
+    return null;
   }
 
-  async findByPhoneNormalized(phone: string): Promise<User | null> {
+  async findByPhoneNormalized(phone: string) {
     const normalized = normalizePhone(phone);
     if (!normalized) {
       return this.findByPhone(phone);
@@ -60,36 +59,52 @@ export class UsersService {
   }
 
   async findAll(): Promise<UserListItem[]> {
-    const { rows } = await this.database.getPool().query<UserListItem>(
-      `SELECT id, phone, first_name, last_name, role, created_at
-       FROM users
-       ORDER BY created_at DESC`,
-    );
-    return rows;
+    const users = await this.prisma.user.findMany({
+      orderBy: { created_at: 'desc' },
+      select: {
+        id: true,
+        phone: true,
+        first_name: true,
+        last_name: true,
+        role: true,
+        created_at: true,
+      },
+    });
+    return users as unknown as UserListItem[];
   }
 
   async findById(id: number): Promise<PublicUser | null> {
-    const { rows } = await this.database
-      .getPool()
-      .query<PublicUser>(`SELECT id, phone, first_name, last_name, role FROM users WHERE id = $1`, [
-        id,
-      ]);
-    return rows[0] ?? null;
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        phone: true,
+        first_name: true,
+        last_name: true,
+        role: true,
+      },
+    });
+    return user as unknown as PublicUser | null;
   }
 
-  async create(
-    phone: string,
-    firstName: string,
-    lastName: string,
-    passwordHash: string,
-  ): Promise<PublicUser> {
-    const { rows } = await this.database.getPool().query<PublicUser>(
-      `INSERT INTO users (phone, first_name, last_name, password_hash, role)
-       VALUES ($1, $2, $3, $4, $5)
-       RETURNING id, phone, first_name, last_name, role`,
-      [phone, firstName, lastName, passwordHash, UserRole.DRIVER],
-    );
-    return rows[0];
+  async create(phone: string, firstName: string, lastName: string, passwordHash: string): Promise<PublicUser> {
+    const user = await this.prisma.user.create({
+      data: {
+        phone,
+        first_name: firstName,
+        last_name: lastName,
+        password_hash: passwordHash,
+        role: UserRole.DRIVER,
+      },
+      select: {
+        id: true,
+        phone: true,
+        first_name: true,
+        last_name: true,
+        role: true,
+      },
+    });
+    return user as unknown as PublicUser;
   }
 
   async deleteById(id: number): Promise<void> {
@@ -101,7 +116,9 @@ export class UsersService {
       throw new ForbiddenException('Неможливо видалити адміністратора');
     }
 
-    await this.database.getPool().query('DELETE FROM users WHERE id = $1', [id]);
+    await this.prisma.user.delete({
+      where: { id },
+    });
   }
 
   async promoteToAdmin(id: number): Promise<PublicUser> {
@@ -113,12 +130,18 @@ export class UsersService {
       throw new BadRequestException('Користувач вже є адміністратором');
     }
 
-    const { rows } = await this.database.getPool().query<PublicUser>(
-      `UPDATE users SET role = $1 WHERE id = $2
-       RETURNING id, phone, first_name, last_name, role`,
-      [UserRole.ADMIN, id],
-    );
-    return rows[0];
+    const updated = await this.prisma.user.update({
+      where: { id },
+      data: { role: UserRole.ADMIN },
+      select: {
+        id: true,
+        phone: true,
+        first_name: true,
+        last_name: true,
+        role: true,
+      },
+    });
+    return updated as unknown as PublicUser;
   }
 
   async updateById(id: number, dto: UpdateUserDto): Promise<PublicUser> {
@@ -152,17 +175,25 @@ export class UsersService {
       throw new ConflictException('Користувач з таким номером телефону вже існує');
     }
 
-    const { rows } = await this.database.getPool().query<PublicUser>(
-      `UPDATE users
-       SET phone = $1, first_name = $2, last_name = $3
-       WHERE id = $4
-       RETURNING id, phone, first_name, last_name, role`,
-      [normalizedPhone, dto.first_name!.trim(), dto.last_name!.trim(), id],
-    );
-    return rows[0];
+    const updated = await this.prisma.user.update({
+      where: { id },
+      data: {
+        phone: normalizedPhone,
+        first_name: dto.first_name!.trim(),
+        last_name: dto.last_name!.trim(),
+      },
+      select: {
+        id: true,
+        phone: true,
+        first_name: true,
+        last_name: true,
+        role: true,
+      },
+    });
+    return updated as unknown as PublicUser;
   }
 
-  toPublic(user: User | PublicUser): PublicUser {
+  toPublic(user: any): PublicUser {
     return {
       id: user.id,
       phone: user.phone,
