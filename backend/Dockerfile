@@ -5,19 +5,26 @@ WORKDIR /app
 COPY package.json package-lock.json* ./
 RUN npm install
 
-COPY nest-cli.json tsconfig.json ./
-COPY src ./src
-
+COPY . .
+RUN npx prisma generate
 RUN npm run build
+
+# Зберігаємо лише production залежності
+RUN npm prune --omit=dev
 
 FROM node:20-alpine
 
 WORKDIR /app
 
-COPY package.json package-lock.json* ./
-RUN npm install --omit=dev
+# Запуск від імені непривілейованого користувача node
+RUN chown -R node:node /app
+USER node
 
-COPY --from=builder /app/dist ./dist
+# Копіюємо лише необхідні файли з builder'а
+COPY --chown=node:node --from=builder /app/package.json ./
+COPY --chown=node:node --from=builder /app/node_modules ./node_modules
+COPY --chown=node:node --from=builder /app/dist ./dist
+COPY --chown=node:node --from=builder /app/prisma ./prisma
 
 EXPOSE 3001
 

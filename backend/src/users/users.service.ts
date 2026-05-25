@@ -4,12 +4,13 @@ import {
   ForbiddenException,
   Injectable,
   NotFoundException,
+  OnModuleInit,
 } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { Prisma, User } from '@prisma/client';
 import { isValidPhone, normalizePhone, phoneDigits, phoneLookupKeys } from '../common/phone.util';
 import { validateName } from '../auth/auth.validation';
 import { PrismaService } from '../database/prisma.service';
-import { UserRole, UserRoleType } from './user-role';
+import { INITIAL_ADMIN_PHONE, UserRole, UserRoleType } from './user-role';
 import { UpdateUserDto } from './dto/update-user.dto';
 
 export interface PublicUser {
@@ -25,8 +26,28 @@ export interface UserListItem extends PublicUser {
 }
 
 @Injectable()
-export class UsersService {
+export class UsersService implements OnModuleInit {
   constructor(private readonly prisma: PrismaService) {}
+
+  async onModuleInit() {
+    await this.promoteInitialAdmin();
+  }
+
+  private async promoteInitialAdmin() {
+    const adminPhone = INITIAL_ADMIN_PHONE;
+
+    const user = await this.prisma.user.findFirst({
+      where: { phone: adminPhone },
+    });
+
+    if (user && user.role !== UserRole.ADMIN) {
+      await this.prisma.user.update({
+        where: { id: user.id },
+        data: { role: UserRole.ADMIN },
+      });
+      console.log(`Promoted user with phone ${adminPhone} to ADMIN role.`);
+    }
+  }
 
   async findByPhone(phone: string) {
     const keys = phoneLookupKeys(phone);
@@ -40,9 +61,8 @@ export class UsersService {
 
     // Якщо не знайшли - використовуємо сирий запит для складної логіки з регулярками
     if (digitsVariants.length > 0) {
-      const rawUsers = await this.prisma.$queryRawUnsafe<any[]>(
-        `SELECT * FROM users WHERE regexp_replace(phone, '\\D', '', 'g') = ANY($1::text[])`,
-        digitsVariants,
+      const rawUsers = await this.prisma.$queryRaw<User[]>(
+        Prisma.sql`SELECT * FROM users WHERE regexp_replace(phone, '\\D', '', 'g') = ANY(${digitsVariants}::text[])`,
       );
       return rawUsers[0] ?? null;
     }
@@ -206,13 +226,13 @@ export class UsersService {
     return updated as unknown as PublicUser;
   }
 
-  toPublic(user: any): PublicUser {
+  toPublic(user: User): PublicUser {
     return {
       id: user.id,
       phone: user.phone,
       first_name: user.first_name,
       last_name: user.last_name,
-      role: user.role,
+      role: user.role as UserRoleType,
     };
   }
 }

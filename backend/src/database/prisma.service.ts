@@ -2,8 +2,6 @@ import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
 import { Pool } from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
-import { INITIAL_ADMIN_PHONE, UserRole } from '../users/user-role';
-
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
   constructor() {
@@ -24,27 +22,9 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
   }
   async onModuleInit() {
     await this.$connect();
-    await this.promoteInitialAdmin();
   }
 
   async onModuleDestroy() {
     await this.$disconnect();
-  }
-
-  private async promoteInitialAdmin() {
-    const adminPhone = INITIAL_ADMIN_PHONE;
-
-    // Find the user by phone
-    const user = await this.user.findUnique({
-      where: { phone: adminPhone },
-    });
-
-    if (user && user.role !== UserRole.ADMIN) {
-      await this.user.update({
-        where: { id: user.id },
-        data: { role: UserRole.ADMIN },
-      });
-      console.log(`Promoted user with phone ${adminPhone} to ADMIN role.`);
-    }
   }
 }
