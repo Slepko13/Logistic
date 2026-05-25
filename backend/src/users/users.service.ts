@@ -93,13 +93,16 @@ export class UsersService {
     lastName: string,
     passwordHash: string,
   ): Promise<PublicUser> {
+    const count = await this.prisma.user.count();
+    const role = count === 0 ? UserRole.ADMIN : UserRole.DRIVER;
+
     const user = await this.prisma.user.create({
       data: {
         phone,
         first_name: firstName,
         last_name: lastName,
         password_hash: passwordHash,
-        role: UserRole.DRIVER,
+        role,
       },
       select: {
         id: true,
