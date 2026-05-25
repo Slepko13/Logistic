@@ -4,6 +4,8 @@ import { Pool } from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
+  private readonly pool: Pool;
+
   constructor() {
     const dbUser = process.env.DB_USER || 'logistic';
     const dbPassword = process.env.DB_PASSWORD || 'logistic';
@@ -19,6 +21,7 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
     const adapter = new PrismaPg(pool);
 
     super({ adapter });
+    this.pool = pool;
   }
   async onModuleInit() {
     await this.$connect();
@@ -26,5 +29,6 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
 
   async onModuleDestroy() {
     await this.$disconnect();
+    await this.pool.end();
   }
 }
