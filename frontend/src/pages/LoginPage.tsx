@@ -13,10 +13,14 @@ import PasswordInput from '@/components/common/PasswordInput';
 import { isValidPhone, normalizePhone } from '@/lib/validation/auth';
 
 const loginSchema = z.object({
-  phone: z.string().min(1, 'Номер телефону є обовʼязковим').refine(isValidPhone, {
-    message: 'Невірний формат номера телефону. Приклад: +380501234567',
-  }),
-  password: z.string().min(1, 'Пароль є обовʼязковим'),
+  phone: z
+    .string()
+    .min(1, 'Номер телефону є обовʼязковим')
+    .max(20, 'Телефон занадто довгий')
+    .refine(isValidPhone, {
+      message: 'Невірний формат номера телефону. Приклад: +380501234567',
+    }),
+  password: z.string().min(1, 'Пароль є обовʼязковим').max(100, 'Пароль занадто довгий'),
 });
 
 type LoginFormValues = z.infer<typeof loginSchema>;

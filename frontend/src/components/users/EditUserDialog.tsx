@@ -18,11 +18,23 @@ import { isValidPhone, normalizePhone } from '@/lib/validation/auth';
 import { UserListItemDto, UpdateUserDto } from '@/api/users';
 
 const editUserSchema = z.object({
-  last_name: z.string().min(3, 'Прізвище має містити мінімум 3 символи').trim(),
-  first_name: z.string().min(3, 'Імʼя має містити мінімум 3 символи').trim(),
-  phone: z.string().min(1, 'Номер телефону є обовʼязковим').refine(isValidPhone, {
-    message: 'Невірний формат номера телефону. Приклад: +380501234567',
-  }),
+  last_name: z
+    .string()
+    .min(3, 'Прізвище має містити мінімум 3 символи')
+    .max(50, 'Прізвище не може бути довшим за 50 символів')
+    .trim(),
+  first_name: z
+    .string()
+    .min(3, 'Імʼя має містити мінімум 3 символи')
+    .max(50, 'Імʼя не може бути довшим за 50 символів')
+    .trim(),
+  phone: z
+    .string()
+    .min(1, 'Номер телефону є обовʼязковим')
+    .max(20, 'Телефон занадто довгий')
+    .refine(isValidPhone, {
+      message: 'Невірний формат номера телефону. Приклад: +380501234567',
+    }),
 });
 
 type EditUserFormValues = z.infer<typeof editUserSchema>;

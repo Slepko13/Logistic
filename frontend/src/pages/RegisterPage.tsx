@@ -17,18 +17,30 @@ const registerSchema = z
     last_name: z
       .string()
       .min(1, 'Прізвище є обовʼязковим')
+      .max(50, 'Прізвище не може бути довшим за 50 символів')
       .refine((val) => countLetters(val) >= 3, 'Прізвище має містити щонайменше 3 літери')
       .transform((val) => val.trim()),
     first_name: z
       .string()
       .min(1, 'Імʼя є обовʼязковим')
+      .max(50, 'Імʼя не може бути довшим за 50 символів')
       .refine((val) => countLetters(val) >= 3, 'Імʼя має містити щонайменше 3 літери')
       .transform((val) => val.trim()),
-    phone: z.string().min(1, 'Номер телефону є обовʼязковим').refine(isValidPhone, {
-      message: 'Невірний формат номера телефону. Приклад: +380501234567',
-    }),
-    password: z.string().min(6, 'Пароль має містити щонайменше 6 символів'),
-    confirmPassword: z.string().min(6, 'Пароль має містити щонайменше 6 символів'),
+    phone: z
+      .string()
+      .min(1, 'Номер телефону є обовʼязковим')
+      .max(20, 'Телефон занадто довгий')
+      .refine(isValidPhone, {
+        message: 'Невірний формат номера телефону. Приклад: +380501234567',
+      }),
+    password: z
+      .string()
+      .min(6, 'Пароль має містити щонайменше 6 символів')
+      .max(100, 'Пароль занадто довгий'),
+    confirmPassword: z
+      .string()
+      .min(6, 'Пароль має містити щонайменше 6 символів')
+      .max(100, 'Пароль занадто довгий'),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: 'Паролі не збігаються',
