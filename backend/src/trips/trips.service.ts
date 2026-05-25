@@ -71,17 +71,17 @@ export class TripsService {
   async update(id: number, updateTripDto: UpdateTripDto) {
     const trip = await this.findOne(id);
 
-    // Parse date if provided
-    let parsedDate = undefined;
-    if (updateTripDto.date) {
-      parsedDate = new Date(updateTripDto.date);
-    }
-
     return this.prisma.trip.update({
       where: { id: trip.id },
       data: {
-        route: updateTripDto.route !== undefined ? updateTripDto.route : undefined,
-        date: parsedDate !== undefined ? parsedDate : undefined,
+        departure_city:
+          updateTripDto.departure_city !== undefined ? updateTripDto.departure_city : undefined,
+        departure_date: updateTripDto.departure_date
+          ? new Date(updateTripDto.departure_date)
+          : undefined,
+        arrival_city:
+          updateTripDto.arrival_city !== undefined ? updateTripDto.arrival_city : undefined,
+        arrival_date: updateTripDto.arrival_date ? new Date(updateTripDto.arrival_date) : undefined,
       },
     });
   }
@@ -146,5 +146,163 @@ export class TripsService {
         },
       },
     });
+  }
+
+  // --- SEATS ---
+
+  async addSeat(tripId: number) {
+    const trip = await this.findOne(tripId);
+
+    // Find highest seat number for this trip
+    const maxSeat = await this.prisma.tripSeat.aggregate({
+      where: { trip_id: tripId },
+      _max: { seat_number: true },
+    });
+
+    const nextSeatNumber = (maxSeat._max.seat_number || 0) + 1;
+
+    return this.prisma.tripSeat.create({
+      data: {
+        trip_id: tripId,
+        seat_number: nextSeatNumber,
+      },
+    });
+  }
+
+  async removeSeat(tripId: number, seatNumber: number) {
+    const trip = await this.findOne(tripId);
+
+    const seat = await this.prisma.tripSeat.findUnique({
+      where: {
+        trip_id_seat_number: {
+          trip_id: tripId,
+          seat_number: seatNumber,
+        },
+      },
+    });
+
+    if (!seat) {
+      throw new NotFoundException('Seat not found');
+    }
+
+    return this.prisma.tripSeat.delete({
+      where: { id: seat.id },
+    });
+  }
+
+  async updateSeat(tripId: number, seatNumber: number, dto: any, updatedById: number) {
+    const trip = await this.findOne(tripId);
+
+    // Seat must exist since we created 7 empty seats
+    const seat = await this.prisma.tripSeat.findUnique({
+      where: {
+        trip_id_seat_number: {
+          trip_id: tripId,
+          seat_number: seatNumber,
+        },
+      },
+    });
+
+    if (!seat) {
+      throw new NotFoundException('Seat not found');
+    }
+
+    return this.prisma.tripSeat.update({
+      where: { id: seat.id },
+      data: {
+        first_name: dto.first_name,
+        last_name: dto.last_name,
+        phone: dto.phone,
+        baggage_info: dto.baggage_info ? dto.baggage_info : null,
+        updated_by_id: updatedById,
+      },
+    });
+  }
+
+  // --- PARCELS ---
+
+  async addParcel(tripId: number, dto: any, updatedById: number) {
+    const trip = await this.findOne(tripId);
+
+    return this.prisma.tripParcel.create({
+      data: {
+        trip_id: tripId,
+        first_name: dto.first_name,
+        last_name: dto.last_name,
+        phone: dto.phone,
+        weight: dto.weight,
+        delivery_address: dto.delivery_address,
+        updated_by_id: updatedById,
+      },
+    });
+  }
+
+  async updateParcel(tripId: number, parcelId: number, dto: any, updatedById: number) {
+    const parcel = await this.prisma.tripParcel.findUnique({
+      where: { id: parcelId },
+    });
+
+    if (!parcel || parcel.trip_id !== tripId) {
+      throw new NotFoundException('Parcel not found');
+    }
+
+    return this.prisma.tripParcel.update({
+      where: { id: parcelId },
+      data: {
+        first_name: dto.first_name,
+        last_name: dto.last_name,
+        phone: dto.phone,
+        weight: dto.weight,
+        delivery_address: dto.delivery_address,
+        is_delivered: dto.is_delivered,
+        updated_by_id: updatedById,
+      },
+    });
+  }
+
+  async removeParcel(tripId: number, parcelId: number) {
+    const parcel = await this.prisma.tripParcel.findUnique({
+      where: { id: parcelId },
+    });
+
+    if (!parcel || parcel.trip_id !== tripId) {
+      throw new NotFoundException('Parcel not found');
+    }
+
+    return this.prisma.tripParcel.delete({
+      where: { id: parcelId },
+    });
+  }
+
+  // --- TRIP COMPLETION ---
+
+  async completeTrip(tripId: number) {
+    const trip = await this.findOne(tripId);
+
+    // 1. Mark current trip as completed
+    await this.prisma.trip.update({
+      where: { id: tripId },
+      data: { status: 'completed' },
+    });
+
+    // 2. Create new active trip for the same vehicle
+    const newTrip = await this.prisma.trip.create({
+      data: {
+        vehicle_id: trip.vehicle_id,
+        status: 'active',
+      },
+    });
+
+    // 3. Create 7 empty seats for the new trip
+    const seatsData = Array.from({ length: 7 }).map((_, i) => ({
+      trip_id: newTrip.id,
+      seat_number: i + 1,
+    }));
+
+    await this.prisma.tripSeat.createMany({
+      data: seatsData,
+    });
+
+    return this.findOne(newTrip.id);
   }
 }

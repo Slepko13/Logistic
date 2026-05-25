@@ -15,6 +15,7 @@ const AdminUsersPage = lazy(() => import('@/pages/AdminUsersPage'));
 const LoginPage = lazy(() => import('@/pages/LoginPage'));
 const RegisterPage = lazy(() => import('@/pages/RegisterPage'));
 const NotFoundPage = lazy(() => import('@/pages/NotFoundPage'));
+const TripDetailPage = lazy(() => import('@/pages/TripDetailPage'));
 
 import { FallbackProps } from 'react-error-boundary';
 
@@ -69,6 +70,7 @@ export default function AppRoutes() {
               <Route element={<ProtectedRoute />}>
                 <Route element={<AppLayout />}>
                   <Route index element={<DashboardPage />} />
+                  <Route path="trips/:id" element={<TripDetailPage />} />
                   <Route element={<AdminRoute />}>
                     <Route path="admin/users" element={<AdminUsersPage />} />
                   </Route>

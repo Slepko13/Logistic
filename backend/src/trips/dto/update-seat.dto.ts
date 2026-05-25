@@ -1,0 +1,19 @@
+import { IsString, IsOptional, IsArray } from 'class-validator';
+
+export class UpdateSeatDto {
+  @IsOptional()
+  @IsString()
+  first_name?: string | null;
+
+  @IsOptional()
+  @IsString()
+  last_name?: string | null;
+
+  @IsOptional()
+  @IsString()
+  phone?: string | null;
+
+  @IsOptional()
+  @IsArray()
+  baggage_info?: any[] | null;
+}

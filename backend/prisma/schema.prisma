@@ -44,15 +44,19 @@ model Vehicle {
 model Trip {
   id         Int       @id @default(autoincrement())
   vehicle_id Int
-  route      String?   @db.VarChar(128) // "Київ - Варшава"
-  date       DateTime? @db.Date
-  status     String    @default("active") // "active" або "completed"
   created_at DateTime  @default(now()) @db.Timestamptz()
 
   vehicle Vehicle      @relation(fields: [vehicle_id], references: [id])
   drivers TripDriver[]
   seats   TripSeat[]
   parcels TripParcel[]
+
+  departure_city String?   @db.VarChar(64)
+  departure_date DateTime?
+  arrival_city   String?   @db.VarChar(64)
+  arrival_date   DateTime?
+
+  status String @default("active") @db.VarChar(20) // 'active', 'completed'
 
   @@map("trips")
 }
