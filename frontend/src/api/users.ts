@@ -5,8 +5,8 @@ export type UserListItemDto = components['schemas']['UserListItemDto'];
 export type UpdateUserDto = components['schemas']['UpdateUserDto'];
 export type PublicUserDto = components['schemas']['PublicUserDto'];
 
-export function fetchUsers(options?: RequestInit): Promise<UserListItemDto[]> {
-  return apiFetch<UserListItemDto[]>('/api/users', options);
+export function fetchUsers(): Promise<UserListItemDto[]> {
+  return apiFetch<UserListItemDto[]>('/api/users');
 }
 
 export function deleteUser(id: number): Promise<void> {

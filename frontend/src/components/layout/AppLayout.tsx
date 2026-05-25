@@ -13,6 +13,11 @@ const navLinkClass = ({ isActive }: { isActive: boolean }) =>
     isActive ? 'bg-accent text-accent-foreground' : 'text-muted-foreground',
   );
 
+const NAV_LINKS = [
+  { to: '/', label: 'Панель', icon: LayoutDashboard, end: true },
+  { to: '/admin/users', label: 'Користувачі', icon: Users, adminOnly: true },
+];
+
 export default function AppLayout() {
   const { user, logout, isAdmin } = useAuth();
 
@@ -40,16 +45,16 @@ export default function AppLayout() {
           </div>
         </div>
         <nav className="flex flex-wrap gap-2" aria-label="Основна навігація">
-          <NavLink to="/" end className={navLinkClass}>
-            <LayoutDashboard className="h-4 w-4" />
-            Панель
-          </NavLink>
-          {isAdmin && (
-            <NavLink to="/admin/users" className={navLinkClass}>
-              <Users className="h-4 w-4" />
-              Користувачі
-            </NavLink>
-          )}
+          {NAV_LINKS.map((link) => {
+            if (link.adminOnly && !isAdmin) return null;
+            const Icon = link.icon;
+            return (
+              <NavLink key={link.to} to={link.to} end={link.end} className={navLinkClass}>
+                <Icon className="h-4 w-4" />
+                {link.label}
+              </NavLink>
+            );
+          })}
         </nav>
       </header>
       <main>

@@ -12,16 +12,7 @@ import {
 } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { UserListItemDto } from '@/api/users';
-
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleString('uk-UA', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-}
+import { formatDate } from '@/lib/utils';
 
 export interface UsersTableProps {
   users: UserListItemDto[];

@@ -1,5 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { ValidationPipe } from '@nestjs/common';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import { AppModule } from './app.module';
@@ -32,6 +33,9 @@ function getCorsOrigins(): string[] {
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  // Валідація DTO
+  app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }));
+
   // LOGGING: Логування всіх вхідних запитів у консоль (дуже корисно для відладки)
   app.use(morgan('dev'));
 
@@ -45,7 +49,6 @@ async function bootstrap() {
     origin: getCorsOrigins(),
     methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: true,
     maxAge: 86400, // Кешувати preflight 24 години
   });
 
