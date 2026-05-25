@@ -5,6 +5,7 @@ import { AuthModule } from './auth/auth.module';
 import { DatabaseModule } from './database/database.module';
 import { HealthController } from './health/health.controller';
 import { UsersModule } from './users/users.module';
+import { TripsModule } from './trips/trips.module';
 
 // AppModule - це найголовніший модуль вашого бекенду.
 // Тут ми "склеюємо" всі інші модулі (Auth, Database) в одну велику програму.
@@ -16,6 +17,8 @@ import { UsersModule } from './users/users.module';
     UsersModule,
     // Підключаємо модуль авторизації (логіка логіну/реєстрації)
     AuthModule,
+    // Підключаємо модуль подорожей
+    TripsModule,
     // 3. RATE LIMITING (Обмеження запитів):
     // Захищаємо бекенд від ботів та брутфорсу (підбору паролів).
     // Дозволяємо максимум 60 запитів за 1 хвилину з однієї IP адреси.

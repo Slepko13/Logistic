@@ -4,23 +4,109 @@
 // Get a free hosted Postgres database in seconds: `npx create-db`
 
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["driverAdapters"]
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 model User {
-  id            Int      @id @default(autoincrement())
-  phone         String   @unique @db.VarChar(20)
-  first_name    String   @db.VarChar(64)
-  last_name     String   @db.VarChar(64)
-  password_hash String   @db.VarChar(255)
-  role          String   @default("driver") @db.VarChar(16)
-  created_at    DateTime @default(now()) @db.Timestamptz()
+  id            Int          @id @default(autoincrement())
+  phone         String       @unique @db.VarChar(20)
+  first_name    String       @db.VarChar(64)
+  last_name     String       @db.VarChar(64)
+  password_hash String       @db.VarChar(255)
+  role          String       @default("driver") @db.VarChar(16)
+  created_at    DateTime     @default(now()) @db.Timestamptz()
+  tripDrivers   TripDriver[]
+  tripSeats     TripSeat[]
+  tripParcels   TripParcel[]
 
   @@map("users")
+}
+
+// -----------------------------------------------------------------------------
+// BUSES & TRIPS DOMAIN
+// -----------------------------------------------------------------------------
+
+// Фізичний автобус
+model Vehicle {
+  id           Int     @id @default(autoincrement())
+  name         String  @db.VarChar(64) // Наприклад "Автобус 1"
+  plate_number String? @db.VarChar(20)
+  trips        Trip[]
+
+  @@map("vehicles")
+}
+
+// Активний або завершений рейс
+model Trip {
+  id         Int       @id @default(autoincrement())
+  vehicle_id Int
+  route      String?   @db.VarChar(128) // "Київ - Варшава"
+  date       DateTime? @db.Date
+  status     String    @default("active") // "active" або "completed"
+  created_at DateTime  @default(now()) @db.Timestamptz()
+
+  vehicle Vehicle      @relation(fields: [vehicle_id], references: [id])
+  drivers TripDriver[]
+  seats   TripSeat[]
+  parcels TripParcel[]
+
+  @@map("trips")
+}
+
+// Прив'язка водіїв до рейсу (Секція 1)
+model TripDriver {
+  trip_id Int
+  user_id Int
+  trip    Trip @relation(fields: [trip_id], references: [id], onDelete: Cascade)
+  user    User @relation(fields: [user_id], references: [id])
+
+  @@id([trip_id, user_id])
+  @@map("trip_drivers")
+}
+
+// Місця пасажирів (Секція 2)
+model TripSeat {
+  id           Int     @id @default(autoincrement())
+  trip_id      Int
+  seat_number  Int // від 1 до 7
+  first_name   String? @db.VarChar(64)
+  last_name    String? @db.VarChar(64)
+  phone        String? @db.VarChar(20)
+  baggage_info Json? // Наприклад: [{ count: 1, weight: 20 }]
+
+  // Аудит
+  updated_at    DateTime @updatedAt @db.Timestamptz()
+  updated_by_id Int?
+
+  trip       Trip  @relation(fields: [trip_id], references: [id], onDelete: Cascade)
+  updated_by User? @relation(fields: [updated_by_id], references: [id])
+
+  @@unique([trip_id, seat_number])
+  @@map("trip_seats")
+}
+
+// Посилки (Секція 3)
+model TripParcel {
+  id               Int     @id @default(autoincrement())
+  trip_id          Int
+  parcel_number    Int     @default(autoincrement()) // Послідовний цифровий номер
+  first_name       String  @db.VarChar(64)
+  last_name        String  @db.VarChar(64)
+  phone            String  @db.VarChar(20)
+  weight           Float
+  delivery_address String  @db.VarChar(255) // Адреса доставки
+  is_delivered     Boolean @default(false) // Чекбокс "Доставлено"
+
+  // Аудит
+  updated_at    DateTime @updatedAt @db.Timestamptz()
+  updated_by_id Int?
+
+  trip       Trip  @relation(fields: [trip_id], references: [id], onDelete: Cascade)
+  updated_by User? @relation(fields: [updated_by_id], references: [id])
+
+  @@map("trip_parcels")
 }
