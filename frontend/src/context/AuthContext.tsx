@@ -7,7 +7,8 @@ import {
   useState,
   ReactNode,
 } from 'react';
-import { isAbortError, setUnauthorizedHandler } from '@/api/client';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { setUnauthorizedHandler } from '@/api/client';
 import * as authApi from '../api/auth';
 import { TOKEN_KEY, USER_KEY } from '../api/config';
 import { UserRole, UserRoleType } from '../constants/userRole';
@@ -24,7 +25,7 @@ export interface AuthContextType {
   isDriver: boolean;
   hasRole: (roles: UserRoleType[]) => boolean;
   bootstrapping: boolean;
-  bootstrap: (options?: RequestInit) => Promise<void>;
+  bootstrap: () => Promise<void>;
   login: (payload: LoginDto) => Promise<authApi.PublicUserDto>;
   register: (payload: RegisterDto) => Promise<authApi.PublicUserDto>;
   logout: () => void;
@@ -46,50 +47,47 @@ function readStoredAuth(): { token: string | null; user: authApi.PublicUserDto |
 export function AuthProvider({ children }: { children: ReactNode }) {
   const stored = readStoredAuth();
   const [token, setToken] = useState<string | null>(stored.token);
-  const [user, setUser] = useState<authApi.PublicUserDto | null>(stored.user);
-  const [bootstrapping, setBootstrapping] = useState<boolean>(!!stored.token);
-
-  const persistAuth = useCallback((accessToken: string, authUser: authApi.PublicUserDto) => {
-    localStorage.setItem(TOKEN_KEY, accessToken);
-    localStorage.setItem(USER_KEY, JSON.stringify(authUser));
-    setToken(accessToken);
-    setUser(authUser);
-  }, []);
+  const queryClient = useQueryClient();
 
   const clearAuth = useCallback(() => {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
     setToken(null);
-    setUser(null);
-  }, []);
+    queryClient.setQueryData(['me'], null);
+  }, [queryClient]);
 
   useEffect(() => {
     setUnauthorizedHandler(clearAuth);
     return () => setUnauthorizedHandler(() => {});
   }, [clearAuth]);
 
-  const bootstrap = useCallback(
-    async (options?: RequestInit) => {
-      if (!localStorage.getItem(TOKEN_KEY)) {
-        setBootstrapping(false);
-        return;
-      }
-      try {
-        const me = await authApi.fetchMe(options);
-        setUser(me);
-        localStorage.setItem(USER_KEY, JSON.stringify(me));
-      } catch (err) {
-        if (!isAbortError(err)) {
-          clearAuth();
-        }
-      } finally {
-        if (!options?.signal?.aborted) {
-          setBootstrapping(false);
-        }
-      }
+  const { data: user = null, isLoading: bootstrapping, refetch } = useQuery({
+    queryKey: ['me'],
+    queryFn: async () => {
+      const me = await authApi.fetchMe();
+      localStorage.setItem(USER_KEY, JSON.stringify(me));
+      return me;
     },
-    [clearAuth],
+    enabled: !!token,
+    retry: false, // Don't retry on 401
+    initialData: stored.user,
+  });
+
+  const persistAuth = useCallback(
+    (accessToken: string, authUser: authApi.PublicUserDto) => {
+      localStorage.setItem(TOKEN_KEY, accessToken);
+      localStorage.setItem(USER_KEY, JSON.stringify(authUser));
+      setToken(accessToken);
+      queryClient.setQueryData(['me'], authUser);
+    },
+    [queryClient]
   );
+
+  const bootstrap = useCallback(async () => {
+    if (token) {
+      await refetch();
+    }
+  }, [token, refetch]);
 
   const login = useCallback(
     async (payload: LoginDto) => {
@@ -97,7 +95,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       persistAuth(data.access_token, data.user);
       return data.user;
     },
-    [persistAuth],
+    [persistAuth]
   );
 
   const register = useCallback(
@@ -106,7 +104,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       persistAuth(data.access_token, data.user);
       return data.user;
     },
-    [persistAuth],
+    [persistAuth]
   );
 
   const logout = useCallback(() => {
@@ -121,13 +119,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isAdmin: user?.role === UserRole.ADMIN,
       isDriver: user?.role === UserRole.DRIVER,
       hasRole: (roles: UserRoleType[]) => !!user && roles.includes(user.role as UserRoleType),
-      bootstrapping,
+      bootstrapping: bootstrapping && !user, // Only true if we don't have initial data
       bootstrap,
       login,
       register,
       logout,
     }),
-    [token, user, bootstrapping, bootstrap, login, register, logout],
+    [token, user, bootstrapping, bootstrap, login, register, logout]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

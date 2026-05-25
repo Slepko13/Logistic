@@ -1,8 +1,8 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import * as usersApi from '@/api/users';
 import { UserListItemDto, UpdateUserDto } from '@/api/users';
-import { isAbortError } from '@/api/client';
 import { useAuth } from '@/context/AuthContext';
 
 export interface ConfirmState {
@@ -13,44 +13,77 @@ export interface ConfirmState {
 
 export function useAdminUsers() {
   const { user: currentUser, bootstrap } = useAuth();
-  const [users, setUsers] = useState<UserListItemDto[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
-  const [usersActionError, setUsersActionError] = useState<string | null>(null);
   const [confirm, setConfirm] = useState<ConfirmState | null>(null);
-  const [confirming, setConfirming] = useState(false);
-
   const [editingUser, setEditingUser] = useState<UserListItemDto | null>(null);
-  const [savingUser, setSavingUser] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
+  const [usersActionError, setUsersActionError] = useState<string | null>(null);
 
-  const loadUsers = useCallback(async (options?: RequestInit) => {
-    return usersApi.fetchUsers(options);
-  }, []);
+  // 1. Отримання користувачів
+  const {
+    data: users = [],
+    isLoading: loading,
+    error: fetchError,
+  } = useQuery({
+    queryKey: ['adminUsers'],
+    queryFn: () => usersApi.fetchUsers(),
+  });
 
-  useEffect(() => {
-    const controller = new AbortController();
+  const error = fetchError ? (fetchError as Error).message : null;
 
-    async function load() {
-      try {
-        const usersData = await loadUsers({ signal: controller.signal });
-        setUsers(usersData);
-      } catch (err: any) {
-        if (!isAbortError(err)) setError(err.message || 'Error');
-      } finally {
-        if (!controller.signal.aborted) {
-          setLoading(false);
-        }
+  // 2. Видалення користувача
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => usersApi.deleteUser(id),
+    onSuccess: (_, deletedId) => {
+      const deletedName = confirm?.userId === deletedId ? confirm.name : '';
+      toast.success(`Користувача ${deletedName} успішно видалено`);
+      queryClient.invalidateQueries({ queryKey: ['adminUsers'] });
+      setConfirm(null);
+    },
+    onError: (err: any) => {
+      const msg = err.message || 'Помилка видалення';
+      setUsersActionError(msg);
+      toast.error(msg);
+      setConfirm(null);
+    },
+  });
+
+  // 3. Підвищення до адміністратора
+  const promoteMutation = useMutation({
+    mutationFn: (id: number) => usersApi.promoteToAdmin(id),
+    onSuccess: (_, promotedId) => {
+      const promotedName = confirm?.userId === promotedId ? confirm.name : '';
+      toast.success(`Користувач ${promotedName} тепер адміністратор`);
+      queryClient.invalidateQueries({ queryKey: ['adminUsers'] });
+      setConfirm(null);
+    },
+    onError: (err: any) => {
+      const msg = err.message || 'Помилка підвищення прав';
+      setUsersActionError(msg);
+      toast.error(msg);
+      setConfirm(null);
+    },
+  });
+
+  // 4. Оновлення користувача
+  const updateMutation = useMutation({
+    mutationFn: ({ id, payload }: { id: number; payload: UpdateUserDto }) =>
+      usersApi.updateUser(id, payload),
+    onSuccess: async (updatedUser) => {
+      toast.success('Дані користувача успішно оновлено');
+      if (updatedUser.id === currentUser?.id) {
+        await bootstrap();
       }
-    }
-
-    load();
-
-    return () => {
-      controller.abort();
-    };
-  }, [loadUsers]);
+      queryClient.invalidateQueries({ queryKey: ['adminUsers'] });
+      setEditingUser(null);
+    },
+    onError: (err: any) => {
+      const msg = err.message || 'Помилка оновлення';
+      setEditError(msg);
+      toast.error(msg);
+    },
+  });
 
   const openDeleteConfirm = useCallback((targetUser: UserListItemDto) => {
     setConfirm({
@@ -73,54 +106,25 @@ export function useAdminUsers() {
     setEditingUser(targetUser);
   }, []);
 
-  const handleConfirmAction = useCallback(async () => {
+  const handleConfirmAction = useCallback(() => {
     if (!confirm) return;
-
     setUsersActionError(null);
-    setConfirming(true);
-    try {
-      if (confirm.type === 'delete') {
-        await usersApi.deleteUser(confirm.userId);
-        toast.success(`Користувача ${confirm.name} успішно видалено`);
-      } else {
-        await usersApi.promoteToAdmin(confirm.userId);
-        toast.success(`Користувач ${confirm.name} тепер адміністратор`);
-      }
-      setUsers(await loadUsers());
-      setConfirm(null);
-    } catch (err: any) {
-      const msg = err.message || 'Error';
-      setUsersActionError(msg);
-      toast.error(msg);
-      setConfirm(null);
-    } finally {
-      setConfirming(false);
-    }
-  }, [confirm, loadUsers]);
 
-  const handleSaveUser = useCallback(async (payload: UpdateUserDto) => {
-    if (!editingUser) return;
-
-    setEditError(null);
-    setSavingUser(true);
-    try {
-      const updatedUser = await usersApi.updateUser(editingUser.id, payload);
-      setUsers((prev) =>
-        prev.map((item) => (item.id === updatedUser.id ? { ...item, ...updatedUser } : item)),
-      );
-      if (updatedUser.id === currentUser?.id) {
-        await bootstrap();
-      }
-      toast.success('Дані користувача успішно оновлено');
-      setEditingUser(null);
-    } catch (err: any) {
-      const msg = err.message || 'Error';
-      setEditError(msg);
-      toast.error(msg);
-    } finally {
-      setSavingUser(false);
+    if (confirm.type === 'delete') {
+      deleteMutation.mutate(confirm.userId);
+    } else {
+      promoteMutation.mutate(confirm.userId);
     }
-  }, [editingUser, currentUser?.id, bootstrap]);
+  }, [confirm, deleteMutation, promoteMutation]);
+
+  const handleSaveUser = useCallback(
+    async (payload: UpdateUserDto) => {
+      if (!editingUser) return;
+      setEditError(null);
+      updateMutation.mutate({ id: editingUser.id, payload });
+    },
+    [editingUser, updateMutation],
+  );
 
   return {
     users,
@@ -128,11 +132,11 @@ export function useAdminUsers() {
     error,
     confirm,
     setConfirm,
-    confirming,
+    confirming: deleteMutation.isPending || promoteMutation.isPending,
     usersActionError,
     editingUser,
     setEditingUser,
-    savingUser,
+    savingUser: updateMutation.isPending,
     editError,
     openDeleteConfirm,
     openPromoteConfirm,
