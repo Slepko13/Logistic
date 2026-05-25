@@ -17,7 +17,7 @@ import { JwtAuthGuard } from './jwt-auth.guard';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  // Обробляє POST запит на реєстрацію. 
+  // Обробляє POST запит на реєстрацію.
   // @Body() означає "візьми всі дані (телефон, ім'я, пароль), які користувач ввів у формі".
   @Post('register')
   @ApiOperation({ summary: 'Register new user' })

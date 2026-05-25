@@ -87,7 +87,12 @@ export class UsersService {
     return user as unknown as PublicUser | null;
   }
 
-  async create(phone: string, firstName: string, lastName: string, passwordHash: string): Promise<PublicUser> {
+  async create(
+    phone: string,
+    firstName: string,
+    lastName: string,
+    passwordHash: string,
+  ): Promise<PublicUser> {
     const user = await this.prisma.user.create({
       data: {
         phone,

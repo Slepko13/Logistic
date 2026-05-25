@@ -116,9 +116,7 @@ export default function EditUserDialog({
                 placeholder="+380501234567"
                 {...register('phone')}
               />
-              {errors.phone && (
-                <p className="text-sm text-destructive">{errors.phone.message}</p>
-              )}
+              {errors.phone && <p className="text-sm text-destructive">{errors.phone.message}</p>}
             </div>
             {error && <p className="text-sm text-destructive">{error}</p>}
           </div>

@@ -25,8 +25,8 @@ function ErrorFallback({ error }: { error: Error }) {
       <pre className="mb-8 p-4 bg-white rounded shadow text-left text-sm text-red-800 max-w-2xl overflow-auto">
         {error.message}
       </pre>
-      <button 
-        onClick={() => window.location.reload()} 
+      <button
+        onClick={() => window.location.reload()}
         className="rounded bg-blue-600 px-6 py-2 text-white hover:bg-blue-700 transition"
       >
         Перезавантажити сторінку

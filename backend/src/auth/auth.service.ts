@@ -12,7 +12,7 @@ import {
 } from './auth.validation';
 
 // Service (Сервіс) - це місце, де живе вся "бізнес-логіка".
-// Контролер просто приймає дані, а Сервіс робить всю брудну роботу: 
+// Контролер просто приймає дані, а Сервіс робить всю брудну роботу:
 // хешує паролі, перевіряє чи існує юзер, генерує токени.
 @Injectable()
 export class AuthService {
@@ -34,7 +34,7 @@ export class AuthService {
 
     // 3. Хешуємо пароль (ніколи не зберігаємо паролі відкритим текстом!)
     const passwordHash = await bcrypt.hash(password, 10);
-    
+
     // 4. Створюємо юзера в базі
     const user = await this.usersService.create(phone, first_name, last_name, passwordHash);
 

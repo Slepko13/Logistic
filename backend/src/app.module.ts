@@ -11,7 +11,7 @@ import { UsersModule } from './users/users.module';
 @Module({
   imports: [
     // Підключаємо модуль для роботи з базою даних (наш кастомний)
-    DatabaseModule, 
+    DatabaseModule,
     // Підключаємо модуль користувачів
     UsersModule,
     // Підключаємо модуль авторизації (логіка логіну/реєстрації)
@@ -19,10 +19,12 @@ import { UsersModule } from './users/users.module';
     // 3. RATE LIMITING (Обмеження запитів):
     // Захищаємо бекенд від ботів та брутфорсу (підбору паролів).
     // Дозволяємо максимум 60 запитів за 1 хвилину з однієї IP адреси.
-    ThrottlerModule.forRoot([{
-      ttl: 60000, // 60 секунд (час життя ліміту)
-      limit: 60,  // максимум 60 запитів
-    }]),
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60000, // 60 секунд (час життя ліміту)
+        limit: 60, // максимум 60 запитів
+      },
+    ]),
   ],
   controllers: [
     HealthController, // Контролер для перевірки чи живий сервер (пінгується Render'ом)

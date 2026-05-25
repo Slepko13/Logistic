@@ -1,0 +1,26 @@
+{
+  "name": "logistic",
+  "version": "1.0.0",
+  "description": "Fullstack-додаток: **React** (Vite) + **NestJS** + **PostgreSQL**.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepare": "husky"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Slepko13/Logistic.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Slepko13/Logistic/issues"
+  },
+  "homepage": "https://github.com/Slepko13/Logistic#readme",
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^17.0.5"
+  }
+}

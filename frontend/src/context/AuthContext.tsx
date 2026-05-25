@@ -61,7 +61,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => setUnauthorizedHandler(() => {});
   }, [clearAuth]);
 
-  const { data: user = null, isLoading: bootstrapping, refetch } = useQuery({
+  const {
+    data: user = null,
+    isLoading: bootstrapping,
+    refetch,
+  } = useQuery({
     queryKey: ['me'],
     queryFn: async () => {
       const me = await authApi.fetchMe();
@@ -80,7 +84,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setToken(accessToken);
       queryClient.setQueryData(['me'], authUser);
     },
-    [queryClient]
+    [queryClient],
   );
 
   const bootstrap = useCallback(async () => {
@@ -95,7 +99,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       persistAuth(data.access_token, data.user);
       return data.user;
     },
-    [persistAuth]
+    [persistAuth],
   );
 
   const register = useCallback(
@@ -104,7 +108,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       persistAuth(data.access_token, data.user);
       return data.user;
     },
-    [persistAuth]
+    [persistAuth],
   );
 
   const logout = useCallback(() => {
@@ -125,7 +129,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       register,
       logout,
     }),
-    [token, user, bootstrapping, bootstrap, login, register, logout]
+    [token, user, bootstrapping, bootstrap, login, register, logout],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

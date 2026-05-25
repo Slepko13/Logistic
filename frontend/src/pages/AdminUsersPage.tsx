@@ -7,7 +7,7 @@ import { useAdminUsers } from '@/hooks/useAdminUsers';
 
 export default function AdminUsersPage() {
   const { user, isAdmin } = useAuth();
-  
+
   const {
     users,
     loading,
