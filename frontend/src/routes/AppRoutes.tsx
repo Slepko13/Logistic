@@ -11,7 +11,11 @@ import ProtectedRoute from './ProtectedRoute';
 
 // Lazy-loaded сторінки (будуть завантажуватись лише тоді, коли користувач на них переходить)
 const DashboardPage = lazy(() => import('@/pages/DashboardPage'));
-const AdminUsersPage = lazy(() => import('@/pages/AdminUsersPage'));
+const AdminUsersPage = lazy(() => import('@/pages/admin/AdminUsersPage'));
+const AdminVehiclesPage = lazy(() => import('@/pages/admin/AdminVehiclesPage'));
+const AdminCitiesPage = lazy(() => import('@/pages/admin/AdminCitiesPage'));
+const AdminTripsPage = lazy(() => import('@/pages/admin/AdminTripsPage'));
+const AdminLayout = lazy(() => import('@/components/layout/AdminLayout'));
 const LoginPage = lazy(() => import('@/pages/LoginPage'));
 const RegisterPage = lazy(() => import('@/pages/RegisterPage'));
 const NotFoundPage = lazy(() => import('@/pages/NotFoundPage'));
@@ -71,8 +75,13 @@ export default function AppRoutes() {
                 <Route element={<AppLayout />}>
                   <Route index element={<DashboardPage />} />
                   <Route path="trips/:id" element={<TripDetailPage />} />
-                  <Route element={<AdminRoute />}>
-                    <Route path="admin/users" element={<AdminUsersPage />} />
+                  <Route path="admin" element={<AdminRoute />}>
+                    <Route element={<AdminLayout />}>
+                      <Route index element={<AdminTripsPage />} />
+                      <Route path="users" element={<AdminUsersPage />} />
+                      <Route path="vehicles" element={<AdminVehiclesPage />} />
+                      <Route path="cities" element={<AdminCitiesPage />} />
+                    </Route>
                   </Route>
                 </Route>
               </Route>

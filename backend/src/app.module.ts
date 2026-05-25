@@ -6,6 +6,8 @@ import { DatabaseModule } from './database/database.module';
 import { HealthController } from './health/health.controller';
 import { UsersModule } from './users/users.module';
 import { TripsModule } from './trips/trips.module';
+import { VehiclesModule } from './vehicles/vehicles.module';
+import { CitiesModule } from './cities/cities.module';
 
 // AppModule - це найголовніший модуль вашого бекенду.
 // Тут ми "склеюємо" всі інші модулі (Auth, Database) в одну велику програму.
@@ -28,6 +30,8 @@ import { TripsModule } from './trips/trips.module';
         limit: 60, // максимум 60 запитів
       },
     ]),
+    VehiclesModule,
+    CitiesModule,
   ],
   controllers: [
     HealthController, // Контролер для перевірки чи живий сервер (пінгується Render'ом)

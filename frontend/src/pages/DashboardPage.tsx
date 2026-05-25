@@ -6,10 +6,9 @@ import { useAuth } from '@/context/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import * as tripsApi from '@/api/trips';
+import * as citiesApi from '@/api/cities';
 import { Users, Package, MapPin, Calendar, Check } from 'lucide-react';
 import toast from 'react-hot-toast';
-
-const CITIES = ['Київ', 'Варшава', 'Львів', 'Краків', 'Берлін'];
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -20,11 +19,16 @@ export default function DashboardPage() {
 
   const {
     data: trips,
-    isLoading,
+    isLoading: tripsLoading,
     error,
   } = useQuery({
     queryKey: ['active-trips'],
     queryFn: tripsApi.fetchActiveTrips,
+  });
+
+  const { data: cities, isLoading: citiesLoading } = useQuery({
+    queryKey: ['cities'],
+    queryFn: citiesApi.fetchCities,
   });
 
   const updateMutation = useMutation({
@@ -63,7 +67,7 @@ export default function DashboardPage() {
     }
   };
 
-  if (isLoading) return <PageLoader />;
+  if (tripsLoading || citiesLoading) return <PageLoader />;
   if (error) return <p className="text-destructive">Помилка завантаження рейсів</p>;
 
   return (
@@ -142,9 +146,9 @@ export default function DashboardPage() {
                       <option value="" disabled>
                         Місто
                       </option>
-                      {CITIES.map((city) => (
-                        <option key={city} value={city}>
-                          {city}
+                      {cities?.map((city) => (
+                        <option key={city.id} value={city.name}>
+                          {city.name}
                         </option>
                       ))}
                     </select>
@@ -181,9 +185,9 @@ export default function DashboardPage() {
                       <option value="" disabled>
                         Місто
                       </option>
-                      {CITIES.map((city) => (
-                        <option key={city} value={city}>
-                          {city}
+                      {cities?.map((city) => (
+                        <option key={city.id} value={city.name}>
+                          {city.name}
                         </option>
                       ))}
                     </select>

@@ -8,7 +8,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model User {
@@ -113,4 +115,12 @@ model TripParcel {
   updated_by User? @relation(fields: [updated_by_id], references: [id])
 
   @@map("trip_parcels")
+}
+
+// Словник міст
+model City {
+  id   Int    @id @default(autoincrement())
+  name String @unique @db.VarChar(64)
+
+  @@map("cities")
 }

@@ -71,7 +71,8 @@ export class TripsService {
   async update(id: number, updateTripDto: UpdateTripDto) {
     const trip = await this.findOne(id);
 
-    return this.prisma.trip.update({
+    // Update trip details
+    const updatedTrip = await this.prisma.trip.update({
       where: { id: trip.id },
       data: {
         departure_city:
@@ -82,8 +83,30 @@ export class TripsService {
         arrival_city:
           updateTripDto.arrival_city !== undefined ? updateTripDto.arrival_city : undefined,
         arrival_date: updateTripDto.arrival_date ? new Date(updateTripDto.arrival_date) : undefined,
+        vehicle_id: updateTripDto.vehicle_id !== undefined ? updateTripDto.vehicle_id : undefined,
       },
     });
+
+    // Handle driver assignments if provided
+    if (updateTripDto.driverIds !== undefined) {
+      // First, remove existing drivers for this trip
+      await this.prisma.tripDriver.deleteMany({
+        where: { trip_id: trip.id },
+      });
+
+      // Then add new drivers
+      if (updateTripDto.driverIds.length > 0) {
+        const driversData = updateTripDto.driverIds.map((userId) => ({
+          trip_id: trip.id,
+          user_id: userId,
+        }));
+        await this.prisma.tripDriver.createMany({
+          data: driversData,
+        });
+      }
+    }
+
+    return this.findOne(id); // Return fully hydrated trip
   }
 
   async addDriver(tripId: number, addDriverDto: AddDriverDto) {

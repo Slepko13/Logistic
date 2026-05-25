@@ -51,6 +51,15 @@ export interface TripParcel {
   };
 }
 
+export interface UpdateTripPayload {
+  departure_city?: string | null;
+  departure_date?: string | null;
+  arrival_city?: string | null;
+  arrival_date?: string | null;
+  vehicle_id?: number;
+  driverIds?: number[];
+}
+
 export interface Trip {
   id: number;
   vehicle_id: number;
@@ -67,6 +76,10 @@ export interface Trip {
 }
 
 export async function fetchActiveTrips(): Promise<Trip[]> {
+  return apiFetch<Trip[]>('/api/trips');
+}
+
+export async function fetchTrips(): Promise<Trip[]> {
   return apiFetch<Trip[]>('/api/trips');
 }
 

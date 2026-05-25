@@ -1,4 +1,12 @@
-import { IsString, IsOptional, IsDateString, MaxLength } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsDateString,
+  MaxLength,
+  IsInt,
+  IsArray,
+  ArrayUnique,
+} from 'class-validator';
 
 export class UpdateTripDto {
   @IsOptional()
@@ -18,4 +26,14 @@ export class UpdateTripDto {
   @IsOptional()
   @IsDateString()
   arrival_date?: string;
+
+  @IsOptional()
+  @IsInt()
+  vehicle_id?: number;
+
+  @IsOptional()
+  @IsArray()
+  @ArrayUnique()
+  @IsInt({ each: true })
+  driverIds?: number[];
 }

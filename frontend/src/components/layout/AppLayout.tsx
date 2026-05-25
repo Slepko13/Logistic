@@ -15,7 +15,7 @@ const navLinkClass = ({ isActive }: { isActive: boolean }) =>
 
 const NAV_LINKS = [
   { to: '/', label: 'Панель', icon: LayoutDashboard, end: true },
-  { to: '/admin/users', label: 'Користувачі', icon: Users, adminOnly: true },
+  { to: '/admin', label: 'Адмін-панель', icon: Users, adminOnly: true },
 ];
 
 export default function AppLayout() {
