@@ -35,35 +35,11 @@ export function useAdminUsers() {
   // 2. Видалення користувача
   const deleteMutation = useMutation({
     mutationFn: (id: number) => usersApi.deleteUser(id),
-    onSuccess: (_, deletedId) => {
-      const deletedName = confirm?.userId === deletedId ? confirm.name : '';
-      toast.success(`Користувача ${deletedName} успішно видалено`);
-      queryClient.invalidateQueries({ queryKey: ['adminUsers'] });
-      setConfirm(null);
-    },
-    onError: (err: any) => {
-      const msg = err.message || 'Помилка видалення';
-      setUsersActionError(msg);
-      toast.error(msg);
-      setConfirm(null);
-    },
   });
 
   // 3. Підвищення до адміністратора
   const promoteMutation = useMutation({
     mutationFn: (id: number) => usersApi.promoteToAdmin(id),
-    onSuccess: (_, promotedId) => {
-      const promotedName = confirm?.userId === promotedId ? confirm.name : '';
-      toast.success(`Користувач ${promotedName} тепер адміністратор`);
-      queryClient.invalidateQueries({ queryKey: ['adminUsers'] });
-      setConfirm(null);
-    },
-    onError: (err: any) => {
-      const msg = err.message || 'Помилка підвищення прав';
-      setUsersActionError(msg);
-      toast.error(msg);
-      setConfirm(null);
-    },
   });
 
   // 4. Оновлення користувача
@@ -78,8 +54,8 @@ export function useAdminUsers() {
       queryClient.invalidateQueries({ queryKey: ['adminUsers'] });
       setEditingUser(null);
     },
-    onError: (err: any) => {
-      const msg = err.message || 'Помилка оновлення';
+    onError: (err: unknown) => {
+      const msg = err instanceof Error ? err.message : 'Помилка оновлення';
       setEditError(msg);
       toast.error(msg);
     },
@@ -111,11 +87,35 @@ export function useAdminUsers() {
     setUsersActionError(null);
 
     if (confirm.type === 'delete') {
-      deleteMutation.mutate(confirm.userId);
+      deleteMutation.mutate(confirm.userId, {
+        onSuccess: () => {
+          toast.success(`Користувача ${confirm.name} успішно видалено`);
+          queryClient.invalidateQueries({ queryKey: ['adminUsers'] });
+          setConfirm(null);
+        },
+        onError: (err: unknown) => {
+          const msg = err instanceof Error ? err.message : 'Помилка видалення';
+          setUsersActionError(msg);
+          toast.error(msg);
+          setConfirm(null);
+        },
+      });
     } else {
-      promoteMutation.mutate(confirm.userId);
+      promoteMutation.mutate(confirm.userId, {
+        onSuccess: () => {
+          toast.success(`Користувач ${confirm.name} тепер адміністратор`);
+          queryClient.invalidateQueries({ queryKey: ['adminUsers'] });
+          setConfirm(null);
+        },
+        onError: (err: unknown) => {
+          const msg = err instanceof Error ? err.message : 'Помилка підвищення прав';
+          setUsersActionError(msg);
+          toast.error(msg);
+          setConfirm(null);
+        },
+      });
     }
-  }, [confirm, deleteMutation, promoteMutation]);
+  }, [confirm, deleteMutation, promoteMutation, queryClient]);
 
   const handleSaveUser = useCallback(
     async (payload: UpdateUserDto) => {

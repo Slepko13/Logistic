@@ -40,12 +40,14 @@ function buildHeaders(options: FetchOptions): HeadersInit {
   return headers;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function parseErrorMessage(data: any): string {
-  const rawMessage = data?.message ?? data?.error;
-  const raw = Array.isArray(rawMessage) ? rawMessage.join(' ') : rawMessage || 'Помилка запиту';
-
-  return typeof raw === 'string' ? translateApiError(raw) : 'Сталася невідома помилка';
+function parseErrorMessage(data: unknown): string {
+  if (data && typeof data === 'object') {
+    const obj = data as Record<string, unknown>;
+    const rawMessage = obj.message ?? obj.error;
+    const raw = Array.isArray(rawMessage) ? rawMessage.join(' ') : rawMessage || 'Помилка запиту';
+    return typeof raw === 'string' ? translateApiError(raw) : 'Сталася невідома помилка';
+  }
+  return 'Помилка запиту';
 }
 
 export async function apiFetch<T = unknown>(path: string, options: FetchOptions = {}): Promise<T> {

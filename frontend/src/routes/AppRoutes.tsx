@@ -16,14 +16,16 @@ const LoginPage = lazy(() => import('@/pages/LoginPage'));
 const RegisterPage = lazy(() => import('@/pages/RegisterPage'));
 const NotFoundPage = lazy(() => import('@/pages/NotFoundPage'));
 
+import { FallbackProps } from 'react-error-boundary';
+
 // Компонент, який показується, якщо весь додаток "впав" через критичну помилку
-function ErrorFallback({ error }: { error: Error }) {
+function ErrorFallback({ error }: FallbackProps) {
   return (
     <div className="flex h-screen flex-col items-center justify-center bg-red-50 text-center p-4">
       <h2 className="mb-4 text-3xl font-bold text-red-600">Ой! Щось пішло не так 🤕</h2>
       <p className="mb-4 text-gray-700">Ми вже знаємо про цю проблему і працюємо над нею.</p>
       <pre className="mb-8 p-4 bg-white rounded shadow text-left text-sm text-red-800 max-w-2xl overflow-auto">
-        {error.message}
+        {error instanceof Error ? error.message : String(error)}
       </pre>
       <button
         onClick={() => window.location.reload()}
@@ -39,12 +41,7 @@ function BootstrapGate({ children }: { children: ReactNode }) {
   const { bootstrap, bootstrapping } = useAuth();
 
   useEffect(() => {
-    const controller = new AbortController();
-    bootstrap({ signal: controller.signal });
-
-    return () => {
-      controller.abort();
-    };
+    bootstrap();
   }, [bootstrap]);
 
   if (bootstrapping) {

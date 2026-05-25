@@ -43,8 +43,8 @@ export default function RegisterPage() {
         toast.success('Успішна реєстрація!');
         navigate('/', { replace: true });
       }
-    } catch (err: any) {
-      const msg = err.message || 'Error';
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Error';
       setError(msg);
       toast.error(msg);
     } finally {

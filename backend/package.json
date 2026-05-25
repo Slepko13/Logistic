@@ -12,6 +12,7 @@
     "start:prod": "node dist/main",
     "lint": "eslint src/",
     "lint:fix": "eslint src/ --fix",
+    "typecheck": "tsc --noEmit",
     "format": "prettier --write \"src/**/*.ts\"",
     "format:check": "prettier --check \"src/**/*.ts\"",
     "generate:openapi": "ts-node scripts/generate-openapi.ts"

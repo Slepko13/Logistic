@@ -21,8 +21,10 @@ export default function DashboardPage() {
           signal: controller.signal,
         });
         setHealth(healthData);
-      } catch (err: any) {
-        if (!isAbortError(err)) setError(err.message || 'Error');
+      } catch (err: unknown) {
+        if (!isAbortError(err)) {
+          setError(err instanceof Error ? err.message : 'Error');
+        }
       } finally {
         if (!controller.signal.aborted) {
           setLoading(false);
