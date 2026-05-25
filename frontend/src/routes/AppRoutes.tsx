@@ -1,18 +1,20 @@
-import { useEffect, ReactNode } from 'react';
+import { useEffect, ReactNode, Suspense, lazy } from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { ErrorBoundary } from 'react-error-boundary';
 import { Toaster } from 'react-hot-toast';
 import { useAuth } from '@/context/AuthContext';
 import AppLayout from '@/components/layout/AppLayout';
 import PageLoader from '@/components/common/PageLoader';
-import DashboardPage from '@/pages/DashboardPage';
-import AdminUsersPage from '@/pages/AdminUsersPage';
-import LoginPage from '@/pages/LoginPage';
-import RegisterPage from '@/pages/RegisterPage';
-import NotFoundPage from '@/pages/NotFoundPage';
 import AdminRoute from './AdminRoute';
 import GuestRoute from './GuestRoute';
 import ProtectedRoute from './ProtectedRoute';
+
+// Lazy-loaded сторінки (будуть завантажуватись лише тоді, коли користувач на них переходить)
+const DashboardPage = lazy(() => import('@/pages/DashboardPage'));
+const AdminUsersPage = lazy(() => import('@/pages/AdminUsersPage'));
+const LoginPage = lazy(() => import('@/pages/LoginPage'));
+const RegisterPage = lazy(() => import('@/pages/RegisterPage'));
+const NotFoundPage = lazy(() => import('@/pages/NotFoundPage'));
 
 // Компонент, який показується, якщо весь додаток "впав" через критичну помилку
 function ErrorFallback({ error }: { error: Error }) {
@@ -58,24 +60,26 @@ export default function AppRoutes() {
       <Toaster position="top-right" toastOptions={{ duration: 4000 }} />
       <BrowserRouter>
         <BootstrapGate>
-          <Routes>
-            <Route element={<GuestRoute />}>
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/register" element={<RegisterPage />} />
-            </Route>
+          <Suspense fallback={<PageLoader />}>
+            <Routes>
+              <Route element={<GuestRoute />}>
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/register" element={<RegisterPage />} />
+              </Route>
 
-            <Route element={<ProtectedRoute />}>
-              <Route element={<AppLayout />}>
-                <Route index element={<DashboardPage />} />
-                <Route element={<AdminRoute />}>
-                  <Route path="admin/users" element={<AdminUsersPage />} />
+              <Route element={<ProtectedRoute />}>
+                <Route element={<AppLayout />}>
+                  <Route index element={<DashboardPage />} />
+                  <Route element={<AdminRoute />}>
+                    <Route path="admin/users" element={<AdminUsersPage />} />
+                  </Route>
                 </Route>
               </Route>
-            </Route>
 
-            {/* 404 Сторінка */}
-            <Route path="*" element={<NotFoundPage />} />
-          </Routes>
+              {/* 404 Сторінка */}
+              <Route path="*" element={<NotFoundPage />} />
+            </Routes>
+          </Suspense>
         </BootstrapGate>
       </BrowserRouter>
     </ErrorBoundary>

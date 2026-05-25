@@ -4,7 +4,7 @@ import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { AuthModule } from './auth/auth.module';
 import { DatabaseModule } from './database/database.module';
 import { HealthController } from './health/health.controller';
-import { UsersController } from './users/users.controller';
+import { UsersModule } from './users/users.module';
 
 // AppModule - це найголовніший модуль вашого бекенду.
 // Тут ми "склеюємо" всі інші модулі (Auth, Database) в одну велику програму.
@@ -12,6 +12,8 @@ import { UsersController } from './users/users.controller';
   imports: [
     // Підключаємо модуль для роботи з базою даних (наш кастомний)
     DatabaseModule, 
+    // Підключаємо модуль користувачів
+    UsersModule,
     // Підключаємо модуль авторизації (логіка логіну/реєстрації)
     AuthModule,
     // 3. RATE LIMITING (Обмеження запитів):
@@ -24,7 +26,6 @@ import { UsersController } from './users/users.controller';
   ],
   controllers: [
     HealthController, // Контролер для перевірки чи живий сервер (пінгується Render'ом)
-    UsersController   // Контролер для керування користувачами
   ],
   providers: [
     {
