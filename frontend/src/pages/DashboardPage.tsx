@@ -153,9 +153,13 @@ export default function DashboardPage() {
                       ))}
                     </select>
                     <input
-                      type="date"
+                      type="datetime-local"
                       className="flex h-9 w-full rounded-md border border-input bg-transparent px-2 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                      value={trip.departure_date ? trip.departure_date.split('T')[0] : ''}
+                      value={
+                        trip.departure_date
+                          ? new Date(trip.departure_date).toISOString().slice(0, 16)
+                          : ''
+                      }
                       onChange={(e) =>
                         updateMutation.mutate({
                           id: trip.id,
@@ -192,10 +196,18 @@ export default function DashboardPage() {
                       ))}
                     </select>
                     <input
-                      type="date"
+                      type="datetime-local"
                       className="flex h-9 w-full rounded-md border border-input bg-transparent px-2 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                      value={trip.arrival_date ? trip.arrival_date.split('T')[0] : ''}
-                      min={trip.departure_date ? trip.departure_date.split('T')[0] : ''}
+                      value={
+                        trip.arrival_date
+                          ? new Date(trip.arrival_date).toISOString().slice(0, 16)
+                          : ''
+                      }
+                      min={
+                        trip.departure_date
+                          ? new Date(trip.departure_date).toISOString().slice(0, 16)
+                          : ''
+                      }
                       onChange={(e) =>
                         updateMutation.mutate({
                           id: trip.id,
