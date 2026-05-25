@@ -5,4 +5,5 @@ export const UserRole = {
 
 export type UserRoleType = (typeof UserRole)[keyof typeof UserRole];
 
-export const INITIAL_ADMIN_PHONE = '+380503733160';
+// Тепер номер адміна можна задати в Render/Vercel через змінні оточення
+export const INITIAL_ADMIN_PHONE = process.env.INITIAL_ADMIN_PHONE || '+380503733160';

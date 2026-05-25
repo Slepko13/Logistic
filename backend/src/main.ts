@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import helmet from 'helmet';
+import * as morgan from 'morgan';
 import { AppModule } from './app.module';
 
 // Ця функція визначає, з яких веб-сайтів дозволено робити запити до нашого бекенду.
@@ -30,6 +31,9 @@ function getCorsOrigins(): string[] {
 // Це головна функція, яка запускає наш бекенд сервер (Entry Point)
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  // LOGGING: Логування всіх вхідних запитів у консоль (дуже корисно для відладки)
+  app.use(morgan('dev'));
 
   // 1. HELMET: Додаємо базовий захист безпеки
   // Він автоматично проставляє правильні HTTP-заголовки (HSTS, X-Frame-Options тощо),

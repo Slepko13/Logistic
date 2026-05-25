@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import toast from 'react-hot-toast';
 import UsersTable from '@/components/users/UsersTable';
 import EditUserDialog from '@/components/users/EditUserDialog';
 import PageLoader from '@/components/common/PageLoader';
@@ -82,13 +83,17 @@ export default function AdminUsersPage() {
     try {
       if (confirm.type === 'delete') {
         await usersApi.deleteUser(confirm.userId);
+        toast.success(`Користувача ${confirm.name} успішно видалено`);
       } else {
         await usersApi.promoteToAdmin(confirm.userId);
+        toast.success(`Користувач ${confirm.name} тепер адміністратор`);
       }
       setUsers(await loadUsers());
       setConfirm(null);
     } catch (err: any) {
-      setUsersActionError(err.message || 'Error');
+      const msg = err.message || 'Error';
+      setUsersActionError(msg);
+      toast.error(msg);
       setConfirm(null);
     } finally {
       setConfirming(false);
@@ -108,9 +113,12 @@ export default function AdminUsersPage() {
       if (updatedUser.id === user?.id) {
         await bootstrap();
       }
+      toast.success('Дані користувача успішно оновлено');
       setEditingUser(null);
     } catch (err: any) {
-      setEditError(err.message || 'Error');
+      const msg = err.message || 'Error';
+      setEditError(msg);
+      toast.error(msg);
     } finally {
       setSavingUser(false);
     }

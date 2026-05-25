@@ -1,5 +1,6 @@
 import { useState, FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import AuthCard from '@/components/auth/AuthCard';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -39,10 +40,13 @@ export default function RegisterPage() {
     try {
       if (payload) {
         await register(payload);
+        toast.success('Успішна реєстрація!');
         navigate('/', { replace: true });
       }
     } catch (err: any) {
-      setError(err.message || 'Error');
+      const msg = err.message || 'Error';
+      setError(msg);
+      toast.error(msg);
     } finally {
       setSubmitting(false);
     }

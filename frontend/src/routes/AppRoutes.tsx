@@ -1,6 +1,7 @@
 import { useEffect, ReactNode } from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { ErrorBoundary } from 'react-error-boundary';
+import { Toaster } from 'react-hot-toast';
 import { useAuth } from '@/context/AuthContext';
 import AppLayout from '@/components/layout/AppLayout';
 import PageLoader from '@/components/common/PageLoader';
@@ -54,6 +55,7 @@ function BootstrapGate({ children }: { children: ReactNode }) {
 export default function AppRoutes() {
   return (
     <ErrorBoundary FallbackComponent={ErrorFallback}>
+      <Toaster position="top-right" toastOptions={{ duration: 4000 }} />
       <BrowserRouter>
         <BootstrapGate>
           <Routes>

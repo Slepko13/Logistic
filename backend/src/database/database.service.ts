@@ -141,9 +141,7 @@ export class DatabaseService implements OnModuleInit {
   private async promoteInitialAdmin(): Promise<void> {
     await this.pool.query(
       `UPDATE users SET role = $1
-       WHERE phone = $2
-          OR regexp_replace(phone, '\\D', '', 'g') = '380503733160'
-          OR regexp_replace(phone, '\\D', '', 'g') = '0503733160'`,
+       WHERE phone = $2`,
       [UserRole.ADMIN, INITIAL_ADMIN_PHONE],
     );
   }
