@@ -6,10 +6,10 @@
     "node": ">=20.0.0"
   },
   "scripts": {
-    "build": "prisma generate && prisma migrate deploy && nest build",
+    "build": "prisma generate && nest build",
     "start": "node dist/main",
     "start:dev": "nest start --watch",
-    "start:prod": "node dist/main",
+    "start:prod": "npx prisma migrate deploy && node dist/main",
     "lint": "eslint src/",
     "lint:fix": "eslint src/ --fix",
     "typecheck": "tsc --noEmit",

@@ -1,10 +1,10 @@
 {
   "backend/**/*.{ts,js}": [
-    "node backend/node_modules/.bin/eslint --config backend/eslint.config.mjs --fix",
-    "node backend/node_modules/.bin/prettier --write"
+    "npx --no-install --prefix backend eslint --config backend/eslint.config.mjs --fix",
+    "npx --no-install --prefix backend prettier --write"
   ],
   "frontend/**/*.{ts,tsx,js,jsx}": [
-    "node frontend/node_modules/.bin/eslint --config frontend/eslint.config.js --fix",
-    "node frontend/node_modules/.bin/prettier --write"
+    "npx --no-install --prefix frontend eslint --config frontend/eslint.config.js --fix",
+    "npx --no-install --prefix frontend prettier --write"
   ]
 }

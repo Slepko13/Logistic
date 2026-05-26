@@ -28,6 +28,7 @@ services:
       DB_USER: logistic
       DB_PASSWORD: logistic
       DB_NAME: logistic
+      DATABASE_URL: postgresql://logistic:logistic@db:5432/logistic?schema=public
       JWT_SECRET: logistic-jwt-secret-change-in-production
       CORS_ORIGINS: http://localhost:8080,http://localhost:5173
     ports:
