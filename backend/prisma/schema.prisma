@@ -81,6 +81,7 @@ model TripSeat {
   last_name    String? @db.VarChar(64)
   phone        String? @db.VarChar(20)
   baggage_info Json? // Наприклад: [{ count: 1, weight: 20 }]
+  boarding_address String? @db.VarChar(255) // Адреса посадки
 
   // Аудит
   updated_at    DateTime @updatedAt @db.Timestamptz()

@@ -15,6 +15,7 @@ const AdminUsersPage = lazy(() => import('@/pages/admin/AdminUsersPage'));
 const AdminVehiclesPage = lazy(() => import('@/pages/admin/AdminVehiclesPage'));
 const AdminCitiesPage = lazy(() => import('@/pages/admin/AdminCitiesPage'));
 const AdminTripsPage = lazy(() => import('@/pages/admin/AdminTripsPage'));
+const AdminTripHistoryPage = lazy(() => import('@/pages/admin/AdminTripHistoryPage'));
 const AdminLayout = lazy(() => import('@/components/layout/AdminLayout'));
 const LoginPage = lazy(() => import('@/pages/LoginPage'));
 const RegisterPage = lazy(() => import('@/pages/RegisterPage'));
@@ -78,6 +79,7 @@ export default function AppRoutes() {
                   <Route path="admin" element={<AdminRoute />}>
                     <Route element={<AdminLayout />}>
                       <Route index element={<AdminTripsPage />} />
+                      <Route path="history" element={<AdminTripHistoryPage />} />
                       <Route path="users" element={<AdminUsersPage />} />
                       <Route path="vehicles" element={<AdminVehiclesPage />} />
                       <Route path="cities" element={<AdminCitiesPage />} />

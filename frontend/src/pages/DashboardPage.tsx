@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import PageLoader from '@/components/common/PageLoader';
 import { useAuth } from '@/context/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
@@ -13,9 +13,12 @@ import toast from 'react-hot-toast';
 export default function DashboardPage() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const [globalDepDate, setGlobalDepDate] = useState('');
   const [globalArrDate, setGlobalArrDate] = useState('');
+  const [globalDepCity, setGlobalDepCity] = useState('');
+  const [globalArrCity, setGlobalArrCity] = useState('');
 
   const {
     data: trips,
@@ -49,21 +52,29 @@ export default function DashboardPage() {
     },
   });
 
-  const applyGlobalDates = () => {
+  const applyGlobalSettings = async () => {
     if (!trips) return;
-    let updated = 0;
+
+    const promises: Promise<any>[] = [];
     trips.forEach((trip) => {
       const payload: any = {};
       if (globalDepDate) payload.departure_date = new Date(globalDepDate).toISOString();
       if (globalArrDate) payload.arrival_date = new Date(globalArrDate).toISOString();
+      if (globalDepCity) payload.departure_city = globalDepCity;
+      if (globalArrCity) payload.arrival_city = globalArrCity;
 
       if (Object.keys(payload).length > 0) {
-        updateMutation.mutate({ id: trip.id, payload });
-        updated++;
+        promises.push(updateMutation.mutateAsync({ id: trip.id, payload }));
       }
     });
-    if (updated > 0) {
-      toast.success(`Оновлено дати для ${updated} рейсів`);
+
+    if (promises.length > 0) {
+      try {
+        await Promise.all(promises);
+        toast.success(`Оновлено дані для ${promises.length} рейсів`);
+      } catch (err) {
+        toast.error('Помилка при оновленні деяких рейсів');
+      }
     }
   };
 
@@ -79,7 +90,41 @@ export default function DashboardPage() {
 
       <Card className="bg-muted/30 border-dashed">
         <CardContent className="pt-6 flex flex-wrap items-end gap-4">
-          <div className="space-y-2 flex-grow min-w-[200px]">
+          <div className="space-y-2 flex-grow min-w-[150px]">
+            <label className="text-sm font-medium text-muted-foreground">
+              Загальне місто відправлення
+            </label>
+            <select
+              className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              value={globalDepCity}
+              onChange={(e) => setGlobalDepCity(e.target.value)}
+            >
+              <option value="">Не змінювати</option>
+              {cities?.map((city) => (
+                <option key={city.id} value={city.name}>
+                  {city.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="space-y-2 flex-grow min-w-[150px]">
+            <label className="text-sm font-medium text-muted-foreground">
+              Загальне місто прибуття
+            </label>
+            <select
+              className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              value={globalArrCity}
+              onChange={(e) => setGlobalArrCity(e.target.value)}
+            >
+              <option value="">Не змінювати</option>
+              {cities?.map((city) => (
+                <option key={city.id} value={city.name}>
+                  {city.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="space-y-2 flex-grow min-w-[150px]">
             <label className="text-sm font-medium text-muted-foreground">
               Загальна дата відправлення
             </label>
@@ -90,7 +135,7 @@ export default function DashboardPage() {
               onChange={(e) => setGlobalDepDate(e.target.value)}
             />
           </div>
-          <div className="space-y-2 flex-grow min-w-[200px]">
+          <div className="space-y-2 flex-grow min-w-[150px]">
             <label className="text-sm font-medium text-muted-foreground">
               Загальна дата прибуття
             </label>
@@ -102,7 +147,11 @@ export default function DashboardPage() {
               onChange={(e) => setGlobalArrDate(e.target.value)}
             />
           </div>
-          <Button onClick={applyGlobalDates} disabled={!globalDepDate && !globalArrDate}>
+          <Button
+            className="w-full sm:w-auto mt-2 sm:mt-0"
+            onClick={applyGlobalSettings}
+            disabled={!globalDepDate && !globalArrDate && !globalDepCity && !globalArrCity}
+          >
             <Check className="w-4 h-4 mr-2" />
             Застосувати до всіх
           </Button>
@@ -233,9 +282,30 @@ export default function DashboardPage() {
               </CardContent>
 
               <CardFooter className="pt-0">
-                <Button asChild className="w-full">
-                  <Link to={`/trips/${trip.id}`}>Відкрити рейс</Link>
-                </Button>
+                <div
+                  className="w-full"
+                  title={
+                    !trip.departure_city ||
+                    !trip.arrival_city ||
+                    !trip.departure_date ||
+                    !trip.arrival_date
+                      ? 'Заповніть міста та дати відправлення і прибуття, щоб відкрити рейс'
+                      : undefined
+                  }
+                >
+                  <Button
+                    className="w-full"
+                    disabled={
+                      !trip.departure_city ||
+                      !trip.arrival_city ||
+                      !trip.departure_date ||
+                      !trip.arrival_date
+                    }
+                    onClick={() => navigate(`/trips/${trip.id}`)}
+                  >
+                    Відкрити рейс
+                  </Button>
+                </div>
               </CardFooter>
             </Card>
           );

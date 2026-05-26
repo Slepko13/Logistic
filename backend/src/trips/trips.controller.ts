@@ -29,6 +29,11 @@ export class TripsController {
     return this.tripsService.findAllActive();
   }
 
+  @Get('history')
+  findAllCompleted() {
+    return this.tripsService.findAllCompleted();
+  }
+
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.tripsService.findOne(id);

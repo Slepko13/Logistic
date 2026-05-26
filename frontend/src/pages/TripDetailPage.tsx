@@ -44,8 +44,9 @@ export default function TripDetailPage() {
     first_name: string;
     last_name: string;
     phone: string;
+    boarding_address: string;
     baggage_info: { name: string; weight: number }[];
-  }>({ first_name: '', last_name: '', phone: '', baggage_info: [] });
+  }>({ first_name: '', last_name: '', phone: '', boarding_address: '', baggage_info: [] });
 
   // Confirm modals state
   const [clearSeatConfirmOpen, setClearSeatConfirmOpen] = useState(false);
@@ -136,6 +137,7 @@ export default function TripDetailPage() {
       first_name: seat.first_name || '',
       last_name: seat.last_name || '',
       phone: seat.phone || '',
+      boarding_address: seat.boarding_address || trip?.departure_city || '',
       baggage_info: Array.isArray(seat.baggage_info) ? seat.baggage_info : [],
     });
     setIsSeatModalOpen(true);
@@ -172,6 +174,7 @@ export default function TripDetailPage() {
           first_name: seatForm.first_name || null,
           last_name: seatForm.last_name || null,
           phone: seatForm.phone || null,
+          boarding_address: seatForm.boarding_address || null,
           baggage_info: seatForm.baggage_info.length > 0 ? seatForm.baggage_info : null,
         },
       });
@@ -187,7 +190,13 @@ export default function TripDetailPage() {
     if (seatToClear !== null) {
       await updateSeatMutation.mutateAsync({
         seatNumber: seatToClear,
-        payload: { first_name: null, last_name: null, phone: null, baggage_info: null },
+        payload: {
+          first_name: null,
+          last_name: null,
+          phone: null,
+          boarding_address: null,
+          baggage_info: null,
+        },
       });
       setClearSeatConfirmOpen(false);
       setSeatToClear(null);
@@ -545,6 +554,16 @@ export default function TripDetailPage() {
                   value={seatForm.phone}
                   onChange={(e) => setSeatForm({ ...seatForm, phone: e.target.value })}
                   required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="boarding_address">Адреса посадки</Label>
+                <textarea
+                  id="boarding_address"
+                  className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                  value={seatForm.boarding_address}
+                  onChange={(e) => setSeatForm({ ...seatForm, boarding_address: e.target.value })}
+                  placeholder="Введіть адресу посадки"
                 />
               </div>
 

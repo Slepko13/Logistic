@@ -16,4 +16,8 @@ export class UpdateSeatDto {
   @IsOptional()
   @IsArray()
   baggage_info?: any[] | null;
+
+  @IsOptional()
+  @IsString()
+  boarding_address?: string | null;
 }

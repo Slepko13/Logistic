@@ -30,6 +30,29 @@ export class TripsService {
     });
   }
 
+  async findAllCompleted() {
+    return this.prisma.trip.findMany({
+      where: { status: 'completed' },
+      include: {
+        vehicle: true,
+        drivers: {
+          include: {
+            user: {
+              select: { id: true, first_name: true, last_name: true, phone: true },
+            },
+          },
+        },
+        seats: {
+          orderBy: { seat_number: 'asc' },
+        },
+        parcels: {
+          orderBy: { parcel_number: 'asc' },
+        },
+      },
+      orderBy: { id: 'desc' },
+    });
+  }
+
   async findOne(id: number) {
     const trip = await this.prisma.trip.findUnique({
       where: { id },

@@ -10,6 +10,7 @@ const navLinkClass = ({ isActive }: { isActive: boolean }) =>
 
 const ADMIN_LINKS = [
   { to: '/admin', label: 'Рейси', icon: Map, end: true },
+  { to: '/admin/history', label: 'Історія рейсів', icon: Map },
   { to: '/admin/vehicles', label: 'Автобуси', icon: Bus },
   { to: '/admin/cities', label: 'Міста', icon: Map },
   { to: '/admin/users', label: 'Користувачі', icon: Users },

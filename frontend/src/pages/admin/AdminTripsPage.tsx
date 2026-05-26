@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Edit } from 'lucide-react';
+import { Edit, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -31,6 +31,7 @@ export default function AdminTripsPage() {
   const queryClient = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTripId, setEditingTripId] = useState<number | null>(null);
+  const [selectedDriverToAdd, setSelectedDriverToAdd] = useState<string>('');
 
   const [form, setForm] = useState<{
     vehicle_id: string;
@@ -96,15 +97,21 @@ export default function AdminTripsPage() {
     setIsModalOpen(true);
   };
 
-  const handleToggleDriver = (driverId: number) => {
+  const handleRemoveDriver = (driverId: number) => {
+    setForm((prev) => ({
+      ...prev,
+      driverIds: prev.driverIds.filter((id) => id !== driverId),
+    }));
+  };
+
+  const handleAddDriver = () => {
+    if (!selectedDriverToAdd) return;
+    const driverId = parseInt(selectedDriverToAdd);
     setForm((prev) => {
-      const isSelected = prev.driverIds.includes(driverId);
-      if (isSelected) {
-        return { ...prev, driverIds: prev.driverIds.filter((id) => id !== driverId) };
-      } else {
-        return { ...prev, driverIds: [...prev.driverIds, driverId] };
-      }
+      if (prev.driverIds.includes(driverId)) return prev;
+      return { ...prev, driverIds: [...prev.driverIds, driverId] };
     });
+    setSelectedDriverToAdd('');
   };
 
   const handleSave = (e: React.FormEvent) => {
@@ -287,24 +294,60 @@ export default function AdminTripsPage() {
 
               <div className="space-y-2 pt-4 border-t">
                 <Label>Водії на рейс</Label>
-                <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto p-2 border rounded-md">
-                  {driversList.map((driver) => (
-                    <Label
-                      key={driver.id}
-                      className="flex items-center gap-2 cursor-pointer font-normal p-1 hover:bg-muted rounded"
-                    >
-                      <input
-                        type="checkbox"
-                        className="rounded border-gray-300 text-primary w-4 h-4"
-                        checked={form.driverIds.includes(driver.id)}
-                        onChange={() => handleToggleDriver(driver.id)}
-                      />
-                      {driver.first_name} {driver.last_name} ({driver.phone})
-                    </Label>
-                  ))}
-                  {driversList.length === 0 && (
-                    <p className="text-sm text-muted-foreground">Не знайдено водіїв</p>
+
+                <div className="space-y-2 mb-4">
+                  {form.driverIds.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">Немає призначених водіїв</p>
+                  ) : (
+                    form.driverIds.map((driverId) => {
+                      const driver = driversList.find((d) => d.id === driverId);
+                      if (!driver) return null;
+                      return (
+                        <div
+                          key={driverId}
+                          className="flex items-center justify-between p-2 border rounded-md bg-muted/50"
+                        >
+                          <span className="text-sm">
+                            {driver.first_name} {driver.last_name} ({driver.phone})
+                          </span>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+                            onClick={() => handleRemoveDriver(driverId)}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      );
+                    })
                   )}
+                </div>
+
+                <div className="flex gap-2 items-center">
+                  <select
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    value={selectedDriverToAdd}
+                    onChange={(e) => setSelectedDriverToAdd(e.target.value)}
+                  >
+                    <option value="">Оберіть водія для додавання...</option>
+                    {driversList
+                      .filter((d) => !form.driverIds.includes(d.id))
+                      .map((driver) => (
+                        <option key={driver.id} value={driver.id}>
+                          {driver.first_name} {driver.last_name} ({driver.phone})
+                        </option>
+                      ))}
+                  </select>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={handleAddDriver}
+                    disabled={!selectedDriverToAdd}
+                  >
+                    Додати
+                  </Button>
                 </div>
               </div>
             </div>

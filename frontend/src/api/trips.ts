@@ -25,6 +25,7 @@ export interface TripSeat {
   last_name: string | null;
   phone: string | null;
   baggage_info: any[] | null;
+  boarding_address: string | null;
   updated_at: string;
   updated_by_id: number | null;
   updated_by?: {
@@ -79,6 +80,10 @@ export async function fetchActiveTrips(): Promise<Trip[]> {
   return apiFetch<Trip[]>('/api/trips');
 }
 
+export async function fetchTripHistory(): Promise<Trip[]> {
+  return apiFetch<Trip[]>('/api/trips/history');
+}
+
 export async function fetchTrips(): Promise<Trip[]> {
   return apiFetch<Trip[]>('/api/trips');
 }
@@ -87,15 +92,7 @@ export async function fetchTrip(id: number): Promise<Trip> {
   return apiFetch<Trip>(`/api/trips/${id}`);
 }
 
-export async function updateTrip(
-  id: number,
-  payload: {
-    departure_city?: string;
-    departure_date?: string;
-    arrival_city?: string;
-    arrival_date?: string;
-  },
-): Promise<Trip> {
+export async function updateTrip(id: number, payload: UpdateTripPayload): Promise<Trip> {
   return apiFetch<Trip>(`/api/trips/${id}`, {
     method: 'PATCH',
     body: JSON.stringify(payload),
@@ -135,6 +132,7 @@ export async function updateTripSeat(
     last_name?: string | null;
     phone?: string | null;
     baggage_info?: any[] | null;
+    boarding_address?: string | null;
   },
 ): Promise<TripSeat> {
   return apiFetch<TripSeat>(`/api/trips/${tripId}/seats/${seatNumber}`, {
