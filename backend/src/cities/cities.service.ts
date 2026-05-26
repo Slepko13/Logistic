@@ -12,7 +12,8 @@ export class CitiesService {
       return await this.prisma.city.create({
         data: createCityDto,
       });
-    } catch (e: any) {
+    } catch (err) {
+      const e = err as { code?: string };
       if (e.code === 'P2002') {
         throw new ConflictException('City with this name already exists');
       }
@@ -43,7 +44,8 @@ export class CitiesService {
         where: { id },
         data: updateCityDto,
       });
-    } catch (e: any) {
+    } catch (err) {
+      const e = err as { code?: string };
       if (e.code === 'P2002') {
         throw new ConflictException('City with this name already exists');
       }

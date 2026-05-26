@@ -45,18 +45,18 @@ export default function AdminVehiclesPage() {
       toast.success('Автобус створено');
       setIsModalOpen(false);
     },
-    onError: (e: any) => toast.error(e.message || 'Помилка створення автобуса'),
+    onError: (e: Error) => toast.error(e.message || 'Помилка створення автобуса'),
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, payload }: { id: number; payload: any }) =>
+    mutationFn: ({ id, payload }: { id: number; payload: Record<string, unknown> }) =>
       vehiclesApi.updateVehicle(id, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['vehicles'] });
       toast.success('Автобус оновлено');
       setIsModalOpen(false);
     },
-    onError: (e: any) => toast.error(e.message || 'Помилка оновлення автобуса'),
+    onError: (e: Error) => toast.error(e.message || 'Помилка оновлення автобуса'),
   });
 
   const removeMutation = useMutation({
@@ -66,7 +66,7 @@ export default function AdminVehiclesPage() {
       toast.success('Автобус видалено');
       setDeleteConfirmOpen(false);
     },
-    onError: (e: any) => {
+    onError: (e: Error) => {
       toast.error(e.message || "Помилка видалення (можливо, є прив'язані рейси)");
       setDeleteConfirmOpen(false);
     },

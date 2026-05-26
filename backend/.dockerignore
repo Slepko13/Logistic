@@ -1,2 +1,8 @@
 node_modules
 npm-debug.log
+dist
+.env*
+.git
+*.md
+.prettierignore
+eslint.config.mjs

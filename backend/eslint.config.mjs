@@ -1,33 +1,27 @@
 import eslint from '@eslint/js';
-import tseslint from '@typescript-eslint/eslint-plugin';
-import tsparser from '@typescript-eslint/parser';
+import globals from 'globals';
+import tseslint from 'typescript-eslint';
 import prettier from 'eslint-config-prettier';
 import prettierPlugin from 'eslint-plugin-prettier';
 
-export default [
+export default tseslint.config(
   {
     ignores: ['dist/', 'node_modules/'],
   },
   eslint.configs.recommended,
+  ...tseslint.configs.recommended,
   {
     files: ['src/**/*.ts'],
     languageOptions: {
-      parser: tsparser,
       parserOptions: {
         project: './tsconfig.json',
         sourceType: 'module',
       },
       globals: {
-        process: 'readonly',
-        console: 'readonly',
-        setTimeout: 'readonly',
-        __dirname: 'readonly',
-        module: 'readonly',
-        require: 'readonly',
+        ...globals.node,
       },
     },
     plugins: {
-      '@typescript-eslint': tseslint,
       prettier: prettierPlugin,
     },
     rules: {
@@ -49,4 +43,4 @@ export default [
     },
   },
   prettier,
-];
+);

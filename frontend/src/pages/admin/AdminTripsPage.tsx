@@ -72,14 +72,15 @@ export default function AdminTripsPage() {
   const driversList = users?.filter((u) => u.role === 'driver' || u.role === 'admin') || [];
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, payload }: { id: number; payload: any }) => tripsApi.updateTrip(id, payload),
+    mutationFn: ({ id, payload }: { id: number; payload: tripsApi.UpdateTripPayload }) =>
+      tripsApi.updateTrip(id, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['trips-all'] });
       queryClient.invalidateQueries({ queryKey: ['active-trips'] });
       toast.success('Рейс оновлено');
       setIsModalOpen(false);
     },
-    onError: (e: any) => toast.error(e.message || 'Помилка оновлення рейсу'),
+    onError: (e: Error) => toast.error(e.message || 'Помилка оновлення рейсу'),
   });
 
   const handleOpenModal = (trip: tripsApi.Trip) => {

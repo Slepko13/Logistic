@@ -64,7 +64,7 @@ export class TripsController {
     @Param('id', ParseIntPipe) id: number,
     @Param('seatNumber', ParseIntPipe) seatNumber: number,
     @Body() updateSeatDto: UpdateSeatDto,
-    @Req() req: any,
+    @Req() req: { user: { sub: number } },
   ) {
     return this.tripsService.updateSeat(id, seatNumber, updateSeatDto, req.user.sub);
   }
@@ -86,7 +86,7 @@ export class TripsController {
   addParcel(
     @Param('id', ParseIntPipe) id: number,
     @Body() createParcelDto: CreateParcelDto,
-    @Req() req: any,
+    @Req() req: { user: { sub: number } },
   ) {
     return this.tripsService.addParcel(id, createParcelDto, req.user.sub);
   }
@@ -96,7 +96,7 @@ export class TripsController {
     @Param('id', ParseIntPipe) id: number,
     @Param('parcelId', ParseIntPipe) parcelId: number,
     @Body() updateParcelDto: UpdateParcelDto,
-    @Req() req: any,
+    @Req() req: { user: { sub: number } },
   ) {
     return this.tripsService.updateParcel(id, parcelId, updateParcelDto, req.user.sub);
   }

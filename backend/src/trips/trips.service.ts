@@ -2,6 +2,9 @@ import { Injectable, NotFoundException, BadRequestException } from '@nestjs/comm
 import { PrismaService } from '../database/prisma.service';
 import { UpdateTripDto } from './dto/update-trip.dto';
 import { AddDriverDto } from './dto/add-driver.dto';
+import { UpdateSeatDto } from './dto/update-seat.dto';
+import { CreateParcelDto } from './dto/create-parcel.dto';
+import { UpdateParcelDto } from './dto/update-parcel.dto';
 
 @Injectable()
 export class TripsService {
@@ -95,7 +98,7 @@ export class TripsService {
     const trip = await this.findOne(id);
 
     // Update trip details
-    const updatedTrip = await this.prisma.trip.update({
+    await this.prisma.trip.update({
       where: { id: trip.id },
       data: {
         departure_city:
@@ -133,7 +136,7 @@ export class TripsService {
   }
 
   async addDriver(tripId: number, addDriverDto: AddDriverDto) {
-    const trip = await this.findOne(tripId);
+    await this.findOne(tripId);
 
     // Verify user exists and is a driver
     const user = await this.prisma.user.findUnique({
@@ -197,7 +200,7 @@ export class TripsService {
   // --- SEATS ---
 
   async addSeat(tripId: number) {
-    const trip = await this.findOne(tripId);
+    await this.findOne(tripId);
 
     // Find highest seat number for this trip
     const maxSeat = await this.prisma.tripSeat.aggregate({
@@ -216,7 +219,7 @@ export class TripsService {
   }
 
   async removeSeat(tripId: number, seatNumber: number) {
-    const trip = await this.findOne(tripId);
+    await this.findOne(tripId);
 
     const seat = await this.prisma.tripSeat.findUnique({
       where: {
@@ -236,8 +239,8 @@ export class TripsService {
     });
   }
 
-  async updateSeat(tripId: number, seatNumber: number, dto: any, updatedById: number) {
-    const trip = await this.findOne(tripId);
+  async updateSeat(tripId: number, seatNumber: number, dto: UpdateSeatDto, updatedById: number) {
+    await this.findOne(tripId);
 
     // Seat must exist since we created 7 empty seats
     const seat = await this.prisma.tripSeat.findUnique({
@@ -259,7 +262,9 @@ export class TripsService {
         first_name: dto.first_name,
         last_name: dto.last_name,
         phone: dto.phone,
-        baggage_info: dto.baggage_info ? dto.baggage_info : null,
+        baggage_info: dto.baggage_info
+          ? (dto.baggage_info as unknown as import('@prisma/client').Prisma.InputJsonValue)
+          : undefined,
         updated_by_id: updatedById,
       },
     });
@@ -267,8 +272,8 @@ export class TripsService {
 
   // --- PARCELS ---
 
-  async addParcel(tripId: number, dto: any, updatedById: number) {
-    const trip = await this.findOne(tripId);
+  async addParcel(tripId: number, dto: CreateParcelDto, updatedById: number) {
+    await this.findOne(tripId);
 
     return this.prisma.tripParcel.create({
       data: {
@@ -283,7 +288,7 @@ export class TripsService {
     });
   }
 
-  async updateParcel(tripId: number, parcelId: number, dto: any, updatedById: number) {
+  async updateParcel(tripId: number, parcelId: number, dto: UpdateParcelDto, updatedById: number) {
     const parcel = await this.prisma.tripParcel.findUnique({
       where: { id: parcelId },
     });

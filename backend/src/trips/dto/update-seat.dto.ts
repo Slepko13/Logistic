@@ -15,7 +15,7 @@ export class UpdateSeatDto {
 
   @IsOptional()
   @IsArray()
-  baggage_info?: any[] | null;
+  baggage_info?: Record<string, unknown>[] | null;
 
   @IsOptional()
   @IsString()

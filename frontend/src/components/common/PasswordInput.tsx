@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
-export interface PasswordInputProps extends React.ComponentProps<'input'> {}
+export type PasswordInputProps = React.ComponentProps<'input'>;
 
 export default function PasswordInput({ className, id, ...props }: PasswordInputProps) {
   const [visible, setVisible] = useState(false);

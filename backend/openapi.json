@@ -18,9 +18,7 @@
             }
           }
         },
-        "tags": [
-          "health"
-        ]
+        "tags": ["health"]
       }
     },
     "/api/users": {
@@ -43,9 +41,7 @@
             }
           }
         },
-        "tags": [
-          "users"
-        ],
+        "tags": ["users"],
         "security": [
           {
             "bearer": []
@@ -72,9 +68,7 @@
             "description": ""
           }
         },
-        "tags": [
-          "users"
-        ],
+        "tags": ["users"],
         "security": [
           {
             "bearer": []
@@ -116,9 +110,7 @@
             }
           }
         },
-        "tags": [
-          "users"
-        ],
+        "tags": ["users"],
         "security": [
           {
             "bearer": []
@@ -152,9 +144,7 @@
             }
           }
         },
-        "tags": [
-          "users"
-        ],
+        "tags": ["users"],
         "security": [
           {
             "bearer": []
@@ -189,9 +179,7 @@
             }
           }
         },
-        "tags": [
-          "auth"
-        ]
+        "tags": ["auth"]
       }
     },
     "/api/auth/login": {
@@ -221,9 +209,7 @@
             }
           }
         },
-        "tags": [
-          "auth"
-        ]
+        "tags": ["auth"]
       }
     },
     "/api/auth/me": {
@@ -243,9 +229,7 @@
             }
           }
         },
-        "tags": [
-          "auth"
-        ],
+        "tags": ["auth"],
         "security": [
           {
             "bearer": []
@@ -276,18 +260,12 @@
         "properties": {
           "status": {
             "type": "string",
-            "enum": [
-              "ok",
-              "error"
-            ],
+            "enum": ["ok", "error"],
             "example": "ok"
           },
           "database": {
             "type": "string",
-            "enum": [
-              "connected",
-              "disconnected"
-            ],
+            "enum": ["connected", "disconnected"],
             "example": "connected"
           },
           "message": {
@@ -295,10 +273,7 @@
             "example": "Connection refused"
           }
         },
-        "required": [
-          "status",
-          "database"
-        ]
+        "required": ["status", "database"]
       },
       "UserListItemDto": {
         "type": "object",
@@ -321,10 +296,7 @@
           },
           "role": {
             "type": "string",
-            "enum": [
-              "admin",
-              "driver"
-            ],
+            "enum": ["admin", "driver"],
             "example": "driver"
           },
           "created_at": {
@@ -332,14 +304,7 @@
             "example": "2024-01-01T00:00:00.000Z"
           }
         },
-        "required": [
-          "id",
-          "phone",
-          "first_name",
-          "last_name",
-          "role",
-          "created_at"
-        ]
+        "required": ["id", "phone", "first_name", "last_name", "role", "created_at"]
       },
       "UpdateUserDto": {
         "type": "object",
@@ -379,20 +344,11 @@
           },
           "role": {
             "type": "string",
-            "enum": [
-              "admin",
-              "driver"
-            ],
+            "enum": ["admin", "driver"],
             "example": "driver"
           }
         },
-        "required": [
-          "id",
-          "phone",
-          "first_name",
-          "last_name",
-          "role"
-        ]
+        "required": ["id", "phone", "first_name", "last_name", "role"]
       },
       "RegisterDto": {
         "type": "object",
@@ -414,12 +370,7 @@
             "example": "password123"
           }
         },
-        "required": [
-          "phone",
-          "first_name",
-          "last_name",
-          "password"
-        ]
+        "required": ["phone", "first_name", "last_name", "password"]
       },
       "AuthResponseDto": {
         "type": "object",
@@ -432,10 +383,7 @@
             "$ref": "#/components/schemas/PublicUserDto"
           }
         },
-        "required": [
-          "access_token",
-          "user"
-        ]
+        "required": ["access_token", "user"]
       },
       "LoginDto": {
         "type": "object",
@@ -449,10 +397,7 @@
             "example": "password123"
           }
         },
-        "required": [
-          "phone",
-          "password"
-        ]
+        "required": ["phone", "password"]
       }
     }
   }

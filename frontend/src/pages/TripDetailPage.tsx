@@ -90,7 +90,7 @@ export default function TripDetailPage() {
       toast.success('Водія додано');
       setSelectedDriverId('');
     },
-    onError: (e: any) => toast.error(e.message || 'Помилка додавання водія'),
+    onError: (e: Error) => toast.error(e.message || 'Помилка додавання водія'),
   });
 
   const removeDriverMutation = useMutation({
@@ -99,18 +99,23 @@ export default function TripDetailPage() {
       queryClient.invalidateQueries({ queryKey: ['trip', tripId] });
       toast.success('Водія видалено');
     },
-    onError: (e: any) => toast.error(e.message || 'Помилка видалення водія'),
+    onError: (e: Error) => toast.error(e.message || 'Помилка видалення водія'),
   });
 
   const updateSeatMutation = useMutation({
-    mutationFn: ({ seatNumber, payload }: { seatNumber: number; payload: any }) =>
-      tripsApi.updateTripSeat(tripId, seatNumber, payload),
+    mutationFn: ({
+      seatNumber,
+      payload,
+    }: {
+      seatNumber: number;
+      payload: Record<string, unknown>;
+    }) => tripsApi.updateTripSeat(tripId, seatNumber, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['trip', tripId] });
       toast.success('Місце оновлено');
       setIsSeatModalOpen(false);
     },
-    onError: (e: any) => toast.error(e.message || 'Помилка оновлення місця'),
+    onError: (e: Error) => toast.error(e.message || 'Помилка оновлення місця'),
   });
 
   const addSeatMutation = useMutation({
@@ -119,7 +124,7 @@ export default function TripDetailPage() {
       queryClient.invalidateQueries({ queryKey: ['trip', tripId] });
       toast.success('Місце додано');
     },
-    onError: (e: any) => toast.error(e.message || 'Помилка додавання місця'),
+    onError: (e: Error) => toast.error(e.message || 'Помилка додавання місця'),
   });
 
   const removeSeatMutation = useMutation({
@@ -128,7 +133,7 @@ export default function TripDetailPage() {
       queryClient.invalidateQueries({ queryKey: ['trip', tripId] });
       toast.success('Місце видалено');
     },
-    onError: (e: any) => toast.error(e.message || 'Помилка видалення місця'),
+    onError: (e: Error) => toast.error(e.message || 'Помилка видалення місця'),
   });
 
   const handleOpenSeatModal = (seat: tripsApi.TripSeat) => {
@@ -138,7 +143,9 @@ export default function TripDetailPage() {
       last_name: seat.last_name || '',
       phone: seat.phone || '',
       boarding_address: seat.boarding_address || trip?.departure_city || '',
-      baggage_info: Array.isArray(seat.baggage_info) ? seat.baggage_info : [],
+      baggage_info: Array.isArray(seat.baggage_info)
+        ? (seat.baggage_info as { name: string; weight: number }[])
+        : [],
     });
     setIsSeatModalOpen(true);
   };
@@ -218,24 +225,30 @@ export default function TripDetailPage() {
 
   // --- PARCELS LOGIC ---
   const addParcelMutation = useMutation({
-    mutationFn: (payload: any) => tripsApi.addTripParcel(tripId, payload),
+    mutationFn: (payload: Parameters<typeof tripsApi.addTripParcel>[1]) =>
+      tripsApi.addTripParcel(tripId, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['trip', tripId] });
       toast.success('Посилку додано');
       setIsParcelModalOpen(false);
     },
-    onError: (e: any) => toast.error(e.message || 'Помилка додавання посилки'),
+    onError: (e: Error) => toast.error(e.message || 'Помилка додавання посилки'),
   });
 
   const updateParcelMutation = useMutation({
-    mutationFn: ({ parcelId, payload }: { parcelId: number; payload: any }) =>
-      tripsApi.updateTripParcel(tripId, parcelId, payload),
+    mutationFn: ({
+      parcelId,
+      payload,
+    }: {
+      parcelId: number;
+      payload: Partial<tripsApi.TripParcel>;
+    }) => tripsApi.updateTripParcel(tripId, parcelId, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['trip', tripId] });
       toast.success('Посилку оновлено');
       setIsParcelModalOpen(false);
     },
-    onError: (e: any) => toast.error(e.message || 'Помилка оновлення посилки'),
+    onError: (e: Error) => toast.error(e.message || 'Помилка оновлення посилки'),
   });
 
   const removeParcelMutation = useMutation({
@@ -246,7 +259,7 @@ export default function TripDetailPage() {
       setDeleteParcelConfirmOpen(false);
       setParcelToDelete(null);
     },
-    onError: (e: any) => toast.error(e.message || 'Помилка видалення посилки'),
+    onError: (e: Error) => toast.error(e.message || 'Помилка видалення посилки'),
   });
 
   const handleOpenParcelModal = (parcel?: tripsApi.TripParcel) => {
@@ -303,7 +316,7 @@ export default function TripDetailPage() {
       toast.success('Рейс успішно завершено! Створено новий рейс для цього автобуса.');
       navigate('/');
     },
-    onError: (e: any) => toast.error(e.message || 'Помилка завершення рейсу'),
+    onError: (e: Error) => toast.error(e.message || 'Помилка завершення рейсу'),
   });
 
   if (isLoadingTrip) return <PageLoader />;
@@ -470,12 +483,15 @@ export default function TripDetailPage() {
                             Багаж:
                           </p>
                           <ul className="list-disc list-inside space-y-0.5">
-                            {seat.baggage_info.map((b: any, idx: number) => (
-                              <li key={idx}>
-                                {b.name || 'Сумка'} —{' '}
-                                {b.weight ? `${b.weight} кг` : 'вага не вказана'}
-                              </li>
-                            ))}
+                            {seat.baggage_info.map((bagItem: unknown, idx: number) => {
+                              const b = bagItem as Record<string, unknown>;
+                              return (
+                                <li key={idx}>
+                                  {(b.name as string) || 'Сумка'} —{' '}
+                                  {b.weight ? `${b.weight} кг` : 'вага не вказана'}
+                                </li>
+                              );
+                            })}
                           </ul>
                         </div>
                       )}
@@ -530,7 +546,7 @@ export default function TripDetailPage() {
             </DialogHeader>
             <div className="space-y-4 py-4 max-h-[60vh] overflow-y-auto px-1">
               <div className="space-y-2">
-                <Label htmlFor="first_name">Ім'я</Label>
+                <Label htmlFor="first_name">Ім&apos;я</Label>
                 <Input
                   id="first_name"
                   value={seatForm.first_name}
@@ -736,7 +752,7 @@ export default function TripDetailPage() {
             <div className="space-y-4 py-4 max-h-[60vh] overflow-y-auto px-1">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="p_first_name">Ім'я</Label>
+                  <Label htmlFor="p_first_name">Ім&apos;я</Label>
                   <Input
                     id="p_first_name"
                     value={parcelForm.first_name}

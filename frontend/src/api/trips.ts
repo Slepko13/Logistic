@@ -24,7 +24,7 @@ export interface TripSeat {
   first_name: string | null;
   last_name: string | null;
   phone: string | null;
-  baggage_info: any[] | null;
+  baggage_info: unknown[] | null;
   boarding_address: string | null;
   updated_at: string;
   updated_by_id: number | null;
@@ -131,7 +131,7 @@ export async function updateTripSeat(
     first_name?: string | null;
     last_name?: string | null;
     phone?: string | null;
-    baggage_info?: any[] | null;
+    baggage_info?: unknown[] | null;
     boarding_address?: string | null;
   },
 ): Promise<TripSeat> {

@@ -22,6 +22,7 @@ const databaseUrl =
 // Тому тут ми завжди використовуємо прямий порт (5432 замість 6543).
 // Рантайм NestJS бере URL окремо з prisma.service.ts через pg Pool адаптер.
 // ---------------------------------------------------------------------------
+
 const directUrl = databaseUrl.replace(':6543/', ':5432/');
 
 export default defineConfig({
@@ -30,6 +31,6 @@ export default defineConfig({
     path: 'prisma/migrations',
   },
   datasource: {
-    url: process.env.DATABASE_URL,
+    url: directUrl,
   },
 });

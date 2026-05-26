@@ -1,17 +1,17 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import PageLoader from '@/components/common/PageLoader';
 import { useAuth } from '@/context/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import * as tripsApi from '@/api/trips';
 import * as citiesApi from '@/api/cities';
-import { Users, Package, MapPin, Calendar, Check } from 'lucide-react';
+import { Users, Package, MapPin, Check } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function DashboardPage() {
-  const { user } = useAuth();
+  useAuth();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
@@ -55,9 +55,9 @@ export default function DashboardPage() {
   const applyGlobalSettings = async () => {
     if (!trips) return;
 
-    const promises: Promise<any>[] = [];
+    const promises: Promise<unknown>[] = [];
     trips.forEach((trip) => {
-      const payload: any = {};
+      const payload: Record<string, unknown> = {};
       if (globalDepDate) payload.departure_date = new Date(globalDepDate).toISOString();
       if (globalArrDate) payload.arrival_date = new Date(globalArrDate).toISOString();
       if (globalDepCity) payload.departure_city = globalDepCity;
@@ -72,7 +72,7 @@ export default function DashboardPage() {
       try {
         await Promise.all(promises);
         toast.success(`Оновлено дані для ${promises.length} рейсів`);
-      } catch (err) {
+      } catch {
         toast.error('Помилка при оновленні деяких рейсів');
       }
     }

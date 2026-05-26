@@ -45,18 +45,18 @@ export default function AdminCitiesPage() {
       toast.success('Місто додано');
       setIsModalOpen(false);
     },
-    onError: (e: any) => toast.error(e.message || 'Помилка додавання міста'),
+    onError: (e: Error) => toast.error(e.message || 'Помилка додавання міста'),
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, payload }: { id: number; payload: any }) =>
+    mutationFn: ({ id, payload }: { id: number; payload: Record<string, unknown> }) =>
       citiesApi.updateCity(id, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cities'] });
       toast.success('Місто оновлено');
       setIsModalOpen(false);
     },
-    onError: (e: any) => toast.error(e.message || 'Помилка оновлення міста'),
+    onError: (e: Error) => toast.error(e.message || 'Помилка оновлення міста'),
   });
 
   const removeMutation = useMutation({
@@ -66,7 +66,7 @@ export default function AdminCitiesPage() {
       toast.success('Місто видалено');
       setDeleteConfirmOpen(false);
     },
-    onError: (e: any) => {
+    onError: (e: Error) => {
       toast.error(e.message || 'Помилка видалення міста');
       setDeleteConfirmOpen(false);
     },
