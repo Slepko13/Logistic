@@ -24,7 +24,18 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { ArrowLeft, UserPlus, Trash2, User, Edit, Users, Phone, Package, Plus } from 'lucide-react';
+import {
+  ArrowLeft,
+  UserPlus,
+  Trash2,
+  User,
+  Edit,
+  Users,
+  Phone,
+  Package,
+  Plus,
+  MapPin,
+} from 'lucide-react';
 import toast from 'react-hot-toast';
 import * as tripsApi from '@/api/trips';
 import * as usersApi from '@/api/users';
@@ -229,10 +240,10 @@ export default function TripDetailPage() {
       tripsApi.addTripParcel(tripId, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['trip', tripId] });
-      toast.success('Посилку додано');
+      toast.success('Передачу додано');
       setIsParcelModalOpen(false);
     },
-    onError: (e: Error) => toast.error(e.message || 'Помилка додавання посилки'),
+    onError: (e: Error) => toast.error(e.message || 'Помилка додавання передачі'),
   });
 
   const updateParcelMutation = useMutation({
@@ -245,21 +256,21 @@ export default function TripDetailPage() {
     }) => tripsApi.updateTripParcel(tripId, parcelId, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['trip', tripId] });
-      toast.success('Посилку оновлено');
+      toast.success('Передачу оновлено');
       setIsParcelModalOpen(false);
     },
-    onError: (e: Error) => toast.error(e.message || 'Помилка оновлення посилки'),
+    onError: (e: Error) => toast.error(e.message || 'Помилка оновлення передачі'),
   });
 
   const removeParcelMutation = useMutation({
     mutationFn: (parcelId: number) => tripsApi.removeTripParcel(tripId, parcelId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['trip', tripId] });
-      toast.success('Посилку видалено');
+      toast.success('Передачу видалено');
       setDeleteParcelConfirmOpen(false);
       setParcelToDelete(null);
     },
-    onError: (e: Error) => toast.error(e.message || 'Помилка видалення посилки'),
+    onError: (e: Error) => toast.error(e.message || 'Помилка видалення передачі'),
   });
 
   const handleOpenParcelModal = (parcel?: tripsApi.TripParcel) => {
@@ -477,6 +488,14 @@ export default function TripDetailPage() {
                       <p className="text-sm text-muted-foreground flex items-center gap-1">
                         <Phone className="w-3 h-3" /> {seat.phone || 'Немає телефону'}
                       </p>
+                      {seat.boarding_address && (
+                        <p className="text-sm text-muted-foreground flex items-center gap-1 mt-0.5">
+                          <MapPin className="w-3 h-3 shrink-0" />{' '}
+                          <span className="truncate" title={seat.boarding_address}>
+                            {seat.boarding_address}
+                          </span>
+                        </p>
+                      )}
                       {Array.isArray(seat.baggage_info) && seat.baggage_info.length > 0 && (
                         <div className="mt-2 text-sm text-muted-foreground">
                           <p className="font-medium text-xs uppercase tracking-wider mb-1">
@@ -648,13 +667,13 @@ export default function TripDetailPage() {
         <CardHeader className="flex flex-row items-start justify-between">
           <div>
             <CardTitle className="flex items-center gap-2 text-lg">
-              <Package className="w-5 h-5 text-orange-500" /> Посилки
+              <Package className="w-5 h-5 text-orange-500" /> Передачі
             </CardTitle>
-            <CardDescription>Управління доставкою посилок, адреси та статуси.</CardDescription>
+            <CardDescription>Управління доставкою передач, адреси та статуси.</CardDescription>
           </div>
           <Button variant="outline" size="sm" onClick={() => handleOpenParcelModal()}>
             <Plus className="w-4 h-4 mr-2" />
-            Додати посилку
+            Додати передачу
           </Button>
         </CardHeader>
         <CardContent>
@@ -732,7 +751,7 @@ export default function TripDetailPage() {
                 {trip.parcels.length === 0 && (
                   <TableRow>
                     <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
-                      Немає жодноної посилки для цього рейсу.
+                      Немає жодної передачі для цього рейсу.
                     </TableCell>
                   </TableRow>
                 )}
@@ -747,7 +766,9 @@ export default function TripDetailPage() {
         <DialogContent>
           <form onSubmit={handleSaveParcel}>
             <DialogHeader>
-              <DialogTitle>{editingParcelId ? 'Редагування посилки' : 'Нова посилка'}</DialogTitle>
+              <DialogTitle>
+                {editingParcelId ? 'Редагування передачі' : 'Нова передача'}
+              </DialogTitle>
             </DialogHeader>
             <div className="space-y-4 py-4 max-h-[60vh] overflow-y-auto px-1">
               <div className="grid grid-cols-2 gap-4">
@@ -857,8 +878,8 @@ export default function TripDetailPage() {
       <ConfirmDialog
         open={deleteParcelConfirmOpen}
         onOpenChange={setDeleteParcelConfirmOpen}
-        title="Видалити посилку?"
-        description="Ви дійсно хочете повністю видалити цю посилку з рейсу? Вона зникне назавжди."
+        title="Видалити передачу?"
+        description="Ви дійсно хочете повністю видалити цю передачу з рейсу? Вона зникне назавжди."
         confirmLabel="Видалити"
         confirmVariant="destructive"
         onConfirm={async () => {
