@@ -13,5 +13,6 @@ export const QUERY_KEYS = {
     ACTIVE: ['active-trips'],
     HISTORY: ['trips-history'],
     DETAIL: (id: number | string) => ['trip', id],
+    PARCELS: (id: number | string) => ['trip', id, 'parcels'],
   },
 };

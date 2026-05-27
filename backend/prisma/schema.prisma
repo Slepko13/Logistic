@@ -103,6 +103,7 @@ model TripParcel {
   last_name        String  @db.VarChar(64)
   phone            String  @db.VarChar(20)
   weight           Float
+  description      String? @db.Text // Опис (колір, розмір тощо)
   delivery_address String  @db.VarChar(255) // Адреса доставки
   is_delivered     Boolean @default(false) // Чекбокс "Доставлено"
 

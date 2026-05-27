@@ -5,6 +5,7 @@ import {
   getActiveTrips,
   getTripHistory,
   getTrip,
+  getTripParcels,
   updateTrip,
   completeTrip,
   addTripDriver,
@@ -16,6 +17,7 @@ import {
   updateTripParcel,
   removeTripParcel,
   UpdateTripPayload,
+  GetTripParcelsParams,
 } from './requests';
 import toast from 'react-hot-toast';
 
@@ -44,6 +46,14 @@ export function useGetTrip(id: number, enabled = true) {
   return useQuery({
     queryKey: QUERY_KEYS.TRIPS.DETAIL(id),
     queryFn: () => getTrip(id),
+    enabled,
+  });
+}
+
+export function useGetTripParcels(id: number, params: GetTripParcelsParams, enabled = true) {
+  return useQuery({
+    queryKey: [...QUERY_KEYS.TRIPS.PARCELS(id), params],
+    queryFn: () => getTripParcels(id, params),
     enabled,
   });
 }
@@ -157,6 +167,7 @@ export function useAddTripParcelMutation() {
     }) => addTripParcel(tripId, payload),
     onSuccess: (_, { tripId }) => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.TRIPS.DETAIL(tripId) });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.TRIPS.PARCELS(tripId) });
     },
     onError: (e: Error) => toast.error(e.message || 'Помилка додавання передачі'),
   });
@@ -176,6 +187,7 @@ export function useUpdateTripParcelMutation() {
     }) => updateTripParcel(tripId, parcelId, payload),
     onSuccess: (_, { tripId }) => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.TRIPS.DETAIL(tripId) });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.TRIPS.PARCELS(tripId) });
     },
     onError: (e: Error) => toast.error(e.message || 'Помилка оновлення передачі'),
   });
@@ -188,6 +200,7 @@ export function useRemoveTripParcelMutation() {
       removeTripParcel(tripId, parcelId),
     onSuccess: (_, { tripId }) => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.TRIPS.DETAIL(tripId) });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.TRIPS.PARCELS(tripId) });
     },
     onError: (e: Error) => toast.error(e.message || 'Помилка видалення передачі'),
   });

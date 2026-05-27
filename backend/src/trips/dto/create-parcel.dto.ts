@@ -1,4 +1,4 @@
-import { IsString, IsNumber, MaxLength, IsNotEmpty } from 'class-validator';
+import { IsString, IsNumber, MaxLength, IsNotEmpty, IsOptional } from 'class-validator';
 
 export class CreateParcelDto {
   @IsString()
@@ -23,4 +23,8 @@ export class CreateParcelDto {
   @IsNotEmpty()
   @MaxLength(255)
   delivery_address!: string;
+
+  @IsOptional()
+  @IsString()
+  description?: string;
 }

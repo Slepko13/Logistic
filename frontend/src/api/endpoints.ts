@@ -41,5 +41,6 @@ export const ENDPOINTS = {
       `/api/trips/${tripId}/parcels/${parcelId}`,
     DELETE_PARCEL: (tripId: number | string, parcelId: number | string) =>
       `/api/trips/${tripId}/parcels/${parcelId}`,
+    GET_PARCELS: (tripId: number | string) => `/api/trips/${tripId}/parcels`,
   },
 };

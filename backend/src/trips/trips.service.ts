@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service';
+import { Prisma } from '@prisma/client';
 import { UpdateTripDto } from './dto/update-trip.dto';
 import { AddDriverDto } from './dto/add-driver.dto';
 import { UpdateSeatDto } from './dto/update-seat.dto';
@@ -265,12 +266,84 @@ export class TripsService {
         baggage_info: dto.baggage_info
           ? (dto.baggage_info as unknown as import('@prisma/client').Prisma.InputJsonValue)
           : undefined,
+        boarding_address: dto.boarding_address,
         updated_by_id: updatedById,
       },
     });
   }
 
   // --- PARCELS ---
+
+  async getTripParcels(
+    tripId: number,
+    query: {
+      page?: number;
+      limit?: number;
+      search?: string;
+      status?: string;
+      sortBy?: string;
+      sortOrder?: 'asc' | 'desc';
+    },
+  ) {
+    const page = Number(query.page) || 1;
+    const limit = Number(query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const where: Prisma.TripParcelWhereInput = { trip_id: tripId };
+
+    if (query.status === 'delivered') {
+      where.is_delivered = true;
+    } else if (query.status === 'pending') {
+      where.is_delivered = false;
+    }
+
+    if (query.search) {
+      const searchNum = parseInt(query.search, 10);
+      where.OR = [
+        { first_name: { contains: query.search, mode: 'insensitive' } },
+        { last_name: { contains: query.search, mode: 'insensitive' } },
+        { phone: { contains: query.search, mode: 'insensitive' } },
+      ];
+      if (!isNaN(searchNum)) {
+        where.OR.push({ parcel_number: { equals: searchNum } });
+      }
+    }
+
+    let orderBy:
+      | Prisma.TripParcelOrderByWithRelationInput
+      | Prisma.TripParcelOrderByWithRelationInput[] = { parcel_number: 'asc' };
+    const sortOrder = query.sortOrder === 'desc' ? 'desc' : 'asc';
+
+    if (query.sortBy === 'sender') {
+      orderBy = [{ last_name: sortOrder }, { first_name: sortOrder }];
+    } else if (query.sortBy === 'phone') {
+      orderBy = { phone: sortOrder };
+    } else if (query.sortBy === 'status') {
+      orderBy = { is_delivered: sortOrder };
+    }
+
+    const [data, total] = await Promise.all([
+      this.prisma.tripParcel.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy,
+        include: {
+          updated_by: {
+            select: { first_name: true, last_name: true },
+          },
+        },
+      }),
+      this.prisma.tripParcel.count({ where }),
+    ]);
+
+    return {
+      data,
+      total,
+      page,
+      totalPages: Math.ceil(total / limit),
+    };
+  }
 
   async addParcel(tripId: number, dto: CreateParcelDto, updatedById: number) {
     await this.findOne(tripId);
@@ -282,6 +355,7 @@ export class TripsService {
         last_name: dto.last_name,
         phone: dto.phone,
         weight: dto.weight,
+        description: dto.description,
         delivery_address: dto.delivery_address,
         updated_by_id: updatedById,
       },
@@ -304,6 +378,7 @@ export class TripsService {
         last_name: dto.last_name,
         phone: dto.phone,
         weight: dto.weight,
+        description: dto.description,
         delivery_address: dto.delivery_address,
         is_delivered: dto.is_delivered,
         updated_by_id: updatedById,

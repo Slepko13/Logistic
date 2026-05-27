@@ -43,6 +43,7 @@ export interface TripParcel {
   last_name: string;
   phone: string;
   weight: number;
+  description: string | null;
   delivery_address: string;
   is_delivered: boolean;
   updated_at: string;
@@ -60,6 +61,22 @@ export interface UpdateTripPayload {
   arrival_date?: string | null;
   vehicle_id?: number;
   driverIds?: number[];
+}
+
+export interface GetTripParcelsParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  status?: string;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}
+
+export interface PaginatedParcels {
+  data: TripParcel[];
+  total: number;
+  page: number;
+  totalPages: number;
 }
 
 export interface Trip {
@@ -149,6 +166,7 @@ export async function addTripParcel(
     last_name: string;
     phone: string;
     weight: number;
+    description?: string;
     delivery_address: string;
   },
 ): Promise<TripParcel> {
@@ -166,6 +184,7 @@ export async function updateTripParcel(
     last_name?: string;
     phone?: string;
     weight?: number;
+    description?: string;
     delivery_address?: string;
     is_delivered?: boolean;
   },
@@ -186,4 +205,21 @@ export async function completeTrip(tripId: number): Promise<Trip> {
   return apiFetch<Trip>(ENDPOINTS.TRIPS.COMPLETE(tripId), {
     method: 'POST',
   });
+}
+
+export async function getTripParcels(
+  tripId: number,
+  params: GetTripParcelsParams,
+): Promise<PaginatedParcels> {
+  const query = new URLSearchParams();
+  if (params.page) query.append('page', params.page.toString());
+  if (params.limit) query.append('limit', params.limit.toString());
+  if (params.search) query.append('search', params.search);
+  if (params.status) query.append('status', params.status);
+  if (params.sortBy) query.append('sortBy', params.sortBy);
+  if (params.sortOrder) query.append('sortOrder', params.sortOrder);
+
+  const qs = query.toString();
+  const url = `${ENDPOINTS.TRIPS.GET_PARCELS(tripId)}${qs ? `?${qs}` : ''}`;
+  return apiFetch<PaginatedParcels>(url);
 }

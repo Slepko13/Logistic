@@ -9,6 +9,7 @@ import {
   ParseIntPipe,
   UseGuards,
   Req,
+  Query,
 } from '@nestjs/common';
 import { TripsService } from './trips.service';
 import { UpdateTripDto } from './dto/update-trip.dto';
@@ -80,6 +81,26 @@ export class TripsController {
     @Param('seatNumber', ParseIntPipe) seatNumber: number,
   ) {
     return this.tripsService.removeSeat(id, seatNumber);
+  }
+
+  @Get(':id/parcels')
+  getParcels(
+    @Param('id', ParseIntPipe) id: number,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('search') search?: string,
+    @Query('status') status?: string,
+    @Query('sortBy') sortBy?: string,
+    @Query('sortOrder') sortOrder?: 'asc' | 'desc',
+  ) {
+    return this.tripsService.getTripParcels(id, {
+      page: page ? parseInt(page, 10) : undefined,
+      limit: limit ? parseInt(limit, 10) : undefined,
+      search,
+      status,
+      sortBy,
+      sortOrder,
+    });
   }
 
   @Post(':id/parcels')

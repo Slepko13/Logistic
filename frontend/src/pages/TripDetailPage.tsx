@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 
 import PageLoader from '@/components/common/PageLoader';
@@ -15,6 +15,13 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import ConfirmDialog from '@/components/common/ConfirmDialog';
 import {
   Table,
@@ -35,6 +42,8 @@ import {
   Package,
   Plus,
   MapPin,
+  Search,
+  ArrowUpDown,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import {
@@ -48,6 +57,7 @@ import {
   useUpdateTripParcelMutation,
   useRemoveTripParcelMutation,
   useCompleteTripMutation,
+  useGetTripParcels,
 } from '@/api/services/trips/queries';
 import { TripSeat, TripParcel } from '@/api/services/trips/requests';
 import { useGetUsers } from '@/api/services/users/queries';
@@ -85,6 +95,7 @@ export default function TripDetailPage() {
     last_name: '',
     phone: '',
     weight: 0,
+    description: '',
     delivery_address: '',
   });
 
@@ -93,7 +104,36 @@ export default function TripDetailPage() {
 
   const [completeTripConfirmOpen, setCompleteTripConfirmOpen] = useState(false);
 
+  // Parcel Filter & Sort State
+  const [parcelSearchQuery, setParcelSearchQuery] = useState('');
+  const [parcelStatusFilter, setParcelStatusFilter] = useState<string>('all');
+  const [parcelSortConfig, setParcelSortConfig] = useState<{
+    key: 'sender' | 'phone' | 'status';
+    direction: 'asc' | 'desc';
+  } | null>(null);
+
+  const [parcelPage, setParcelPage] = useState(1);
+  const [parcelLimit, setParcelLimit] = useState(10);
+  const [debouncedParcelSearchQuery, setDebouncedParcelSearchQuery] = useState('');
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedParcelSearchQuery(parcelSearchQuery);
+      setParcelPage(1); // Reset page on new search
+    }, 500);
+    return () => clearTimeout(handler);
+  }, [parcelSearchQuery]);
+
   const { data: trip, isLoading: isLoadingTrip } = useGetTrip(tripId);
+
+  const { data: parcelsData, isLoading: isLoadingParcels } = useGetTripParcels(tripId, {
+    page: parcelPage,
+    limit: parcelLimit,
+    search: debouncedParcelSearchQuery || undefined,
+    status: parcelStatusFilter !== 'all' ? parcelStatusFilter : undefined,
+    sortBy: parcelSortConfig?.key,
+    sortOrder: parcelSortConfig?.direction,
+  });
 
   // Fetch all users (only admin has access, but we try anyway. Error is ignored if not admin)
   const { data: allUsers } = useGetUsers();
@@ -138,6 +178,18 @@ export default function TripDetailPage() {
   const removeSeatMutation = {
     ..._removeSeatMutation,
     mutateAsync: (seatNumber: number) => _removeSeatMutation.mutateAsync({ tripId, seatNumber }),
+  };
+
+  const filteredAndSortedParcels = parcelsData?.data || [];
+
+  const handleParcelSort = (key: 'sender' | 'phone' | 'status') => {
+    setParcelSortConfig((current) => {
+      if (current?.key === key) {
+        if (current.direction === 'asc') return { key, direction: 'desc' };
+        return null; // toggle off
+      }
+      return { key, direction: 'asc' };
+    });
   };
 
   const handleOpenSeatModal = (seat: TripSeat) => {
@@ -236,6 +288,7 @@ export default function TripDetailPage() {
       last_name: string;
       phone: string;
       weight: number;
+      description?: string;
       delivery_address: string;
     }) =>
       _addParcelMutation.mutate(
@@ -288,6 +341,7 @@ export default function TripDetailPage() {
         last_name: parcel.last_name,
         phone: parcel.phone,
         weight: parcel.weight,
+        description: parcel.description || '',
         delivery_address: parcel.delivery_address,
       });
     } else {
@@ -297,6 +351,7 @@ export default function TripDetailPage() {
         last_name: '',
         phone: '',
         weight: 0,
+        description: '',
         delivery_address: '',
       });
     }
@@ -692,21 +747,71 @@ export default function TripDetailPage() {
           </Button>
         </CardHeader>
         <CardContent>
+          {/* Parcel Search and Filter Bar */}
+          <div className="flex flex-col sm:flex-row gap-4 mb-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Пошук за відправником, телефоном або номером передачі..."
+                value={parcelSearchQuery}
+                onChange={(e) => setParcelSearchQuery(e.target.value)}
+                className="pl-8"
+              />
+            </div>
+            <div className="w-full sm:w-[200px]">
+              <Select value={parcelStatusFilter} onValueChange={setParcelStatusFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Статус" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Усі статуси</SelectItem>
+                  <SelectItem value="pending">Не доставлено</SelectItem>
+                  <SelectItem value="delivered">Доставлено</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
           <div className="rounded-md border overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-[50px] text-center">№</TableHead>
-                  <TableHead>Відправник / Отримувач</TableHead>
-                  <TableHead>Контакти</TableHead>
+                  <TableHead
+                    className="cursor-pointer hover:bg-muted/50 transition-colors select-none"
+                    onClick={() => handleParcelSort('sender')}
+                  >
+                    <div className="flex items-center gap-1">
+                      Відправник / Отримувач
+                      <ArrowUpDown className="w-3 h-3 ml-1 text-muted-foreground" />
+                    </div>
+                  </TableHead>
+                  <TableHead
+                    className="cursor-pointer hover:bg-muted/50 transition-colors select-none"
+                    onClick={() => handleParcelSort('phone')}
+                  >
+                    <div className="flex items-center gap-1">
+                      Контакти
+                      <ArrowUpDown className="w-3 h-3 ml-1 text-muted-foreground" />
+                    </div>
+                  </TableHead>
                   <TableHead>Адреса доставки</TableHead>
+                  <TableHead>Опис</TableHead>
                   <TableHead className="text-center">Вага (кг)</TableHead>
-                  <TableHead className="text-center">Статус</TableHead>
+                  <TableHead
+                    className="text-center cursor-pointer hover:bg-muted/50 transition-colors select-none"
+                    onClick={() => handleParcelSort('status')}
+                  >
+                    <div className="flex items-center justify-center gap-1">
+                      Статус
+                      <ArrowUpDown className="w-3 h-3 ml-1 text-muted-foreground" />
+                    </div>
+                  </TableHead>
                   <TableHead className="text-right">Дії</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {trip.parcels.map((parcel) => (
+                {filteredAndSortedParcels.map((parcel) => (
                   <TableRow
                     key={parcel.id}
                     className={
@@ -728,6 +833,9 @@ export default function TripDetailPage() {
                     </TableCell>
                     <TableCell className="max-w-[200px] truncate" title={parcel.delivery_address}>
                       {parcel.delivery_address}
+                    </TableCell>
+                    <TableCell className="max-w-[150px] truncate" title={parcel.description || ''}>
+                      {parcel.description || <span className="text-muted-foreground">-</span>}
                     </TableCell>
                     <TableCell className="text-center">{parcel.weight}</TableCell>
                     <TableCell className="text-center">
@@ -763,16 +871,70 @@ export default function TripDetailPage() {
                     </TableCell>
                   </TableRow>
                 ))}
-                {trip.parcels.length === 0 && (
+                {filteredAndSortedParcels.length === 0 && !isLoadingParcels && (
                   <TableRow>
-                    <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
-                      Немає жодної передачі для цього рейсу.
+                    <TableCell colSpan={8} className="h-24 text-center text-muted-foreground">
+                      Немає жодної передачі.
+                    </TableCell>
+                  </TableRow>
+                )}
+                {isLoadingParcels && (
+                  <TableRow>
+                    <TableCell colSpan={8} className="h-24 text-center text-muted-foreground">
+                      Завантаження...
                     </TableCell>
                   </TableRow>
                 )}
               </TableBody>
             </Table>
           </div>
+
+          {/* Pagination Controls */}
+          {parcelsData && (
+            <div className="flex flex-col sm:flex-row items-center justify-between mt-4 gap-4">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">Показувати по:</span>
+                <Select
+                  value={parcelLimit.toString()}
+                  onValueChange={(val) => {
+                    setParcelLimit(Number(val));
+                    setParcelPage(1);
+                  }}
+                >
+                  <SelectTrigger className="w-[80px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="10">10</SelectItem>
+                    <SelectItem value="20">20</SelectItem>
+                    <SelectItem value="50">50</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={parcelPage === 1}
+                  onClick={() => setParcelPage((p) => Math.max(1, p - 1))}
+                >
+                  Попередня
+                </Button>
+                <span className="text-sm px-2 text-muted-foreground">
+                  Сторінка {parcelsData.page} з {parcelsData.totalPages || 1}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={!parcelsData.totalPages || parcelPage >= parcelsData.totalPages}
+                  onClick={() => setParcelPage((p) => Math.min(parcelsData.totalPages, p + 1))}
+                >
+                  Наступна
+                </Button>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -840,6 +1002,16 @@ export default function TripDetailPage() {
                     setParcelForm({ ...parcelForm, delivery_address: e.target.value })
                   }
                   required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="p_description">Опис посилки (опціонально)</Label>
+                <textarea
+                  id="p_description"
+                  className="flex min-h-[60px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                  value={parcelForm.description}
+                  onChange={(e) => setParcelForm({ ...parcelForm, description: e.target.value })}
+                  placeholder="Колір сумки, характерні ознаки..."
                 />
               </div>
             </div>
