@@ -155,9 +155,12 @@ export default function TripDetailPage() {
   const _updateSeatMutation = useUpdateTripSeatMutation();
   const updateSeatMutation = {
     ..._updateSeatMutation,
-    mutateAsync: (vars: { seatNumber: number; payload: Record<string, unknown> }) =>
-      _updateSeatMutation.mutateAsync({ tripId, ...vars }),
-    mutate: (vars: { seatNumber: number; payload: Record<string, unknown> }) =>
+    mutateAsync: (vars: {
+      seatNumber: number;
+      payload: Record<string, unknown>;
+      version?: number;
+    }) => _updateSeatMutation.mutateAsync({ tripId, ...vars }),
+    mutate: (vars: { seatNumber: number; payload: Record<string, unknown>; version?: number }) =>
       _updateSeatMutation.mutate(
         { tripId, ...vars },
         {
@@ -178,7 +181,8 @@ export default function TripDetailPage() {
   const _removeSeatMutation = useRemoveTripSeatMutation();
   const removeSeatMutation = {
     ..._removeSeatMutation,
-    mutateAsync: (seatNumber: number) => _removeSeatMutation.mutateAsync({ tripId, seatNumber }),
+    mutateAsync: (seatNumber: number, version?: number) =>
+      _removeSeatMutation.mutateAsync({ tripId, seatNumber, version }),
   };
 
   const filteredAndSortedParcels = parcelsData?.data || [];
@@ -232,8 +236,10 @@ export default function TripDetailPage() {
   const handleSaveSeat = (e: React.FormEvent) => {
     e.preventDefault();
     if (editingSeatNumber !== null) {
+      const seatVersion = trip?.seats.find((s) => s.seat_number === editingSeatNumber)?.version;
       updateSeatMutation.mutate({
         seatNumber: editingSeatNumber,
+        version: seatVersion,
         payload: {
           first_name: seatForm.first_name || null,
           last_name: seatForm.last_name || null,
@@ -252,8 +258,10 @@ export default function TripDetailPage() {
 
   const executeClearSeat = async () => {
     if (seatToClear !== null) {
+      const seatVersion = trip?.seats.find((s) => s.seat_number === seatToClear)?.version;
       await updateSeatMutation.mutateAsync({
         seatNumber: seatToClear,
+        version: seatVersion,
         payload: {
           first_name: null,
           last_name: null,
@@ -274,7 +282,8 @@ export default function TripDetailPage() {
 
   const executeDeleteSeat = async () => {
     if (seatToDelete !== null) {
-      await removeSeatMutation.mutateAsync(seatToDelete);
+      const seatVersion = trip?.seats.find((s) => s.seat_number === seatToDelete)?.version;
+      await removeSeatMutation.mutateAsync(seatToDelete, seatVersion);
       setDeleteSeatConfirmOpen(false);
       setSeatToDelete(null);
     }
@@ -306,7 +315,7 @@ export default function TripDetailPage() {
   const _updateParcelMutation = useUpdateTripParcelMutation();
   const updateParcelMutation = {
     ..._updateParcelMutation,
-    mutate: (vars: { parcelId: number; payload: Record<string, unknown> }) =>
+    mutate: (vars: { parcelId: number; payload: Record<string, unknown>; version?: number }) =>
       _updateParcelMutation.mutate(
         { tripId, ...vars },
         {
@@ -321,9 +330,9 @@ export default function TripDetailPage() {
   const _removeParcelMutation = useRemoveTripParcelMutation();
   const removeParcelMutation = {
     ..._removeParcelMutation,
-    mutateAsync: (parcelId: number) =>
+    mutateAsync: (parcelId: number, version?: number) =>
       _removeParcelMutation.mutateAsync(
-        { tripId, parcelId },
+        { tripId, parcelId, version },
         {
           onSuccess: () => {
             toast.success('Передачу видалено');
@@ -362,8 +371,10 @@ export default function TripDetailPage() {
   const handleSaveParcel = (e: React.FormEvent) => {
     e.preventDefault();
     if (editingParcelId !== null) {
+      const parcelVersion = parcelsData?.data.find((p) => p.id === editingParcelId)?.version;
       updateParcelMutation.mutate({
         parcelId: editingParcelId,
+        version: parcelVersion,
         payload: parcelForm,
       });
     } else {
@@ -374,6 +385,7 @@ export default function TripDetailPage() {
   const handleToggleParcelDelivered = (parcel: TripParcel) => {
     updateParcelMutation.mutate({
       parcelId: parcel.id,
+      version: parcel.version,
       payload: { is_delivered: !parcel.is_delivered },
     });
   };
@@ -387,17 +399,23 @@ export default function TripDetailPage() {
   const completeTripMutation = {
     ..._completeTripMutation,
     mutate: () =>
-      _completeTripMutation.mutate(tripId, {
-        onSuccess: () => {
-          navigate('/');
+      _completeTripMutation.mutate(
+        { tripId, version: trip?.version },
+        {
+          onSuccess: () => {
+            navigate('/');
+          },
         },
-      }),
+      ),
     mutateAsync: async () =>
-      _completeTripMutation.mutateAsync(tripId, {
-        onSuccess: () => {
-          navigate('/');
+      _completeTripMutation.mutateAsync(
+        { tripId, version: trip?.version },
+        {
+          onSuccess: () => {
+            navigate('/');
+          },
         },
-      }),
+      ),
   };
 
   if (isLoadingTrip) return <PageLoader />;
@@ -1085,7 +1103,8 @@ export default function TripDetailPage() {
         confirmVariant="destructive"
         onConfirm={async () => {
           if (parcelToDelete !== null) {
-            await removeParcelMutation.mutateAsync(parcelToDelete);
+            const parcelVersion = parcelsData?.data.find((p) => p.id === parcelToDelete)?.version;
+            await removeParcelMutation.mutateAsync(parcelToDelete, parcelVersion);
           }
         }}
         loading={removeParcelMutation.isPending}

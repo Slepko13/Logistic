@@ -31,8 +31,20 @@ export class TripsController {
   }
 
   @Get('history')
-  findAllCompleted() {
-    return this.tripsService.findAllCompleted();
+  findAllCompleted(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('search') search?: string,
+    @Query('sortBy') sortBy?: string,
+    @Query('sortOrder') sortOrder?: 'asc' | 'desc',
+  ) {
+    return this.tripsService.findAllCompleted({
+      page: page ? parseInt(page, 10) : undefined,
+      limit: limit ? parseInt(limit, 10) : undefined,
+      search,
+      sortBy,
+      sortOrder,
+    });
   }
 
   @UseGuards(AdminGuard)
@@ -91,8 +103,9 @@ export class TripsController {
   removeSeat(
     @Param('id', ParseIntPipe) id: number,
     @Param('seatNumber', ParseIntPipe) seatNumber: number,
+    @Query('version', new ParseIntPipe({ optional: true })) version?: number,
   ) {
-    return this.tripsService.removeSeat(id, seatNumber);
+    return this.tripsService.removeSeat(id, seatNumber, version);
   }
 
   @Get(':id/parcels')
@@ -138,12 +151,16 @@ export class TripsController {
   removeParcel(
     @Param('id', ParseIntPipe) id: number,
     @Param('parcelId', ParseIntPipe) parcelId: number,
+    @Query('version', new ParseIntPipe({ optional: true })) version?: number,
   ) {
-    return this.tripsService.removeParcel(id, parcelId);
+    return this.tripsService.removeParcel(id, parcelId, version);
   }
 
   @Post(':id/complete')
-  completeTrip(@Param('id', ParseIntPipe) id: number) {
-    return this.tripsService.completeTrip(id);
+  completeTrip(
+    @Param('id', ParseIntPipe) id: number,
+    @Query('version', new ParseIntPipe({ optional: true })) version?: number,
+  ) {
+    return this.tripsService.completeTrip(id, version);
   }
 }

@@ -144,6 +144,7 @@ export default function AdminTripsPage() {
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingTripId) return;
+    const tripVersion = trips?.find((t) => t.id === editingTripId)?.version;
 
     const payload: UpdateTripPayload = {
       vehicle_id: parseInt(form.vehicle_id),
@@ -152,6 +153,7 @@ export default function AdminTripsPage() {
       departure_date: form.departure_date ? new Date(form.departure_date).toISOString() : null,
       arrival_date: form.arrival_date ? new Date(form.arrival_date).toISOString() : null,
       driverIds: form.driverIds,
+      version: tripVersion,
     };
 
     updateMutation.mutate({ id: editingTripId, payload });

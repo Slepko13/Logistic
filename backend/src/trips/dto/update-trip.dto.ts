@@ -36,4 +36,8 @@ export class UpdateTripDto {
   @ArrayUnique()
   @IsInt({ each: true })
   driverIds?: number[];
+
+  @IsOptional()
+  @IsInt()
+  version?: number;
 }

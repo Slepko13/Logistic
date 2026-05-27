@@ -37,6 +37,7 @@ export default function DashboardPage() {
       if (globalArrCity) payload.arrival_city = globalArrCity;
 
       if (Object.keys(payload).length > 0) {
+        payload.version = trip.version;
         promises.push(updateMutation.mutateAsync({ id: trip.id, payload }));
       }
     });
@@ -161,7 +162,7 @@ export default function DashboardPage() {
                       onChange={(e) =>
                         updateMutation.mutate({
                           id: trip.id,
-                          payload: { departure_city: e.target.value },
+                          payload: { departure_city: e.target.value, version: trip.version },
                         })
                       }
                     >
@@ -185,7 +186,10 @@ export default function DashboardPage() {
                       onChange={(e) =>
                         updateMutation.mutate({
                           id: trip.id,
-                          payload: { departure_date: new Date(e.target.value).toISOString() },
+                          payload: {
+                            departure_date: new Date(e.target.value).toISOString(),
+                            version: trip.version,
+                          },
                         })
                       }
                     />
@@ -204,7 +208,7 @@ export default function DashboardPage() {
                       onChange={(e) =>
                         updateMutation.mutate({
                           id: trip.id,
-                          payload: { arrival_city: e.target.value },
+                          payload: { arrival_city: e.target.value, version: trip.version },
                         })
                       }
                     >
@@ -233,7 +237,10 @@ export default function DashboardPage() {
                       onChange={(e) =>
                         updateMutation.mutate({
                           id: trip.id,
-                          payload: { arrival_date: new Date(e.target.value).toISOString() },
+                          payload: {
+                            arrival_date: new Date(e.target.value).toISOString(),
+                            version: trip.version,
+                          },
                         })
                       }
                     />

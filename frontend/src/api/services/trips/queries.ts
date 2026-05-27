@@ -20,6 +20,7 @@ import {
   removeTripParcel,
   UpdateTripPayload,
   GetTripParcelsParams,
+  GetTripHistoryParams,
 } from './requests';
 import toast from 'react-hot-toast';
 
@@ -37,10 +38,10 @@ export function useGetActiveTrips() {
   });
 }
 
-export function useGetTripHistory() {
+export function useGetTripHistory(params?: GetTripHistoryParams) {
   return useQuery({
-    queryKey: QUERY_KEYS.TRIPS.HISTORY,
-    queryFn: getTripHistory,
+    queryKey: [...QUERY_KEYS.TRIPS.HISTORY, params],
+    queryFn: () => getTripHistory(params),
   });
 }
 
@@ -109,8 +110,9 @@ export function useUpdateTripMutation() {
 export function useCompleteTripMutation() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: completeTrip,
-    onSuccess: (_, tripId) => {
+    mutationFn: ({ tripId, version }: { tripId: number; version?: number }) =>
+      completeTrip(tripId, version),
+    onSuccess: (_, { tripId }) => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.TRIPS.ALL });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.TRIPS.ACTIVE });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.TRIPS.HISTORY });
@@ -181,8 +183,15 @@ export function useUpdateTripSeatMutation() {
 export function useRemoveTripSeatMutation() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ tripId, seatNumber }: { tripId: number; seatNumber: number }) =>
-      removeTripSeat(tripId, seatNumber),
+    mutationFn: ({
+      tripId,
+      seatNumber,
+      version,
+    }: {
+      tripId: number;
+      seatNumber: number;
+      version?: number;
+    }) => removeTripSeat(tripId, seatNumber, version),
     onSuccess: (_, { tripId }) => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.TRIPS.DETAIL(tripId) });
     },
@@ -231,8 +240,15 @@ export function useUpdateTripParcelMutation() {
 export function useRemoveTripParcelMutation() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ tripId, parcelId }: { tripId: number; parcelId: number }) =>
-      removeTripParcel(tripId, parcelId),
+    mutationFn: ({
+      tripId,
+      parcelId,
+      version,
+    }: {
+      tripId: number;
+      parcelId: number;
+      version?: number;
+    }) => removeTripParcel(tripId, parcelId, version),
     onSuccess: (_, { tripId }) => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.TRIPS.DETAIL(tripId) });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.TRIPS.PARCELS(tripId) });

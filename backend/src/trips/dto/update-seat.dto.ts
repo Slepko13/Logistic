@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsArray } from 'class-validator';
+import { IsString, IsOptional, IsArray, IsInt } from 'class-validator';
 
 export class UpdateSeatDto {
   @IsOptional()
@@ -20,4 +20,8 @@ export class UpdateSeatDto {
   @IsOptional()
   @IsString()
   boarding_address?: string | null;
+
+  @IsOptional()
+  @IsInt()
+  version?: number;
 }

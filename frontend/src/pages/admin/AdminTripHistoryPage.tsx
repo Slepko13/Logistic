@@ -12,12 +12,44 @@ import PageLoader from '@/components/common/PageLoader';
 import { useGetTripHistory, useDeleteTripMutation } from '@/api/services/trips/queries';
 import { Trip, TripDriver } from '@/api/services/trips/requests';
 import { Button } from '@/components/ui/button';
-import { Trash2 } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Trash2, Search, ArrowUpDown } from 'lucide-react';
 import ConfirmDialog from '@/components/common/ConfirmDialog';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 export default function AdminTripHistoryPage() {
-  const { data: trips, isLoading } = useGetTripHistory();
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
+  const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' }>({
+    key: 'id',
+    direction: 'desc',
+  });
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+      setPage(1); // Reset page on new search
+    }, 500);
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
+
+  const { data: tripsData, isLoading } = useGetTripHistory({
+    page,
+    limit,
+    search: debouncedSearchQuery || undefined,
+    sortBy: sortConfig?.key,
+    sortOrder: sortConfig?.direction,
+  });
+
   const navigate = useNavigate();
   const deleteMutation = useDeleteTripMutation();
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
@@ -39,28 +71,59 @@ export default function AdminTripHistoryPage() {
     });
   };
 
+  const handleSort = (key: string) => {
+    setSortConfig((current) => ({
+      key,
+      direction: current?.key === key && current.direction === 'asc' ? 'desc' : 'asc',
+    }));
+  };
+
   if (isLoading) return <PageLoader />;
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <h2 className="text-xl font-bold tracking-tight">Історія рейсів</h2>
+        <div className="relative w-full sm:max-w-xs">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            type="search"
+            placeholder="Пошук..."
+            className="pl-8"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
       </div>
 
       <div className="rounded-md border bg-card overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[80px]">ID</TableHead>
+              <TableHead
+                className="w-[80px] cursor-pointer hover:bg-muted/50 transition-colors"
+                onClick={() => handleSort('id')}
+              >
+                <div className="flex items-center gap-1">
+                  ID <ArrowUpDown className="h-3 w-3" />
+                </div>
+              </TableHead>
               <TableHead>Автобус</TableHead>
               <TableHead>Маршрут</TableHead>
-              <TableHead>Дати</TableHead>
+              <TableHead
+                className="cursor-pointer hover:bg-muted/50 transition-colors"
+                onClick={() => handleSort('departure_date')}
+              >
+                <div className="flex items-center gap-1">
+                  Дати <ArrowUpDown className="h-3 w-3" />
+                </div>
+              </TableHead>
               <TableHead>Водії</TableHead>
               <TableHead className="text-right">Дії</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {trips?.map((trip: Trip) => (
+            {tripsData?.data?.map((trip: Trip) => (
               <TableRow
                 key={trip.id}
                 className="cursor-pointer hover:bg-muted/50 transition-colors"
@@ -110,16 +173,62 @@ export default function AdminTripHistoryPage() {
                 </TableCell>
               </TableRow>
             ))}
-            {trips?.length === 0 && (
+            {tripsData?.data?.length === 0 && (
               <TableRow>
                 <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
-                  Немає завершених рейсів.
+                  Не знайдено завершених рейсів.
                 </TableCell>
               </TableRow>
             )}
           </TableBody>
         </Table>
       </div>
+
+      {tripsData && tripsData.total > 0 && (
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">Показувати:</span>
+            <Select
+              value={limit.toString()}
+              onValueChange={(val) => {
+                setLimit(Number(val));
+                setPage(1);
+              }}
+            >
+              <SelectTrigger className="w-[80px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="10">10</SelectItem>
+                <SelectItem value="20">20</SelectItem>
+                <SelectItem value="50">50</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={page === 1}
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+            >
+              Попередня
+            </Button>
+            <span className="text-sm px-2 text-muted-foreground">
+              Сторінка {tripsData.page} з {tripsData.totalPages || 1}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={!tripsData.totalPages || page >= tripsData.totalPages}
+              onClick={() => setPage((p) => Math.min(tripsData.totalPages, p + 1))}
+            >
+              Наступна
+            </Button>
+          </div>
+        </div>
+      )}
 
       <ConfirmDialog
         open={deleteConfirmOpen}

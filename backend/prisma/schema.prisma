@@ -57,6 +57,7 @@ model Trip {
   arrival_date   DateTime?
 
   status String @default("active") @db.VarChar(20) // 'active', 'completed'
+  version Int @default(1)
 
   @@map("trips")
 }
@@ -86,6 +87,7 @@ model TripSeat {
   // Аудит
   updated_at    DateTime @updatedAt @db.Timestamptz()
   updated_by_id Int?
+  version       Int      @default(1)
 
   trip       Trip  @relation(fields: [trip_id], references: [id], onDelete: Cascade)
   updated_by User? @relation(fields: [updated_by_id], references: [id])
@@ -110,6 +112,7 @@ model TripParcel {
   // Аудит
   updated_at    DateTime @updatedAt @db.Timestamptz()
   updated_by_id Int?
+  version       Int      @default(1)
 
   trip       Trip  @relation(fields: [trip_id], references: [id], onDelete: Cascade)
   updated_by User? @relation(fields: [updated_by_id], references: [id])

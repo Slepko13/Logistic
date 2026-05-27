@@ -29,6 +29,7 @@ export interface TripSeat {
   boarding_address: string | null;
   updated_at: string;
   updated_by_id: number | null;
+  version: number;
   updated_by?: {
     first_name: string;
     last_name: string;
@@ -48,6 +49,7 @@ export interface TripParcel {
   is_delivered: boolean;
   updated_at: string;
   updated_by_id: number | null;
+  version: number;
   updated_by?: {
     first_name: string;
     last_name: string;
@@ -61,6 +63,7 @@ export interface UpdateTripPayload {
   arrival_date?: string | null;
   vehicle_id?: number;
   driverIds?: number[];
+  version?: number;
 }
 
 export interface GetTripParcelsParams {
@@ -72,8 +75,23 @@ export interface GetTripParcelsParams {
   sortOrder?: 'asc' | 'desc';
 }
 
+export interface GetTripHistoryParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}
+
 export interface PaginatedParcels {
   data: TripParcel[];
+  total: number;
+  page: number;
+  totalPages: number;
+}
+
+export interface PaginatedTrips {
+  data: Trip[];
   total: number;
   page: number;
   totalPages: number;
@@ -87,6 +105,7 @@ export interface Trip {
   arrival_city: string | null;
   arrival_date: string | null;
   status: string;
+  version: number;
   created_at: string;
   vehicle: Vehicle;
   drivers: TripDriver[];
@@ -98,8 +117,16 @@ export async function getActiveTrips(): Promise<Trip[]> {
   return apiFetch<Trip[]>(ENDPOINTS.TRIPS.GET_ALL);
 }
 
-export async function getTripHistory(): Promise<Trip[]> {
-  return apiFetch<Trip[]>(ENDPOINTS.TRIPS.GET_HISTORY);
+export async function getTripHistory(params?: GetTripHistoryParams): Promise<PaginatedTrips> {
+  const query = new URLSearchParams();
+  if (params?.page) query.append('page', params.page.toString());
+  if (params?.limit) query.append('limit', params.limit.toString());
+  if (params?.search) query.append('search', params.search);
+  if (params?.sortBy) query.append('sortBy', params.sortBy);
+  if (params?.sortOrder) query.append('sortOrder', params.sortOrder);
+
+  const queryString = query.toString() ? `?${query.toString()}` : '';
+  return apiFetch<PaginatedTrips>(`${ENDPOINTS.TRIPS.GET_HISTORY}${queryString}`);
 }
 
 export async function getTrips(): Promise<Trip[]> {
@@ -149,8 +176,13 @@ export async function addTripSeat(tripId: number): Promise<TripSeat> {
   });
 }
 
-export async function removeTripSeat(tripId: number, seatNumber: number): Promise<void> {
-  await apiFetch(ENDPOINTS.TRIPS.CLEAR_SEAT(tripId, seatNumber), {
+export async function removeTripSeat(
+  tripId: number,
+  seatNumber: number,
+  version?: number,
+): Promise<void> {
+  const query = version !== undefined ? `?version=${version}` : '';
+  await apiFetch(`${ENDPOINTS.TRIPS.CLEAR_SEAT(tripId, seatNumber)}${query}`, {
     method: 'DELETE',
   });
 }
@@ -164,6 +196,7 @@ export async function updateTripSeat(
     phone?: string | null;
     baggage_info?: unknown[] | null;
     boarding_address?: string | null;
+    version?: number;
   },
 ): Promise<TripSeat> {
   return apiFetch<TripSeat>(ENDPOINTS.TRIPS.UPDATE_SEAT(tripId, seatNumber), {
@@ -200,6 +233,7 @@ export async function updateTripParcel(
     description?: string;
     delivery_address?: string;
     is_delivered?: boolean;
+    version?: number;
   },
 ): Promise<TripParcel> {
   return apiFetch<TripParcel>(ENDPOINTS.TRIPS.UPDATE_PARCEL(tripId, parcelId), {
@@ -208,14 +242,20 @@ export async function updateTripParcel(
   });
 }
 
-export async function removeTripParcel(tripId: number, parcelId: number): Promise<void> {
-  await apiFetch(ENDPOINTS.TRIPS.DELETE_PARCEL(tripId, parcelId), {
+export async function removeTripParcel(
+  tripId: number,
+  parcelId: number,
+  version?: number,
+): Promise<void> {
+  const query = version !== undefined ? `?version=${version}` : '';
+  await apiFetch(`${ENDPOINTS.TRIPS.DELETE_PARCEL(tripId, parcelId)}${query}`, {
     method: 'DELETE',
   });
 }
 
-export async function completeTrip(tripId: number): Promise<Trip> {
-  return apiFetch<Trip>(ENDPOINTS.TRIPS.COMPLETE(tripId), {
+export async function completeTrip(tripId: number, version?: number): Promise<Trip> {
+  const query = version !== undefined ? `?version=${version}` : '';
+  return apiFetch<Trip>(`${ENDPOINTS.TRIPS.COMPLETE(tripId)}${query}`, {
     method: 'POST',
   });
 }
