@@ -12,6 +12,7 @@ import { validateName } from '../auth/auth.validation';
 import { PrismaService } from '../database/prisma.service';
 import { INITIAL_ADMIN_PHONE, UserRole, UserRoleType } from './user-role';
 import { UpdateUserDto } from './dto/update-user.dto';
+import * as bcrypt from 'bcrypt';
 
 export interface PublicUser {
   id: number;
@@ -208,13 +209,19 @@ export class UsersService implements OnModuleInit {
       throw new ConflictException('Користувач з таким номером телефону вже існує');
     }
 
+    const dataToUpdate: Prisma.UserUpdateInput = {
+      phone: normalizedPhone,
+      first_name: dto.first_name!.trim(),
+      last_name: dto.last_name!.trim(),
+    };
+
+    if (dto.password && dto.password.trim().length >= 6) {
+      dataToUpdate.password_hash = await bcrypt.hash(dto.password.trim(), 10);
+    }
+
     const updated = await this.prisma.user.update({
       where: { id },
-      data: {
-        phone: normalizedPhone,
-        first_name: dto.first_name!.trim(),
-        last_name: dto.last_name!.trim(),
-      },
+      data: dataToUpdate,
       select: {
         id: true,
         phone: true,

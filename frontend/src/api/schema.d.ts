@@ -166,6 +166,8 @@ export interface components {
       first_name?: string;
       /** @example Петренко */
       last_name?: string;
+      /** @example password123 */
+      password?: string;
     };
     PublicUserDto: {
       /** @example 1 */

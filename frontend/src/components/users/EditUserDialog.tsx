@@ -35,6 +35,12 @@ const editUserSchema = z.object({
     .refine(isValidPhone, {
       message: 'Невірний формат номера телефону. Приклад: +380501234567',
     }),
+  password: z
+    .string()
+    .optional()
+    .refine((val) => !val || val.trim().length === 0 || val.trim().length >= 6, {
+      message: 'Пароль має містити мінімум 6 символів',
+    }),
 });
 
 type EditUserFormValues = z.infer<typeof editUserSchema>;
@@ -67,6 +73,7 @@ export default function EditUserDialog({
       first_name: '',
       last_name: '',
       phone: '',
+      password: '',
     },
   });
 
@@ -76,12 +83,14 @@ export default function EditUserDialog({
         first_name: user.first_name,
         last_name: user.last_name,
         phone: user.phone,
+        password: '',
       });
     } else if (!open) {
       reset({
         first_name: '',
         last_name: '',
         phone: '',
+        password: '',
       });
     }
   }, [open, user, reset]);
@@ -91,6 +100,9 @@ export default function EditUserDialog({
       first_name: data.first_name,
       last_name: data.last_name,
       phone: normalizePhone(data.phone)!,
+      ...(data.password && data.password.trim().length >= 6
+        ? { password: data.password.trim() }
+        : {}),
     });
   };
 
@@ -129,6 +141,18 @@ export default function EditUserDialog({
                 {...register('phone')}
               />
               {errors.phone && <p className="text-sm text-destructive">{errors.phone.message}</p>}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-password">Новий пароль (необов&apos;язково)</Label>
+              <Input
+                id="edit-password"
+                type="password"
+                placeholder="Залиште порожнім, щоб не змінювати"
+                {...register('password')}
+              />
+              {errors.password && (
+                <p className="text-sm text-destructive">{errors.password.message}</p>
+              )}
             </div>
             {error && <p className="text-sm text-destructive">{error}</p>}
           </div>
