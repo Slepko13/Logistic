@@ -1,3 +1,4 @@
+import 'dotenv/config'; // Обов'язково першим рядком, щоб завантажити .env змінні в process.env
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
@@ -67,3 +68,4 @@ async function bootstrap() {
 }
 
 bootstrap();
+// force restart
