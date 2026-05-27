@@ -313,20 +313,21 @@ export default function AdminTripsPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="t_dep_date">Час відправлення</Label>
+                  <Label htmlFor="t_dep_date">Дата відправлення</Label>
                   <Input
                     id="t_dep_date"
-                    type="datetime-local"
-                    value={form.departure_date}
+                    type="date"
+                    value={form.departure_date ? form.departure_date.slice(0, 10) : ''}
                     onChange={(e) => setForm({ ...form, departure_date: e.target.value })}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="t_arr_date">Час прибуття</Label>
+                  <Label htmlFor="t_arr_date">Дата прибуття</Label>
                   <Input
                     id="t_arr_date"
-                    type="datetime-local"
-                    value={form.arrival_date}
+                    type="date"
+                    min={form.departure_date ? form.departure_date.slice(0, 10) : ''}
+                    value={form.arrival_date ? form.arrival_date.slice(0, 10) : ''}
                     onChange={(e) => setForm({ ...form, arrival_date: e.target.value })}
                   />
                 </div>
