@@ -1,6 +1,6 @@
 import { NavLink, Outlet } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { Bus, Map, Users } from 'lucide-react';
+import { Bus, Users, Route, History, Building2 } from 'lucide-react';
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   cn(
@@ -9,11 +9,11 @@ const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   );
 
 const ADMIN_LINKS = [
-  { to: '/admin', label: 'Рейси', icon: Map, end: true },
-  { to: '/admin/history', label: 'Історія рейсів', icon: Map },
-  { to: '/admin/vehicles', label: 'Автобуси', icon: Bus },
-  { to: '/admin/cities', label: 'Міста', icon: Map },
-  { to: '/admin/users', label: 'Користувачі', icon: Users },
+  { to: '/admin', label: 'Рейси', icon: Route, color: 'text-blue-500', end: true },
+  { to: '/admin/history', label: 'Історія рейсів', icon: History, color: 'text-purple-500' },
+  { to: '/admin/vehicles', label: 'Автобуси', icon: Bus, color: 'text-orange-500' },
+  { to: '/admin/cities', label: 'Міста', icon: Building2, color: 'text-emerald-500' },
+  { to: '/admin/users', label: 'Користувачі', icon: Users, color: 'text-pink-500' },
 ];
 
 export default function AdminLayout() {
@@ -26,7 +26,7 @@ export default function AdminLayout() {
             const Icon = link.icon;
             return (
               <NavLink key={link.to} to={link.to} end={link.end} className={navLinkClass}>
-                <Icon className="w-4 h-4" />
+                <Icon className={cn('w-4 h-4', link.color)} />
                 {link.label}
               </NavLink>
             );

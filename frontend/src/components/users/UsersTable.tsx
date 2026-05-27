@@ -87,7 +87,7 @@ export default function UsersTable({
                                 title="Зробити адміністратором"
                                 aria-label="Зробити адміністратором"
                               >
-                                <Shield className="h-4 w-4" />
+                                <Shield className="h-4 w-4 text-amber-500" />
                               </Button>
                             </>
                           )}

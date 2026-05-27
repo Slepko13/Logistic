@@ -345,7 +345,7 @@ export default function TripDetailPage() {
       <div className="flex items-center gap-4 border-b pb-4">
         <Button variant="outline" size="icon" asChild>
           <Link to="/">
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowLeft className="w-4 h-4 text-slate-500" />
           </Link>
         </Button>
         <div>
@@ -429,7 +429,7 @@ export default function TripDetailPage() {
                 }}
                 disabled={!selectedDriverId || addDriverMutation.isPending}
               >
-                <UserPlus className="w-4 h-4 mr-2" />
+                <UserPlus className="w-4 h-4 mr-2 text-indigo-400" />
                 Додати
               </Button>
             </div>
@@ -486,11 +486,12 @@ export default function TripDetailPage() {
                         {seat.first_name} {seat.last_name}
                       </p>
                       <p className="text-sm text-muted-foreground flex items-center gap-1">
-                        <Phone className="w-3 h-3" /> {seat.phone || 'Немає телефону'}
+                        <Phone className="w-3 h-3 text-emerald-500" />{' '}
+                        {seat.phone || 'Немає телефону'}
                       </p>
                       {seat.boarding_address && (
                         <p className="text-sm text-muted-foreground flex items-center gap-1 mt-0.5">
-                          <MapPin className="w-3 h-3 shrink-0" />{' '}
+                          <MapPin className="w-3 h-3 shrink-0 text-rose-500" />{' '}
                           <span className="truncate" title={seat.boarding_address}>
                             {seat.boarding_address}
                           </span>
@@ -533,7 +534,7 @@ export default function TripDetailPage() {
                         </>
                       ) : (
                         <>
-                          <UserPlus className="w-4 h-4 mr-2" /> Забронювати
+                          <UserPlus className="w-4 h-4 mr-2 text-indigo-400" /> Забронювати
                         </>
                       )}
                     </Button>
@@ -672,7 +673,7 @@ export default function TripDetailPage() {
             <CardDescription>Управління доставкою передач, адреси та статуси.</CardDescription>
           </div>
           <Button variant="outline" size="sm" onClick={() => handleOpenParcelModal()}>
-            <Plus className="w-4 h-4 mr-2" />
+            <Plus className="w-4 h-4 mr-2 text-emerald-400" />
             Додати передачу
           </Button>
         </CardHeader>
@@ -708,7 +709,7 @@ export default function TripDetailPage() {
                     </TableCell>
                     <TableCell>
                       <span className="flex items-center gap-1 whitespace-nowrap">
-                        <Phone className="w-3 h-3" /> {parcel.phone}
+                        <Phone className="w-3 h-3 text-emerald-500" /> {parcel.phone}
                       </span>
                     </TableCell>
                     <TableCell className="max-w-[200px] truncate" title={parcel.delivery_address}>

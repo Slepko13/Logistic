@@ -14,8 +14,8 @@ const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   );
 
 const NAV_LINKS = [
-  { to: '/', label: 'Панель', icon: LayoutDashboard, end: true },
-  { to: '/admin', label: 'Адмін-панель', icon: Users, adminOnly: true },
+  { to: '/', label: 'Панель', icon: LayoutDashboard, color: 'text-indigo-500', end: true },
+  { to: '/admin', label: 'Адмін-панель', icon: Users, color: 'text-rose-500', adminOnly: true },
 ];
 
 export default function AppLayout() {
@@ -50,7 +50,7 @@ export default function AppLayout() {
             const Icon = link.icon;
             return (
               <NavLink key={link.to} to={link.to} end={link.end} className={navLinkClass}>
-                <Icon className="h-4 w-4" />
+                <Icon className={cn('h-4 w-4', link.color)} />
                 {link.label}
               </NavLink>
             );

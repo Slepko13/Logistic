@@ -103,7 +103,7 @@ export default function AdminVehiclesPage() {
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold tracking-tight">Управління автобусами</h2>
         <Button onClick={() => handleOpenModal()}>
-          <Plus className="w-4 h-4 mr-2" /> Додати автобус
+          <Plus className="w-4 h-4 mr-2 text-emerald-400" /> Додати автобус
         </Button>
       </div>
 

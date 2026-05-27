@@ -152,7 +152,7 @@ export default function DashboardPage() {
             onClick={applyGlobalSettings}
             disabled={!globalDepDate && !globalArrDate && !globalDepCity && !globalArrCity}
           >
-            <Check className="w-4 h-4 mr-2" />
+            <Check className="w-4 h-4 mr-2 text-emerald-400" />
             Застосувати до всіх
           </Button>
         </CardContent>

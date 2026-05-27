@@ -102,7 +102,7 @@ export default function AdminCitiesPage() {
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold tracking-tight">Словник міст</h2>
         <Button onClick={() => handleOpenModal()}>
-          <Plus className="w-4 h-4 mr-2" /> Додати місто
+          <Plus className="w-4 h-4 mr-2 text-emerald-400" /> Додати місто
         </Button>
       </div>
 
