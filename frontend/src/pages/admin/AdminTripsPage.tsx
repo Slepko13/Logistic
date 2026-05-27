@@ -22,16 +22,26 @@ import {
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import PageLoader from '@/components/common/PageLoader';
-import { useGetTrips, useUpdateTripMutation } from '@/api/services/trips/queries';
+import {
+  useGetTrips,
+  useUpdateTripMutation,
+  useCreateTripMutation,
+  useDeleteTripMutation,
+} from '@/api/services/trips/queries';
 import { Trip, UpdateTripPayload } from '@/api/services/trips/requests';
+import ConfirmDialog from '@/components/common/ConfirmDialog';
 import { useGetVehicles } from '@/api/services/vehicles/queries';
 import { useGetUsers } from '@/api/services/users/queries';
 import { useGetCities } from '@/api/services/cities/queries';
 
 export default function AdminTripsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [tripToDelete, setTripToDelete] = useState<number | null>(null);
   const [editingTripId, setEditingTripId] = useState<number | null>(null);
   const [selectedDriverToAdd, setSelectedDriverToAdd] = useState<string>('');
+  const [addVehicleId, setAddVehicleId] = useState<string>('');
 
   const [form, setForm] = useState<{
     vehicle_id: string;
@@ -68,6 +78,35 @@ export default function AdminTripsPage() {
         onError: (e: Error) => toast.error(e.message || 'Помилка оновлення рейсу'),
       });
     },
+  };
+
+  const createMutation = useCreateTripMutation();
+  const deleteMutation = useDeleteTripMutation();
+
+  const handleCreateSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!addVehicleId) return;
+    createMutation.mutate(parseInt(addVehicleId), {
+      onSuccess: () => {
+        setIsAddModalOpen(false);
+        setAddVehicleId('');
+      },
+    });
+  };
+
+  const handleDeleteClick = (id: number) => {
+    setTripToDelete(id);
+    setDeleteConfirmOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (!tripToDelete) return;
+    deleteMutation.mutate(tripToDelete, {
+      onSuccess: () => {
+        setDeleteConfirmOpen(false);
+        setTripToDelete(null);
+      },
+    });
   };
 
   const handleOpenModal = (trip: Trip) => {
@@ -124,6 +163,7 @@ export default function AdminTripsPage() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold tracking-tight">Управління рейсами</h2>
+        <Button onClick={() => setIsAddModalOpen(true)}>Створити рейс</Button>
       </div>
 
       <div className="rounded-md border bg-card overflow-x-auto">
@@ -180,9 +220,19 @@ export default function AdminTripsPage() {
                   </Badge>
                 </TableCell>
                 <TableCell className="text-right">
-                  <Button variant="ghost" size="icon" onClick={() => handleOpenModal(trip)}>
-                    <Edit className="w-4 h-4" />
-                  </Button>
+                  <div className="flex justify-end gap-1">
+                    <Button variant="ghost" size="icon" onClick={() => handleOpenModal(trip)}>
+                      <Edit className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="text-destructive hover:bg-destructive/10"
+                      onClick={() => handleDeleteClick(trip.id)}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
@@ -350,6 +400,52 @@ export default function AdminTripsPage() {
           </form>
         </DialogContent>
       </Dialog>
+
+      <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Створити рейс</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleCreateSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label>Оберіть автобус</Label>
+              <select
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                value={addVehicleId}
+                onChange={(e) => setAddVehicleId(e.target.value)}
+                required
+              >
+                <option value="">-- Оберіть автобус --</option>
+                {vehicles?.map((vehicle) => (
+                  <option key={vehicle.id} value={vehicle.id}>
+                    {vehicle.name} ({vehicle.plate_number})
+                  </option>
+                ))}
+              </select>
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setIsAddModalOpen(false)}>
+                Скасувати
+              </Button>
+              <Button type="submit" disabled={createMutation.isPending || !addVehicleId}>
+                Створити
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <ConfirmDialog
+        open={deleteConfirmOpen}
+        onOpenChange={setDeleteConfirmOpen}
+        title="Видалити рейс?"
+        description="Ви впевнені, що хочете видалити цей рейс? Всі пасажири, багаж, передачі та призначення водіїв будуть безповоротно видалені."
+        onConfirm={handleConfirmDelete}
+        confirmLabel="Видалити"
+        cancelLabel="Скасувати"
+        confirmVariant="destructive"
+        loading={deleteMutation.isPending}
+      />
     </div>
   );
 }

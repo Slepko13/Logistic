@@ -23,10 +23,12 @@ export const ENDPOINTS = {
     DELETE: (id: number | string) => `/api/vehicles/${id}`,
   },
   TRIPS: {
+    CREATE: '/api/trips',
     GET_ALL: '/api/trips',
     GET_HISTORY: '/api/trips/history',
     GET_BY_ID: (id: number | string) => `/api/trips/${id}`,
     UPDATE: (id: number | string) => `/api/trips/${id}`,
+    DELETE: (id: number | string) => `/api/trips/${id}`,
     COMPLETE: (id: number | string) => `/api/trips/${id}/complete`,
     ADD_DRIVER: (tripId: number | string) => `/api/trips/${tripId}/drivers`,
     REMOVE_DRIVER: (tripId: number | string, userId: number | string) =>

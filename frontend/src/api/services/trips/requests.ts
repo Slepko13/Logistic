@@ -106,6 +106,19 @@ export async function getTrips(): Promise<Trip[]> {
   return apiFetch<Trip[]>(ENDPOINTS.TRIPS.GET_ALL);
 }
 
+export async function createTrip(vehicle_id: number): Promise<Trip> {
+  return apiFetch<Trip>(ENDPOINTS.TRIPS.CREATE, {
+    method: 'POST',
+    body: JSON.stringify({ vehicle_id }),
+  });
+}
+
+export async function deleteTrip(id: number): Promise<void> {
+  return apiFetch<void>(ENDPOINTS.TRIPS.DELETE(id), {
+    method: 'DELETE',
+  });
+}
+
 export async function getTrip(id: number): Promise<Trip> {
   return apiFetch<Trip>(ENDPOINTS.TRIPS.GET_BY_ID(id));
 }

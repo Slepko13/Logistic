@@ -4,6 +4,8 @@ import {
   getTrips,
   getActiveTrips,
   getTripHistory,
+  createTrip,
+  deleteTrip,
   getTrip,
   getTripParcels,
   updateTrip,
@@ -55,6 +57,39 @@ export function useGetTripParcels(id: number, params: GetTripParcelsParams, enab
     queryKey: [...QUERY_KEYS.TRIPS.PARCELS(id), params],
     queryFn: () => getTripParcels(id, params),
     enabled,
+  });
+}
+
+export function useCreateTripMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (vehicleId: number) => createTrip(vehicleId),
+    onSuccess: () => {
+      toast.success('Рейс успішно створено');
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.TRIPS.ALL });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.TRIPS.ACTIVE });
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || 'Помилка при створенні рейсу');
+    },
+  });
+}
+
+export function useDeleteTripMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: number) => deleteTrip(id),
+    onSuccess: () => {
+      toast.success('Рейс успішно видалено');
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.TRIPS.ALL });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.TRIPS.ACTIVE });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.TRIPS.HISTORY });
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || 'Помилка при видаленні рейсу');
+    },
   });
 }
 

@@ -35,6 +35,12 @@ export class TripsController {
     return this.tripsService.findAllCompleted();
   }
 
+  @UseGuards(AdminGuard)
+  @Post()
+  createTrip(@Body('vehicle_id', ParseIntPipe) vehicleId: number) {
+    return this.tripsService.createTrip(vehicleId);
+  }
+
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.tripsService.findOne(id);
@@ -43,6 +49,12 @@ export class TripsController {
   @Patch(':id')
   update(@Param('id', ParseIntPipe) id: number, @Body() updateTripDto: UpdateTripDto) {
     return this.tripsService.update(id, updateTripDto);
+  }
+
+  @UseGuards(AdminGuard)
+  @Delete(':id')
+  deleteTrip(@Param('id', ParseIntPipe) id: number) {
+    return this.tripsService.removeTrip(id);
   }
 
   @UseGuards(AdminGuard)

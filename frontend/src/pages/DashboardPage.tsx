@@ -154,7 +154,7 @@ export default function DashboardPage() {
                     <MapPin className="w-4 h-4 text-green-500" />
                     <span className="text-sm font-semibold">Звідки</span>
                   </div>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-[minmax(0,1fr)_135px] gap-2">
                     <select
                       className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                       value={trip.departure_city || ''}
@@ -175,11 +175,11 @@ export default function DashboardPage() {
                       ))}
                     </select>
                     <input
-                      type="datetime-local"
+                      type="date"
                       className="flex h-9 w-full rounded-md border border-input bg-transparent px-2 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                       value={
                         trip.departure_date
-                          ? new Date(trip.departure_date).toISOString().slice(0, 16)
+                          ? new Date(trip.departure_date).toISOString().slice(0, 10)
                           : ''
                       }
                       onChange={(e) =>
@@ -197,7 +197,7 @@ export default function DashboardPage() {
                     <MapPin className="w-4 h-4 text-red-500" />
                     <span className="text-sm font-semibold">Куди</span>
                   </div>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-[minmax(0,1fr)_135px] gap-2">
                     <select
                       className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                       value={trip.arrival_city || ''}
@@ -218,16 +218,16 @@ export default function DashboardPage() {
                       ))}
                     </select>
                     <input
-                      type="datetime-local"
+                      type="date"
                       className="flex h-9 w-full rounded-md border border-input bg-transparent px-2 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                       value={
                         trip.arrival_date
-                          ? new Date(trip.arrival_date).toISOString().slice(0, 16)
+                          ? new Date(trip.arrival_date).toISOString().slice(0, 10)
                           : ''
                       }
                       min={
                         trip.departure_date
-                          ? new Date(trip.departure_date).toISOString().slice(0, 16)
+                          ? new Date(trip.departure_date).toISOString().slice(0, 10)
                           : ''
                       }
                       onChange={(e) =>

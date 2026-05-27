@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 
 import PageLoader from '@/components/common/PageLoader';
 import { useAuth } from '@/context/AuthContext';
@@ -44,6 +44,7 @@ import {
   MapPin,
   Search,
   ArrowUpDown,
+  CheckCircle,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import {
@@ -402,6 +403,8 @@ export default function TripDetailPage() {
   if (isLoadingTrip) return <PageLoader />;
   if (!trip) return <p className="text-destructive">Рейс не знайдено</p>;
 
+  const isClosed = trip.status === 'completed';
+
   // Filter available drivers (users with role 'driver' or 'admin' who are not already added)
   const availableDrivers = allUsers?.filter(
     (u) =>
@@ -412,10 +415,8 @@ export default function TripDetailPage() {
     <div className="space-y-6 max-w-5xl mx-auto">
       {/* HEADER */}
       <div className="flex items-center gap-4 border-b pb-4">
-        <Button variant="outline" size="icon" asChild>
-          <Link to="/">
-            <ArrowLeft className="w-4 h-4 text-slate-500" />
-          </Link>
+        <Button variant="outline" size="icon" onClick={() => navigate(-1)}>
+          <ArrowLeft className="w-4 h-4 text-slate-500" />
         </Button>
         <div>
           <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
@@ -452,7 +453,7 @@ export default function TripDetailPage() {
                   </p>
                   <p className="text-sm text-muted-foreground">{driver.user.phone}</p>
                 </div>
-                {user?.role === 'admin' && (
+                {user?.role === 'admin' && !isClosed && (
                   <Button
                     variant="ghost"
                     size="icon"
@@ -471,7 +472,7 @@ export default function TripDetailPage() {
           </div>
 
           {/* Add driver controls (Admin only) */}
-          {user?.role === 'admin' && (
+          {user?.role === 'admin' && !isClosed && (
             <div className="flex items-center gap-3 pt-4 border-t">
               <select
                 className="flex h-9 w-full sm:max-w-xs rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
@@ -515,14 +516,16 @@ export default function TripDetailPage() {
             </CardTitle>
             <CardDescription>Бронювання місць, багаж та інформація про пасажирів.</CardDescription>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => addSeatMutation.mutate()}
-            disabled={addSeatMutation.isPending}
-          >
-            Додати місце
-          </Button>
+          {!isClosed && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => addSeatMutation.mutate()}
+              disabled={addSeatMutation.isPending}
+            >
+              <Plus className="w-4 h-4 mr-1" /> Додати місце
+            </Button>
+          )}
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -538,15 +541,17 @@ export default function TripDetailPage() {
                     <Badge variant={isOccupied ? 'default' : 'outline'} className="text-sm">
                       Місце {seat.seat_number}
                     </Badge>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-6 w-6 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity hover:text-destructive"
-                      onClick={() => handleDeleteSeatClick(seat.seat_number)}
-                      title="Видалити місце повністю"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
+                    {!isClosed && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity hover:text-destructive"
+                        onClick={() => handleDeleteSeatClick(seat.seat_number)}
+                        title="Видалити місце повністю"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    )}
                   </div>
 
                   {isOccupied ? (
@@ -591,34 +596,36 @@ export default function TripDetailPage() {
                     </div>
                   )}
 
-                  <div className="flex gap-2 mt-4 pt-3 border-t">
-                    <Button
-                      variant={isOccupied ? 'outline' : 'default'}
-                      className="flex-1"
-                      onClick={() => handleOpenSeatModal(seat)}
-                    >
-                      {isOccupied ? (
-                        <>
-                          <Edit className="w-4 h-4 mr-2" /> Редагувати
-                        </>
-                      ) : (
-                        <>
-                          <UserPlus className="w-4 h-4 mr-2 text-indigo-400" /> Забронювати
-                        </>
-                      )}
-                    </Button>
-                    {isOccupied && (
+                  {!isClosed && (
+                    <div className="flex gap-2 mt-4 pt-3 border-t">
                       <Button
-                        variant="ghost"
-                        size="icon"
-                        className="text-destructive hover:bg-destructive/10"
-                        onClick={() => handleClearSeatClick(seat.seat_number)}
-                        disabled={updateSeatMutation.isPending}
+                        variant={isOccupied ? 'outline' : 'default'}
+                        className="flex-1"
+                        onClick={() => handleOpenSeatModal(seat)}
                       >
-                        <Trash2 className="w-4 h-4" />
+                        {isOccupied ? (
+                          <>
+                            <Edit className="w-4 h-4 mr-2" /> Редагувати
+                          </>
+                        ) : (
+                          <>
+                            <UserPlus className="w-4 h-4 mr-2 text-indigo-400" /> Забронювати
+                          </>
+                        )}
                       </Button>
-                    )}
-                  </div>
+                      {isOccupied && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-destructive hover:bg-destructive/10"
+                          onClick={() => handleClearSeatClick(seat.seat_number)}
+                          disabled={updateSeatMutation.isPending}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      )}
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -741,10 +748,12 @@ export default function TripDetailPage() {
             </CardTitle>
             <CardDescription>Управління доставкою передач, адреси та статуси.</CardDescription>
           </div>
-          <Button variant="outline" size="sm" onClick={() => handleOpenParcelModal()}>
-            <Plus className="w-4 h-4 mr-2 text-emerald-400" />
-            Додати передачу
-          </Button>
+          {!isClosed && (
+            <Button variant="outline" size="sm" onClick={() => handleOpenParcelModal()}>
+              <Plus className="w-4 h-4 mr-2 text-emerald-400" />
+              Додати передачу
+            </Button>
+          )}
         </CardHeader>
         <CardContent>
           {/* Parcel Search and Filter Bar */}
@@ -842,32 +851,35 @@ export default function TripDetailPage() {
                       <div className="flex items-center justify-center">
                         <input
                           type="checkbox"
-                          className="w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer"
+                          className="w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                           checked={parcel.is_delivered}
                           onChange={() => handleToggleParcelDelivered(parcel)}
                           title="Відмітити як доставлено"
+                          disabled={isClosed}
                         />
                       </div>
                     </TableCell>
                     <TableCell className="text-right">
-                      <div className="flex justify-end gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8"
-                          onClick={() => handleOpenParcelModal(parcel)}
-                        >
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-destructive hover:bg-destructive/10"
-                          onClick={() => handleDeleteParcelClick(parcel.id)}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
+                      {!isClosed && (
+                        <div className="flex justify-end gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={() => handleOpenParcelModal(parcel)}
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-destructive hover:bg-destructive/10"
+                            onClick={() => handleDeleteParcelClick(parcel.id)}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}
@@ -1031,15 +1043,17 @@ export default function TripDetailPage() {
       </Dialog>
 
       {/* COMPLETE TRIP */}
-      <div className="flex justify-end pt-4">
-        <Button
-          variant="destructive"
-          onClick={() => setCompleteTripConfirmOpen(true)}
-          disabled={completeTripMutation.isPending}
-        >
-          Завершити рейс
-        </Button>
-      </div>
+      {!isClosed && (
+        <div className="flex justify-end pt-4">
+          <Button
+            variant="destructive"
+            onClick={() => setCompleteTripConfirmOpen(true)}
+            disabled={completeTripMutation.isPending}
+          >
+            <CheckCircle className="w-4 h-4 mr-2" /> Завершити рейс
+          </Button>
+        </div>
+      )}
 
       <ConfirmDialog
         open={clearSeatConfirmOpen}

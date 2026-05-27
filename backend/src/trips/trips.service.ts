@@ -403,23 +403,32 @@ export class TripsService {
   // --- TRIP COMPLETION ---
 
   async completeTrip(tripId: number) {
-    const trip = await this.findOne(tripId);
+    await this.findOne(tripId);
 
     // 1. Mark current trip as completed
-    await this.prisma.trip.update({
+    return this.prisma.trip.update({
       where: { id: tripId },
       data: { status: 'completed' },
     });
+  }
 
-    // 2. Create new active trip for the same vehicle
+  // --- TRIP CREATION ---
+
+  async createTrip(vehicleId: number) {
+    const existingActive = await this.prisma.trip.findFirst({
+      where: { vehicle_id: vehicleId, status: 'active' },
+    });
+    if (existingActive) {
+      throw new BadRequestException('Для цього автобуса вже існує активний рейс.');
+    }
+
     const newTrip = await this.prisma.trip.create({
       data: {
-        vehicle_id: trip.vehicle_id,
+        vehicle_id: vehicleId,
         status: 'active',
       },
     });
 
-    // 3. Create 7 empty seats for the new trip
     const seatsData = Array.from({ length: 7 }).map((_, i) => ({
       trip_id: newTrip.id,
       seat_number: i + 1,
@@ -429,6 +438,14 @@ export class TripsService {
       data: seatsData,
     });
 
-    return this.findOne(newTrip.id);
+    return newTrip;
+  }
+
+  // --- TRIP DELETION ---
+  async removeTrip(tripId: number) {
+    await this.findOne(tripId); // Check if exists
+    return this.prisma.trip.delete({
+      where: { id: tripId },
+    });
   }
 }

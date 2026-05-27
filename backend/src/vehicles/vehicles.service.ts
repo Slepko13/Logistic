@@ -1,4 +1,5 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../database/prisma.service';
 import { CreateVehicleDto } from './dto/create-vehicle.dto';
 import { UpdateVehicleDto } from './dto/update-vehicle.dto';
@@ -39,8 +40,17 @@ export class VehiclesService {
 
   async remove(id: number) {
     await this.findOne(id); // Check if exists
-    return this.prisma.vehicle.delete({
-      where: { id },
-    });
+    try {
+      return await this.prisma.vehicle.delete({
+        where: { id },
+      });
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2003') {
+        throw new BadRequestException(
+          "Неможливо видалити автобус, оскільки він прив'язаний до існуючих рейсів.",
+        );
+      }
+      throw error;
+    }
   }
 }
