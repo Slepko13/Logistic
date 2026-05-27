@@ -1,18 +1,18 @@
 import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+
 import { useNavigate } from 'react-router-dom';
 import PageLoader from '@/components/common/PageLoader';
 import { useAuth } from '@/context/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import * as tripsApi from '@/api/trips';
-import * as citiesApi from '@/api/cities';
+import { useGetActiveTrips, useUpdateTripMutation } from '@/api/services/trips/queries';
+import { useGetCities } from '@/api/services/cities/queries';
 import { Users, Package, MapPin, Check } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function DashboardPage() {
   useAuth();
-  const queryClient = useQueryClient();
+
   const navigate = useNavigate();
 
   const [globalDepDate, setGlobalDepDate] = useState('');
@@ -20,37 +20,10 @@ export default function DashboardPage() {
   const [globalDepCity, setGlobalDepCity] = useState('');
   const [globalArrCity, setGlobalArrCity] = useState('');
 
-  const {
-    data: trips,
-    isLoading: tripsLoading,
-    error,
-  } = useQuery({
-    queryKey: ['active-trips'],
-    queryFn: tripsApi.fetchActiveTrips,
-  });
+  const { data: trips, isLoading: tripsLoading, error } = useGetActiveTrips();
+  const { data: cities, isLoading: citiesLoading } = useGetCities();
 
-  const { data: cities, isLoading: citiesLoading } = useQuery({
-    queryKey: ['cities'],
-    queryFn: citiesApi.fetchCities,
-  });
-
-  const updateMutation = useMutation({
-    mutationFn: ({
-      id,
-      payload,
-    }: {
-      id: number;
-      payload: {
-        departure_city?: string;
-        departure_date?: string;
-        arrival_city?: string;
-        arrival_date?: string;
-      };
-    }) => tripsApi.updateTrip(id, payload),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['active-trips'] });
-    },
-  });
+  const updateMutation = useUpdateTripMutation();
 
   const applyGlobalSettings = async () => {
     if (!trips) return;

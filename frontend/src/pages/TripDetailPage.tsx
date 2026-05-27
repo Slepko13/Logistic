@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+
 import PageLoader from '@/components/common/PageLoader';
 import { useAuth } from '@/context/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -37,15 +37,26 @@ import {
   MapPin,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import * as tripsApi from '@/api/trips';
-import * as usersApi from '@/api/users';
+import {
+  useGetTrip,
+  useAddTripDriverMutation,
+  useRemoveTripDriverMutation,
+  useUpdateTripSeatMutation,
+  useAddTripSeatMutation,
+  useRemoveTripSeatMutation,
+  useAddTripParcelMutation,
+  useUpdateTripParcelMutation,
+  useRemoveTripParcelMutation,
+  useCompleteTripMutation,
+} from '@/api/services/trips/queries';
+import { TripSeat, TripParcel } from '@/api/services/trips/requests';
+import { useGetUsers } from '@/api/services/users/queries';
 
 export default function TripDetailPage() {
   const { id } = useParams();
   const tripId = Number(id);
   const navigate = useNavigate();
   const { user } = useAuth();
-  const queryClient = useQueryClient();
   const [selectedDriverId, setSelectedDriverId] = useState<string>('');
 
   // Seat modal state
@@ -82,72 +93,54 @@ export default function TripDetailPage() {
 
   const [completeTripConfirmOpen, setCompleteTripConfirmOpen] = useState(false);
 
-  const { data: trip, isLoading: isLoadingTrip } = useQuery({
-    queryKey: ['trip', tripId],
-    queryFn: () => tripsApi.fetchTrip(tripId),
-  });
+  const { data: trip, isLoading: isLoadingTrip } = useGetTrip(tripId);
 
   // Fetch all users (only admin has access, but we try anyway. Error is ignored if not admin)
-  const { data: allUsers } = useQuery({
-    queryKey: ['users'],
-    queryFn: usersApi.fetchUsers,
-    enabled: user?.role === 'admin',
-  });
+  const { data: allUsers } = useGetUsers();
 
-  const addDriverMutation = useMutation({
-    mutationFn: (userId: number) => tripsApi.addTripDriver(tripId, userId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['trip', tripId] });
-      toast.success('Водія додано');
-      setSelectedDriverId('');
-    },
-    onError: (e: Error) => toast.error(e.message || 'Помилка додавання водія'),
-  });
+  const _addDriverMutation = useAddTripDriverMutation();
+  const addDriverMutation = {
+    ..._addDriverMutation,
+    mutate: (userId: number) =>
+      _addDriverMutation.mutate({ tripId, userId }, { onSuccess: () => setSelectedDriverId('') }),
+  };
 
-  const removeDriverMutation = useMutation({
-    mutationFn: (userId: number) => tripsApi.removeTripDriver(tripId, userId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['trip', tripId] });
-      toast.success('Водія видалено');
-    },
-    onError: (e: Error) => toast.error(e.message || 'Помилка видалення водія'),
-  });
+  const _removeDriverMutation = useRemoveTripDriverMutation();
+  const removeDriverMutation = {
+    ..._removeDriverMutation,
+    mutate: (userId: number) => _removeDriverMutation.mutate({ tripId, userId }),
+  };
 
-  const updateSeatMutation = useMutation({
-    mutationFn: ({
-      seatNumber,
-      payload,
-    }: {
-      seatNumber: number;
-      payload: Record<string, unknown>;
-    }) => tripsApi.updateTripSeat(tripId, seatNumber, payload),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['trip', tripId] });
-      toast.success('Місце оновлено');
-      setIsSeatModalOpen(false);
-    },
-    onError: (e: Error) => toast.error(e.message || 'Помилка оновлення місця'),
-  });
+  const _updateSeatMutation = useUpdateTripSeatMutation();
+  const updateSeatMutation = {
+    ..._updateSeatMutation,
+    mutateAsync: (vars: { seatNumber: number; payload: Record<string, unknown> }) =>
+      _updateSeatMutation.mutateAsync({ tripId, ...vars }),
+    mutate: (vars: { seatNumber: number; payload: Record<string, unknown> }) =>
+      _updateSeatMutation.mutate(
+        { tripId, ...vars },
+        {
+          onSuccess: () => {
+            toast.success('Місце оновлено');
+            setIsSeatModalOpen(false);
+          },
+        },
+      ),
+  };
 
-  const addSeatMutation = useMutation({
-    mutationFn: () => tripsApi.addTripSeat(tripId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['trip', tripId] });
-      toast.success('Місце додано');
-    },
-    onError: (e: Error) => toast.error(e.message || 'Помилка додавання місця'),
-  });
+  const _addSeatMutation = useAddTripSeatMutation();
+  const addSeatMutation = {
+    ..._addSeatMutation,
+    mutate: () => _addSeatMutation.mutate(tripId),
+  };
 
-  const removeSeatMutation = useMutation({
-    mutationFn: (seatNumber: number) => tripsApi.removeTripSeat(tripId, seatNumber),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['trip', tripId] });
-      toast.success('Місце видалено');
-    },
-    onError: (e: Error) => toast.error(e.message || 'Помилка видалення місця'),
-  });
+  const _removeSeatMutation = useRemoveTripSeatMutation();
+  const removeSeatMutation = {
+    ..._removeSeatMutation,
+    mutateAsync: (seatNumber: number) => _removeSeatMutation.mutateAsync({ tripId, seatNumber }),
+  };
 
-  const handleOpenSeatModal = (seat: tripsApi.TripSeat) => {
+  const handleOpenSeatModal = (seat: TripSeat) => {
     setEditingSeatNumber(seat.seat_number);
     setSeatForm({
       first_name: seat.first_name || '',
@@ -235,45 +228,59 @@ export default function TripDetailPage() {
   };
 
   // --- PARCELS LOGIC ---
-  const addParcelMutation = useMutation({
-    mutationFn: (payload: Parameters<typeof tripsApi.addTripParcel>[1]) =>
-      tripsApi.addTripParcel(tripId, payload),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['trip', tripId] });
-      toast.success('Передачу додано');
-      setIsParcelModalOpen(false);
-    },
-    onError: (e: Error) => toast.error(e.message || 'Помилка додавання передачі'),
-  });
+  const _addParcelMutation = useAddTripParcelMutation();
+  const addParcelMutation = {
+    ..._addParcelMutation,
+    mutate: (payload: {
+      first_name: string;
+      last_name: string;
+      phone: string;
+      weight: number;
+      delivery_address: string;
+    }) =>
+      _addParcelMutation.mutate(
+        { tripId, payload },
+        {
+          onSuccess: () => {
+            toast.success('Передачу додано');
+            setIsParcelModalOpen(false);
+          },
+        },
+      ),
+  };
 
-  const updateParcelMutation = useMutation({
-    mutationFn: ({
-      parcelId,
-      payload,
-    }: {
-      parcelId: number;
-      payload: Partial<tripsApi.TripParcel>;
-    }) => tripsApi.updateTripParcel(tripId, parcelId, payload),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['trip', tripId] });
-      toast.success('Передачу оновлено');
-      setIsParcelModalOpen(false);
-    },
-    onError: (e: Error) => toast.error(e.message || 'Помилка оновлення передачі'),
-  });
+  const _updateParcelMutation = useUpdateTripParcelMutation();
+  const updateParcelMutation = {
+    ..._updateParcelMutation,
+    mutate: (vars: { parcelId: number; payload: Record<string, unknown> }) =>
+      _updateParcelMutation.mutate(
+        { tripId, ...vars },
+        {
+          onSuccess: () => {
+            toast.success('Передачу оновлено');
+            setIsParcelModalOpen(false);
+          },
+        },
+      ),
+  };
 
-  const removeParcelMutation = useMutation({
-    mutationFn: (parcelId: number) => tripsApi.removeTripParcel(tripId, parcelId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['trip', tripId] });
-      toast.success('Передачу видалено');
-      setDeleteParcelConfirmOpen(false);
-      setParcelToDelete(null);
-    },
-    onError: (e: Error) => toast.error(e.message || 'Помилка видалення передачі'),
-  });
+  const _removeParcelMutation = useRemoveTripParcelMutation();
+  const removeParcelMutation = {
+    ..._removeParcelMutation,
+    mutateAsync: (parcelId: number) =>
+      _removeParcelMutation.mutateAsync(
+        { tripId, parcelId },
+        {
+          onSuccess: () => {
+            toast.success('Передачу видалено');
+            setDeleteParcelConfirmOpen(false);
+            setParcelToDelete(null);
+          },
+        },
+      ),
+  };
 
-  const handleOpenParcelModal = (parcel?: tripsApi.TripParcel) => {
+  const handleOpenParcelModal = (parcel?: TripParcel) => {
     if (parcel) {
       setEditingParcelId(parcel.id);
       setParcelForm({
@@ -308,7 +315,7 @@ export default function TripDetailPage() {
     }
   };
 
-  const handleToggleParcelDelivered = (parcel: tripsApi.TripParcel) => {
+  const handleToggleParcelDelivered = (parcel: TripParcel) => {
     updateParcelMutation.mutate({
       parcelId: parcel.id,
       payload: { is_delivered: !parcel.is_delivered },
@@ -320,15 +327,22 @@ export default function TripDetailPage() {
     setDeleteParcelConfirmOpen(true);
   };
 
-  const completeTripMutation = useMutation({
-    mutationFn: () => tripsApi.completeTrip(tripId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['active-trips'] });
-      toast.success('Рейс успішно завершено! Створено новий рейс для цього автобуса.');
-      navigate('/');
-    },
-    onError: (e: Error) => toast.error(e.message || 'Помилка завершення рейсу'),
-  });
+  const _completeTripMutation = useCompleteTripMutation();
+  const completeTripMutation = {
+    ..._completeTripMutation,
+    mutate: () =>
+      _completeTripMutation.mutate(tripId, {
+        onSuccess: () => {
+          navigate('/');
+        },
+      }),
+    mutateAsync: async () =>
+      _completeTripMutation.mutateAsync(tripId, {
+        onSuccess: () => {
+          navigate('/');
+        },
+      }),
+  };
 
   if (isLoadingTrip) return <PageLoader />;
   if (!trip) return <p className="text-destructive">Рейс не знайдено</p>;

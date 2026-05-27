@@ -1,4 +1,3 @@
-import { useQuery } from '@tanstack/react-query';
 import {
   Table,
   TableBody,
@@ -9,13 +8,11 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import PageLoader from '@/components/common/PageLoader';
-import * as tripsApi from '@/api/trips';
+import { useGetTripHistory } from '@/api/services/trips/queries';
+import { Trip, TripDriver } from '@/api/services/trips/requests';
 
 export default function AdminTripHistoryPage() {
-  const { data: trips, isLoading } = useQuery({
-    queryKey: ['trips-history'],
-    queryFn: () => tripsApi.fetchTripHistory(),
-  });
+  const { data: trips, isLoading } = useGetTripHistory();
 
   if (isLoading) return <PageLoader />;
 
@@ -38,7 +35,7 @@ export default function AdminTripHistoryPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {trips?.map((trip) => (
+            {trips?.map((trip: Trip) => (
               <TableRow key={trip.id}>
                 <TableCell className="font-medium text-muted-foreground">{trip.id}</TableCell>
                 <TableCell className="font-medium">
@@ -62,7 +59,7 @@ export default function AdminTripHistoryPage() {
                 </TableCell>
                 <TableCell>
                   <div className="flex flex-wrap gap-1">
-                    {trip.drivers.map((d) => (
+                    {trip.drivers.map((d: TripDriver) => (
                       <Badge key={d.user_id} variant="secondary" className="text-xs">
                         {d.user.first_name} {d.user.last_name}
                       </Badge>

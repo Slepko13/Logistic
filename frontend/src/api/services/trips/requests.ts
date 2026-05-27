@@ -1,4 +1,5 @@
-import { apiFetch } from './client';
+import { apiFetch } from '../../client';
+import { ENDPOINTS } from '../../endpoints';
 
 export interface Vehicle {
   id: number;
@@ -76,50 +77,50 @@ export interface Trip {
   parcels: TripParcel[];
 }
 
-export async function fetchActiveTrips(): Promise<Trip[]> {
-  return apiFetch<Trip[]>('/api/trips');
+export async function getActiveTrips(): Promise<Trip[]> {
+  return apiFetch<Trip[]>(ENDPOINTS.TRIPS.GET_ALL);
 }
 
-export async function fetchTripHistory(): Promise<Trip[]> {
-  return apiFetch<Trip[]>('/api/trips/history');
+export async function getTripHistory(): Promise<Trip[]> {
+  return apiFetch<Trip[]>(ENDPOINTS.TRIPS.GET_HISTORY);
 }
 
-export async function fetchTrips(): Promise<Trip[]> {
-  return apiFetch<Trip[]>('/api/trips');
+export async function getTrips(): Promise<Trip[]> {
+  return apiFetch<Trip[]>(ENDPOINTS.TRIPS.GET_ALL);
 }
 
-export async function fetchTrip(id: number): Promise<Trip> {
-  return apiFetch<Trip>(`/api/trips/${id}`);
+export async function getTrip(id: number): Promise<Trip> {
+  return apiFetch<Trip>(ENDPOINTS.TRIPS.GET_BY_ID(id));
 }
 
 export async function updateTrip(id: number, payload: UpdateTripPayload): Promise<Trip> {
-  return apiFetch<Trip>(`/api/trips/${id}`, {
+  return apiFetch<Trip>(ENDPOINTS.TRIPS.UPDATE(id), {
     method: 'PATCH',
     body: JSON.stringify(payload),
   });
 }
 
 export async function addTripDriver(tripId: number, userId: number): Promise<void> {
-  await apiFetch(`/api/trips/${tripId}/drivers`, {
+  await apiFetch(ENDPOINTS.TRIPS.ADD_DRIVER(tripId), {
     method: 'POST',
     body: JSON.stringify({ userId }),
   });
 }
 
 export async function removeTripDriver(tripId: number, userId: number): Promise<void> {
-  await apiFetch(`/api/trips/${tripId}/drivers/${userId}`, {
+  await apiFetch(ENDPOINTS.TRIPS.REMOVE_DRIVER(tripId, userId), {
     method: 'DELETE',
   });
 }
 
 export async function addTripSeat(tripId: number): Promise<TripSeat> {
-  return apiFetch<TripSeat>(`/api/trips/${tripId}/seats`, {
+  return apiFetch<TripSeat>(ENDPOINTS.TRIPS.BOOK_SEAT(tripId), {
     method: 'POST',
   });
 }
 
 export async function removeTripSeat(tripId: number, seatNumber: number): Promise<void> {
-  await apiFetch(`/api/trips/${tripId}/seats/${seatNumber}`, {
+  await apiFetch(ENDPOINTS.TRIPS.CLEAR_SEAT(tripId, seatNumber), {
     method: 'DELETE',
   });
 }
@@ -135,7 +136,7 @@ export async function updateTripSeat(
     boarding_address?: string | null;
   },
 ): Promise<TripSeat> {
-  return apiFetch<TripSeat>(`/api/trips/${tripId}/seats/${seatNumber}`, {
+  return apiFetch<TripSeat>(ENDPOINTS.TRIPS.UPDATE_SEAT(tripId, seatNumber), {
     method: 'PATCH',
     body: JSON.stringify(payload),
   });
@@ -151,7 +152,7 @@ export async function addTripParcel(
     delivery_address: string;
   },
 ): Promise<TripParcel> {
-  return apiFetch<TripParcel>(`/api/trips/${tripId}/parcels`, {
+  return apiFetch<TripParcel>(ENDPOINTS.TRIPS.ADD_PARCEL(tripId), {
     method: 'POST',
     body: JSON.stringify(payload),
   });
@@ -169,20 +170,20 @@ export async function updateTripParcel(
     is_delivered?: boolean;
   },
 ): Promise<TripParcel> {
-  return apiFetch<TripParcel>(`/api/trips/${tripId}/parcels/${parcelId}`, {
+  return apiFetch<TripParcel>(ENDPOINTS.TRIPS.UPDATE_PARCEL(tripId, parcelId), {
     method: 'PATCH',
     body: JSON.stringify(payload),
   });
 }
 
 export async function removeTripParcel(tripId: number, parcelId: number): Promise<void> {
-  await apiFetch(`/api/trips/${tripId}/parcels/${parcelId}`, {
+  await apiFetch(ENDPOINTS.TRIPS.DELETE_PARCEL(tripId, parcelId), {
     method: 'DELETE',
   });
 }
 
 export async function completeTrip(tripId: number): Promise<Trip> {
-  return apiFetch<Trip>(`/api/trips/${tripId}/complete`, {
+  return apiFetch<Trip>(ENDPOINTS.TRIPS.COMPLETE(tripId), {
     method: 'POST',
   });
 }

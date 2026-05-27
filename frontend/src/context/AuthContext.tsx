@@ -9,7 +9,7 @@ import {
 } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { setUnauthorizedHandler } from '@/api/client';
-import * as authApi from '../api/auth';
+import * as authApi from '@/api/services/auth/requests';
 import { TOKEN_KEY, USER_KEY } from '../api/config';
 import { UserRole, UserRoleType } from '../constants/userRole';
 import { components } from '../api/schema';
@@ -66,7 +66,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   } = useQuery({
     queryKey: ['me'],
     queryFn: async () => {
-      const me = await authApi.fetchMe();
+      const me = await authApi.getMe();
       localStorage.setItem(USER_KEY, JSON.stringify(me));
       return me;
     },

@@ -15,7 +15,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { isValidPhone, normalizePhone } from '@/lib/validation/auth';
-import { UserListItemDto, UpdateUserDto } from '@/api/users';
+import { UserListItemDto, UpdateUserDto } from '@/api/services/users/requests';
 
 const editUserSchema = z.object({
   last_name: z

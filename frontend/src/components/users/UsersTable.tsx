@@ -11,7 +11,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { UserListItemDto } from '@/api/users';
+import { UserListItemDto } from '@/api/services/users/requests';
 import { formatDate } from '@/lib/utils';
 
 export interface UsersTableProps {

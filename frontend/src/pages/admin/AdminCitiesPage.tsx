@@ -1,7 +1,6 @@
 import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+
 import { Plus, Edit, Trash2 } from 'lucide-react';
-import toast from 'react-hot-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -22,10 +21,15 @@ import {
 } from '@/components/ui/dialog';
 import ConfirmDialog from '@/components/common/ConfirmDialog';
 import PageLoader from '@/components/common/PageLoader';
-import * as citiesApi from '@/api/cities';
+import {
+  useGetCities,
+  useCreateCityMutation,
+  useUpdateCityMutation,
+  useDeleteCityMutation,
+} from '@/api/services/cities/queries';
+import { CityDto } from '@/api/services/cities/requests';
 
 export default function AdminCitiesPage() {
-  const queryClient = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [form, setForm] = useState({ name: '' });
@@ -33,46 +37,12 @@ export default function AdminCitiesPage() {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [cityToDelete, setCityToDelete] = useState<number | null>(null);
 
-  const { data: cities, isLoading } = useQuery({
-    queryKey: ['cities'],
-    queryFn: citiesApi.fetchCities,
-  });
+  const { data: cities, isLoading } = useGetCities();
+  const createMutation = useCreateCityMutation();
+  const updateMutation = useUpdateCityMutation();
+  const removeMutation = useDeleteCityMutation();
 
-  const createMutation = useMutation({
-    mutationFn: citiesApi.createCity,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['cities'] });
-      toast.success('Місто додано');
-      setIsModalOpen(false);
-    },
-    onError: (e: Error) => toast.error(e.message || 'Помилка додавання міста'),
-  });
-
-  const updateMutation = useMutation({
-    mutationFn: ({ id, payload }: { id: number; payload: Record<string, unknown> }) =>
-      citiesApi.updateCity(id, payload),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['cities'] });
-      toast.success('Місто оновлено');
-      setIsModalOpen(false);
-    },
-    onError: (e: Error) => toast.error(e.message || 'Помилка оновлення міста'),
-  });
-
-  const removeMutation = useMutation({
-    mutationFn: citiesApi.removeCity,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['cities'] });
-      toast.success('Місто видалено');
-      setDeleteConfirmOpen(false);
-    },
-    onError: (e: Error) => {
-      toast.error(e.message || 'Помилка видалення міста');
-      setDeleteConfirmOpen(false);
-    },
-  });
-
-  const handleOpenModal = (c?: citiesApi.City) => {
+  const handleOpenModal = (c?: CityDto) => {
     if (c) {
       setEditingId(c.id);
       setForm({ name: c.name });
@@ -89,9 +59,9 @@ export default function AdminCitiesPage() {
       name: form.name,
     };
     if (editingId) {
-      updateMutation.mutate({ id: editingId, payload });
+      updateMutation.mutate({ id: editingId, payload }, { onSuccess: () => setIsModalOpen(false) });
     } else {
-      createMutation.mutate(payload);
+      createMutation.mutate(payload, { onSuccess: () => setIsModalOpen(false) });
     }
   };
 
@@ -190,6 +160,7 @@ export default function AdminCitiesPage() {
         onConfirm={async () => {
           if (cityToDelete !== null) {
             await removeMutation.mutateAsync(cityToDelete);
+            setDeleteConfirmOpen(false);
           }
         }}
         loading={removeMutation.isPending}

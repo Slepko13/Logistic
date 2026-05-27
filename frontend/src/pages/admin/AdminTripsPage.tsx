@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+
 import { Edit, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { Button } from '@/components/ui/button';
@@ -22,13 +22,13 @@ import {
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import PageLoader from '@/components/common/PageLoader';
-import * as tripsApi from '@/api/trips';
-import * as vehiclesApi from '@/api/vehicles';
-import * as usersApi from '@/api/users';
-import * as citiesApi from '@/api/cities';
+import { useGetTrips, useUpdateTripMutation } from '@/api/services/trips/queries';
+import { Trip, UpdateTripPayload } from '@/api/services/trips/requests';
+import { useGetVehicles } from '@/api/services/vehicles/queries';
+import { useGetUsers } from '@/api/services/users/queries';
+import { useGetCities } from '@/api/services/cities/queries';
 
 export default function AdminTripsPage() {
-  const queryClient = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTripId, setEditingTripId] = useState<number | null>(null);
   const [selectedDriverToAdd, setSelectedDriverToAdd] = useState<string>('');
@@ -49,41 +49,28 @@ export default function AdminTripsPage() {
     driverIds: [],
   });
 
-  const { data: trips, isLoading: isLoadingTrips } = useQuery({
-    queryKey: ['trips-all'],
-    queryFn: () => tripsApi.fetchTrips(),
-  });
-
-  const { data: vehicles } = useQuery({
-    queryKey: ['vehicles'],
-    queryFn: vehiclesApi.fetchVehicles,
-  });
-
-  const { data: users } = useQuery({
-    queryKey: ['users'],
-    queryFn: usersApi.fetchUsers,
-  });
-
-  const { data: cities } = useQuery({
-    queryKey: ['cities'],
-    queryFn: citiesApi.fetchCities,
-  });
+  const { data: trips, isLoading: isLoadingTrips } = useGetTrips();
+  const { data: vehicles } = useGetVehicles();
+  const { data: users } = useGetUsers();
+  const { data: cities } = useGetCities();
 
   const driversList = users?.filter((u) => u.role === 'driver' || u.role === 'admin') || [];
 
-  const updateMutation = useMutation({
-    mutationFn: ({ id, payload }: { id: number; payload: tripsApi.UpdateTripPayload }) =>
-      tripsApi.updateTrip(id, payload),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['trips-all'] });
-      queryClient.invalidateQueries({ queryKey: ['active-trips'] });
-      toast.success('Рейс оновлено');
-      setIsModalOpen(false);
+  const _updateMutation = useUpdateTripMutation();
+  const updateMutation = {
+    ..._updateMutation,
+    mutate: (vars: { id: number; payload: UpdateTripPayload }) => {
+      _updateMutation.mutate(vars, {
+        onSuccess: () => {
+          toast.success('Рейс оновлено');
+          setIsModalOpen(false);
+        },
+        onError: (e: Error) => toast.error(e.message || 'Помилка оновлення рейсу'),
+      });
     },
-    onError: (e: Error) => toast.error(e.message || 'Помилка оновлення рейсу'),
-  });
+  };
 
-  const handleOpenModal = (trip: tripsApi.Trip) => {
+  const handleOpenModal = (trip: Trip) => {
     setEditingTripId(trip.id);
     setForm({
       vehicle_id: trip.vehicle_id.toString(),
@@ -119,7 +106,7 @@ export default function AdminTripsPage() {
     e.preventDefault();
     if (!editingTripId) return;
 
-    const payload: tripsApi.UpdateTripPayload = {
+    const payload: UpdateTripPayload = {
       vehicle_id: parseInt(form.vehicle_id),
       departure_city: form.departure_city || null,
       arrival_city: form.arrival_city || null,

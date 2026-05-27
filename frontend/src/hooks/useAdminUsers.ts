@@ -1,8 +1,14 @@
 import { useState, useCallback } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
-import * as usersApi from '@/api/users';
-import { UserListItemDto, UpdateUserDto, CreateUserDto } from '@/api/users';
+import {
+  useGetUsers,
+  useCreateUserMutation,
+  useUpdateUserMutation,
+  useDeleteUserMutation,
+  usePromoteToAdminMutation,
+} from '@/api/services/users/queries';
+import { UserListItemDto, UpdateUserDto, CreateUserDto } from '@/api/services/users/requests';
 import { useAuth } from '@/context/AuthContext';
 
 export interface ConfirmState {
@@ -23,60 +29,52 @@ export function useAdminUsers() {
   const [usersActionError, setUsersActionError] = useState<string | null>(null);
 
   // 1. Отримання користувачів
-  const {
-    data: users = [],
-    isLoading: loading,
-    error: fetchError,
-  } = useQuery({
-    queryKey: ['adminUsers'],
-    queryFn: () => usersApi.fetchUsers(),
-  });
+  const { data: users = [], isLoading: loading, error: fetchError } = useGetUsers();
 
   const error = fetchError ? (fetchError as Error).message : null;
 
   // 2. Видалення користувача
-  const deleteMutation = useMutation({
-    mutationFn: (id: number) => usersApi.deleteUser(id),
-  });
+  const deleteMutation = useDeleteUserMutation();
 
   // 3. Підвищення до адміністратора
-  const promoteMutation = useMutation({
-    mutationFn: (id: number) => usersApi.promoteToAdmin(id),
-  });
+  const promoteMutation = usePromoteToAdminMutation();
 
   // 4. Оновлення користувача
-  const updateMutation = useMutation({
-    mutationFn: ({ id, payload }: { id: number; payload: UpdateUserDto }) =>
-      usersApi.updateUser(id, payload),
-    onSuccess: async (updatedUser) => {
-      toast.success('Дані користувача успішно оновлено');
-      if (updatedUser.id === currentUser?.id) {
-        await bootstrap();
-      }
-      queryClient.invalidateQueries({ queryKey: ['adminUsers'] });
-      setEditingUser(null);
+  const _updateMutation = useUpdateUserMutation();
+  const updateMutation = {
+    ..._updateMutation,
+    mutate: (vars: { id: number; payload: UpdateUserDto }) => {
+      _updateMutation.mutate(vars, {
+        onSuccess: async (updatedUser) => {
+          if (updatedUser.id === currentUser?.id) {
+            await bootstrap();
+          }
+          setEditingUser(null);
+        },
+        onError: (err: unknown) => {
+          const msg = err instanceof Error ? err.message : 'Помилка оновлення';
+          setEditError(msg);
+        },
+      });
     },
-    onError: (err: unknown) => {
-      const msg = err instanceof Error ? err.message : 'Помилка оновлення';
-      setEditError(msg);
-      toast.error(msg);
-    },
-  });
+  };
 
   // 5. Створення користувача
-  const createMutation = useMutation({
-    mutationFn: (payload: CreateUserDto) => usersApi.createUser(payload),
-    onSuccess: () => {
-      toast.success('Користувача успішно створено');
-      queryClient.invalidateQueries({ queryKey: ['adminUsers'] });
-      setCreateDialogOpen(false);
+  const _createMutation = useCreateUserMutation();
+  const createMutation = {
+    ..._createMutation,
+    mutate: (payload: CreateUserDto) => {
+      _createMutation.mutate(payload, {
+        onSuccess: () => {
+          setCreateDialogOpen(false);
+        },
+        onError: (err: unknown) => {
+          const msg = err instanceof Error ? err.message : 'Помилка створення';
+          setCreateError(msg);
+        },
+      });
     },
-    onError: (err: unknown) => {
-      const msg = err instanceof Error ? err.message : 'Помилка створення';
-      setCreateError(msg);
-      toast.error(msg);
-    },
-  });
+  };
 
   const openDeleteConfirm = useCallback((targetUser: UserListItemDto) => {
     setConfirm({

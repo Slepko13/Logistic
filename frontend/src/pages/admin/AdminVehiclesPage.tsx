@@ -1,7 +1,6 @@
 import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+
 import { Plus, Edit, Trash2 } from 'lucide-react';
-import toast from 'react-hot-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -22,10 +21,15 @@ import {
 } from '@/components/ui/dialog';
 import ConfirmDialog from '@/components/common/ConfirmDialog';
 import PageLoader from '@/components/common/PageLoader';
-import * as vehiclesApi from '@/api/vehicles';
+import {
+  useGetVehicles,
+  useCreateVehicleMutation,
+  useUpdateVehicleMutation,
+  useDeleteVehicleMutation,
+} from '@/api/services/vehicles/queries';
+import { VehicleDto } from '@/api/services/vehicles/requests';
 
 export default function AdminVehiclesPage() {
-  const queryClient = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [form, setForm] = useState({ name: '', plate_number: '' });
@@ -33,46 +37,12 @@ export default function AdminVehiclesPage() {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [vehicleToDelete, setVehicleToDelete] = useState<number | null>(null);
 
-  const { data: vehicles, isLoading } = useQuery({
-    queryKey: ['vehicles'],
-    queryFn: vehiclesApi.fetchVehicles,
-  });
+  const { data: vehicles, isLoading } = useGetVehicles();
+  const createMutation = useCreateVehicleMutation();
+  const updateMutation = useUpdateVehicleMutation();
+  const removeMutation = useDeleteVehicleMutation();
 
-  const createMutation = useMutation({
-    mutationFn: vehiclesApi.createVehicle,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['vehicles'] });
-      toast.success('Автобус створено');
-      setIsModalOpen(false);
-    },
-    onError: (e: Error) => toast.error(e.message || 'Помилка створення автобуса'),
-  });
-
-  const updateMutation = useMutation({
-    mutationFn: ({ id, payload }: { id: number; payload: Record<string, unknown> }) =>
-      vehiclesApi.updateVehicle(id, payload),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['vehicles'] });
-      toast.success('Автобус оновлено');
-      setIsModalOpen(false);
-    },
-    onError: (e: Error) => toast.error(e.message || 'Помилка оновлення автобуса'),
-  });
-
-  const removeMutation = useMutation({
-    mutationFn: vehiclesApi.removeVehicle,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['vehicles'] });
-      toast.success('Автобус видалено');
-      setDeleteConfirmOpen(false);
-    },
-    onError: (e: Error) => {
-      toast.error(e.message || "Помилка видалення (можливо, є прив'язані рейси)");
-      setDeleteConfirmOpen(false);
-    },
-  });
-
-  const handleOpenModal = (v?: vehiclesApi.Vehicle) => {
+  const handleOpenModal = (v?: VehicleDto) => {
     if (v) {
       setEditingId(v.id);
       setForm({ name: v.name, plate_number: v.plate_number || '' });
@@ -90,9 +60,9 @@ export default function AdminVehiclesPage() {
       plate_number: form.plate_number || null,
     };
     if (editingId) {
-      updateMutation.mutate({ id: editingId, payload });
+      updateMutation.mutate({ id: editingId, payload }, { onSuccess: () => setIsModalOpen(false) });
     } else {
-      createMutation.mutate(payload);
+      createMutation.mutate(payload, { onSuccess: () => setIsModalOpen(false) });
     }
   };
 
@@ -201,6 +171,7 @@ export default function AdminVehiclesPage() {
         onConfirm={async () => {
           if (vehicleToDelete !== null) {
             await removeMutation.mutateAsync(vehicleToDelete);
+            setDeleteConfirmOpen(false);
           }
         }}
         loading={removeMutation.isPending}
