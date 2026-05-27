@@ -14,7 +14,7 @@ const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   );
 
 const NAV_LINKS = [
-  { to: '/', label: 'Панель', icon: LayoutDashboard, color: 'text-indigo-500', end: true },
+  { to: '/', label: 'Поїздки', icon: LayoutDashboard, color: 'text-indigo-500', end: true },
   { to: '/admin', label: 'Адмін-панель', icon: Users, color: 'text-rose-500', adminOnly: true },
 ];
 
@@ -44,18 +44,20 @@ export default function AppLayout() {
             </Button>
           </div>
         </div>
-        <nav className="flex flex-wrap gap-2" aria-label="Основна навігація">
-          {NAV_LINKS.map((link) => {
-            if (link.adminOnly && !isAdmin) return null;
-            const Icon = link.icon;
-            return (
-              <NavLink key={link.to} to={link.to} end={link.end} className={navLinkClass}>
-                <Icon className={cn('h-4 w-4', link.color)} />
-                {link.label}
-              </NavLink>
-            );
-          })}
-        </nav>
+        {isAdmin && (
+          <nav className="flex flex-wrap gap-2" aria-label="Основна навігація">
+            {NAV_LINKS.map((link) => {
+              if (link.adminOnly && !isAdmin) return null;
+              const Icon = link.icon;
+              return (
+                <NavLink key={link.to} to={link.to} end={link.end} className={navLinkClass}>
+                  <Icon className={cn('h-4 w-4', link.color)} />
+                  {link.label}
+                </NavLink>
+              );
+            })}
+          </nav>
+        )}
       </header>
       <main>
         <Outlet />
