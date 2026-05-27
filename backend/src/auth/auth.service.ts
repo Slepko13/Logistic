@@ -3,13 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { UsersService, PublicUser } from '../users/users.service';
 import { LoginDto } from './dto/login.dto';
-import { RegisterDto } from './dto/register.dto';
-import {
-  assertLoginInput,
-  assertRegisterInput,
-  throwInvalidCredentials,
-  throwUserExists,
-} from './auth.validation';
+import { assertLoginInput, throwInvalidCredentials } from './auth.validation';
 
 // Service (Сервіс) - це місце, де живе вся "бізнес-логіка".
 // Контролер просто приймає дані, а Сервіс робить всю брудну роботу:
@@ -20,28 +14,6 @@ export class AuthService {
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
   ) {}
-
-  // Логіка реєстрації
-  async register(dto: RegisterDto) {
-    // 1. Перевіряємо та нормалізуємо введені дані (чистимо телефон від пробілів)
-    const { phone, first_name, last_name, password } = assertRegisterInput(dto);
-
-    // 2. Шукаємо в базі: чи немає вже когось із таким номером?
-    const existing = await this.usersService.findByPhoneNormalized(phone);
-    if (existing) {
-      throwUserExists(); // Викидаємо помилку: "Користувач вже існує"
-    }
-
-    // 3. Хешуємо пароль (ніколи не зберігаємо паролі відкритим текстом!)
-    const saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS || '10', 10);
-    const passwordHash = await bcrypt.hash(password, saltRounds);
-
-    // 4. Створюємо юзера в базі
-    const user = await this.usersService.create(phone, first_name, last_name, passwordHash);
-
-    // 5. Повертаємо дані юзера + згенерований токен для автоматичного входу
-    return this.buildAuthResponse(user);
-  }
 
   // Логіка логіну
   async login(dto: LoginDto) {

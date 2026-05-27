@@ -1,6 +1,5 @@
 import { components } from '../../api/schema';
 
-type RegisterDto = components['schemas']['RegisterDto'];
 type LoginDto = components['schemas']['LoginDto'];
 
 const UA_PHONE_PATTERN = /^(\+?380|0)\d{9}$/;
@@ -43,39 +42,6 @@ export function validateName(value: string | undefined, fieldLabel: string): str
   return null;
 }
 
-export interface RegisterFormState extends Partial<RegisterDto> {
-  confirmPassword?: string;
-}
-
-export function getRegisterErrors(form: RegisterFormState): string[] {
-  const errors: string[] = [];
-
-  const firstNameError = validateName(form.first_name, 'Імʼя');
-  if (firstNameError) errors.push(firstNameError);
-
-  const lastNameError = validateName(form.last_name, 'Прізвище');
-  if (lastNameError) errors.push(lastNameError);
-
-  const phoneRaw = form.phone?.trim() ?? '';
-  if (!phoneRaw) {
-    errors.push('Номер телефону є обовʼязковим');
-  } else if (!isValidPhone(phoneRaw)) {
-    errors.push('Невірний формат номера телефону. Приклад: +380501234567');
-  }
-
-  if (!form.password) {
-    errors.push('Пароль є обовʼязковим');
-  } else if (form.password.length < 6) {
-    errors.push('Пароль має містити щонайменше 6 символів');
-  }
-
-  if (form.confirmPassword !== undefined && form.password !== form.confirmPassword) {
-    errors.push('Паролі не збігаються');
-  }
-
-  return errors;
-}
-
 export function getLoginErrors({ phone, password }: Partial<LoginDto>): string[] {
   const errors: string[] = [];
   const phoneRaw = phone?.trim() ?? '';
@@ -91,26 +57,6 @@ export function getLoginErrors({ phone, password }: Partial<LoginDto>): string[]
   }
 
   return errors;
-}
-
-export function prepareRegisterPayload(form: RegisterFormState): {
-  errors: string[];
-  payload: RegisterDto | null;
-} {
-  const errors = getRegisterErrors(form);
-  if (errors.length > 0) {
-    return { errors, payload: null };
-  }
-
-  return {
-    errors: [],
-    payload: {
-      phone: normalizePhone(form.phone!.trim())!,
-      first_name: form.first_name!.trim(),
-      last_name: form.last_name!.trim(),
-      password: form.password!,
-    },
-  };
 }
 
 export function prepareLoginPayload({ phone, password }: Partial<LoginDto>): {

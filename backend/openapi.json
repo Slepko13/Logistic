@@ -18,10 +18,47 @@
             }
           }
         },
-        "tags": ["health"]
+        "tags": [
+          "health"
+        ]
       }
     },
     "/api/users": {
+      "post": {
+        "operationId": "UsersController_create",
+        "summary": "Create new user",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateUserDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicUserDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "users"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      },
       "get": {
         "operationId": "UsersController_findAll",
         "summary": "List all users",
@@ -41,7 +78,9 @@
             }
           }
         },
-        "tags": ["users"],
+        "tags": [
+          "users"
+        ],
         "security": [
           {
             "bearer": []
@@ -68,7 +107,9 @@
             "description": ""
           }
         },
-        "tags": ["users"],
+        "tags": [
+          "users"
+        ],
         "security": [
           {
             "bearer": []
@@ -110,7 +151,9 @@
             }
           }
         },
-        "tags": ["users"],
+        "tags": [
+          "users"
+        ],
         "security": [
           {
             "bearer": []
@@ -144,42 +187,14 @@
             }
           }
         },
-        "tags": ["users"],
+        "tags": [
+          "users"
+        ],
         "security": [
           {
             "bearer": []
           }
         ]
-      }
-    },
-    "/api/auth/register": {
-      "post": {
-        "operationId": "AuthController_register",
-        "summary": "Register new user",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/RegisterDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AuthResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["auth"]
       }
     },
     "/api/auth/login": {
@@ -209,7 +224,9 @@
             }
           }
         },
-        "tags": ["auth"]
+        "tags": [
+          "auth"
+        ]
       }
     },
     "/api/auth/me": {
@@ -229,12 +246,532 @@
             }
           }
         },
-        "tags": ["auth"],
+        "tags": [
+          "auth"
+        ],
         "security": [
           {
             "bearer": []
           }
         ]
+      }
+    },
+    "/api/trips": {
+      "get": {
+        "operationId": "TripsController_findAllActive",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/trips/history": {
+      "get": {
+        "operationId": "TripsController_findAllCompleted",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/trips/{id}": {
+      "get": {
+        "operationId": "TripsController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      },
+      "patch": {
+        "operationId": "TripsController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateTripDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/trips/{id}/drivers": {
+      "post": {
+        "operationId": "TripsController_addDriver",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddDriverDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/trips/{id}/drivers/{userId}": {
+      "delete": {
+        "operationId": "TripsController_removeDriver",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/trips/{id}/seats/{seatNumber}": {
+      "patch": {
+        "operationId": "TripsController_updateSeat",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "seatNumber",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateSeatDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      },
+      "delete": {
+        "operationId": "TripsController_removeSeat",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "seatNumber",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/trips/{id}/seats": {
+      "post": {
+        "operationId": "TripsController_addSeat",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/trips/{id}/parcels": {
+      "post": {
+        "operationId": "TripsController_addParcel",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateParcelDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/trips/{id}/parcels/{parcelId}": {
+      "patch": {
+        "operationId": "TripsController_updateParcel",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "parcelId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateParcelDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      },
+      "delete": {
+        "operationId": "TripsController_removeParcel",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "parcelId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/trips/{id}/complete": {
+      "post": {
+        "operationId": "TripsController_completeTrip",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/vehicles": {
+      "post": {
+        "operationId": "VehiclesController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateVehicleDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        }
+      },
+      "get": {
+        "operationId": "VehiclesController_findAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/vehicles/{id}": {
+      "get": {
+        "operationId": "VehiclesController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      },
+      "patch": {
+        "operationId": "VehiclesController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateVehicleDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      },
+      "delete": {
+        "operationId": "VehiclesController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/cities": {
+      "post": {
+        "operationId": "CitiesController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCityDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        }
+      },
+      "get": {
+        "operationId": "CitiesController_findAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/cities/{id}": {
+      "get": {
+        "operationId": "CitiesController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      },
+      "patch": {
+        "operationId": "CitiesController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCityDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      },
+      "delete": {
+        "operationId": "CitiesController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
       }
     }
   },
@@ -260,12 +797,18 @@
         "properties": {
           "status": {
             "type": "string",
-            "enum": ["ok", "error"],
+            "enum": [
+              "ok",
+              "error"
+            ],
             "example": "ok"
           },
           "database": {
             "type": "string",
-            "enum": ["connected", "disconnected"],
+            "enum": [
+              "connected",
+              "disconnected"
+            ],
             "example": "connected"
           },
           "message": {
@@ -273,15 +816,14 @@
             "example": "Connection refused"
           }
         },
-        "required": ["status", "database"]
+        "required": [
+          "status",
+          "database"
+        ]
       },
-      "UserListItemDto": {
+      "CreateUserDto": {
         "type": "object",
         "properties": {
-          "id": {
-            "type": "number",
-            "example": 1
-          },
           "phone": {
             "type": "string",
             "example": "+380501234567"
@@ -293,35 +835,26 @@
           "last_name": {
             "type": "string",
             "example": "Петренко"
+          },
+          "password": {
+            "type": "string",
+            "example": "password123"
           },
           "role": {
             "type": "string",
-            "enum": ["admin", "driver"],
-            "example": "driver"
-          },
-          "created_at": {
-            "type": "string",
-            "example": "2024-01-01T00:00:00.000Z"
+            "example": "driver",
+            "enum": [
+              "admin",
+              "driver"
+            ]
           }
         },
-        "required": ["id", "phone", "first_name", "last_name", "role", "created_at"]
-      },
-      "UpdateUserDto": {
-        "type": "object",
-        "properties": {
-          "phone": {
-            "type": "string",
-            "example": "+380501234567"
-          },
-          "first_name": {
-            "type": "string",
-            "example": "Іван"
-          },
-          "last_name": {
-            "type": "string",
-            "example": "Петренко"
-          }
-        }
+        "required": [
+          "phone",
+          "first_name",
+          "last_name",
+          "password"
+        ]
       },
       "PublicUserDto": {
         "type": "object",
@@ -344,13 +877,63 @@
           },
           "role": {
             "type": "string",
-            "enum": ["admin", "driver"],
+            "enum": [
+              "admin",
+              "driver"
+            ],
             "example": "driver"
           }
         },
-        "required": ["id", "phone", "first_name", "last_name", "role"]
+        "required": [
+          "id",
+          "phone",
+          "first_name",
+          "last_name",
+          "role"
+        ]
       },
-      "RegisterDto": {
+      "UserListItemDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1
+          },
+          "phone": {
+            "type": "string",
+            "example": "+380501234567"
+          },
+          "first_name": {
+            "type": "string",
+            "example": "Іван"
+          },
+          "last_name": {
+            "type": "string",
+            "example": "Петренко"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "admin",
+              "driver"
+            ],
+            "example": "driver"
+          },
+          "created_at": {
+            "type": "string",
+            "example": "2024-01-01T00:00:00.000Z"
+          }
+        },
+        "required": [
+          "id",
+          "phone",
+          "first_name",
+          "last_name",
+          "role",
+          "created_at"
+        ]
+      },
+      "UpdateUserDto": {
         "type": "object",
         "properties": {
           "phone": {
@@ -367,23 +950,9 @@
           },
           "password": {
             "type": "string",
-            "example": "password123"
+            "example": "newPassword123"
           }
-        },
-        "required": ["phone", "first_name", "last_name", "password"]
-      },
-      "AuthResponseDto": {
-        "type": "object",
-        "properties": {
-          "access_token": {
-            "type": "string",
-            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-          },
-          "user": {
-            "$ref": "#/components/schemas/PublicUserDto"
-          }
-        },
-        "required": ["access_token", "user"]
+        }
       },
       "LoginDto": {
         "type": "object",
@@ -397,7 +966,62 @@
             "example": "password123"
           }
         },
-        "required": ["phone", "password"]
+        "required": [
+          "phone",
+          "password"
+        ]
+      },
+      "AuthResponseDto": {
+        "type": "object",
+        "properties": {
+          "access_token": {
+            "type": "string",
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+          },
+          "user": {
+            "$ref": "#/components/schemas/PublicUserDto"
+          }
+        },
+        "required": [
+          "access_token",
+          "user"
+        ]
+      },
+      "UpdateTripDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "AddDriverDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "UpdateSeatDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "CreateParcelDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "UpdateParcelDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "CreateVehicleDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "UpdateVehicleDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "CreateCityDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "UpdateCityDto": {
+        "type": "object",
+        "properties": {}
       }
     }
   }

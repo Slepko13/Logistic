@@ -61,13 +61,7 @@ export default function LoginPage() {
   };
 
   return (
-    <AuthCard
-      title="Вхід"
-      subtitle="Увійдіть за номером телефону"
-      footerText="Немає акаунту?"
-      footerLink="/register"
-      footerLabel="Зареєструватися"
-    >
+    <AuthCard title="Вхід" subtitle="Увійдіть за номером телефону">
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="phone">Номер телефону</Label>

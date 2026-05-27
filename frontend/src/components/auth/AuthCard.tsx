@@ -13,9 +13,9 @@ export interface AuthCardProps {
   title: string;
   subtitle?: string;
   children: React.ReactNode;
-  footerText: string;
-  footerLink: string;
-  footerLabel: string;
+  footerText?: string;
+  footerLink?: string;
+  footerLabel?: string;
 }
 
 export default function AuthCard({
@@ -34,14 +34,16 @@ export default function AuthCard({
           {subtitle && <CardDescription>{subtitle}</CardDescription>}
         </CardHeader>
         <CardContent>{children}</CardContent>
-        <CardFooter className="justify-center border-t pt-6">
-          <p className="text-sm text-muted-foreground">
-            {footerText}{' '}
-            <Link to={footerLink} className="font-medium text-primary hover:underline">
-              {footerLabel}
-            </Link>
-          </p>
-        </CardFooter>
+        {footerText && footerLink && footerLabel && (
+          <CardFooter className="flex flex-col gap-2">
+            <div className="text-sm text-muted-foreground">
+              {footerText}{' '}
+              <Link to={footerLink} className="text-primary hover:underline">
+                {footerLabel}
+              </Link>
+            </div>
+          </CardFooter>
+        )}
       </Card>
     </div>
   );

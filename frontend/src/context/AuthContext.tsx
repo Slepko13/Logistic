@@ -15,7 +15,6 @@ import { UserRole, UserRoleType } from '../constants/userRole';
 import { components } from '../api/schema';
 
 type LoginDto = components['schemas']['LoginDto'];
-type RegisterDto = components['schemas']['RegisterDto'];
 
 export interface AuthContextType {
   token: string | null;
@@ -27,7 +26,6 @@ export interface AuthContextType {
   bootstrapping: boolean;
   bootstrap: () => Promise<void>;
   login: (payload: LoginDto) => Promise<authApi.PublicUserDto>;
-  register: (payload: RegisterDto) => Promise<authApi.PublicUserDto>;
   logout: () => void;
 }
 
@@ -102,15 +100,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [persistAuth],
   );
 
-  const register = useCallback(
-    async (payload: RegisterDto) => {
-      const data = await authApi.register(payload);
-      persistAuth(data.access_token, data.user);
-      return data.user;
-    },
-    [persistAuth],
-  );
-
   const logout = useCallback(() => {
     clearAuth();
   }, [clearAuth]);
@@ -126,10 +115,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       bootstrapping: bootstrapping && !user, // Only true if we don't have initial data
       bootstrap,
       login,
-      register,
       logout,
     }),
-    [token, user, bootstrapping, bootstrap, login, register, logout],
+    [token, user, bootstrapping, bootstrap, login, logout],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

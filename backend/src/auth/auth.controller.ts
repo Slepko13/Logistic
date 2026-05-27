@@ -6,7 +6,6 @@ import { PublicUserDto } from '../users/dto/public-user.dto';
 import { AuthService } from './auth.service';
 import { AuthResponseDto } from './dto/auth-response.dto';
 import { LoginDto } from './dto/login.dto';
-import { RegisterDto } from './dto/register.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';
 
 @ApiTags('auth')
@@ -16,16 +15,6 @@ import { JwtAuthGuard } from './jwt-auth.guard';
 @Controller('api/auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
-
-  // Обробляє POST запит на реєстрацію.
-  // @Body() означає "візьми всі дані (телефон, ім'я, пароль), які користувач ввів у формі".
-  @Post('register')
-  @ApiOperation({ summary: 'Register new user' })
-  @ApiBody({ type: RegisterDto })
-  @ApiResponse({ status: 201, type: AuthResponseDto })
-  register(@Body() body: RegisterDto) {
-    return this.authService.register(body);
-  }
 
   // Обробляє POST запит на логін.
   @Post('login')

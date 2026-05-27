@@ -12,6 +12,7 @@ import { validateName } from '../auth/auth.validation';
 import { PrismaService } from '../database/prisma.service';
 import { INITIAL_ADMIN_PHONE, UserRole, UserRoleType } from './user-role';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { CreateUserDto } from './dto/create-user.dto';
 import * as bcrypt from 'bcrypt';
 
 export interface PublicUser {
@@ -36,6 +37,30 @@ export class UsersService implements OnModuleInit {
 
   private async promoteInitialAdmin() {
     const adminPhone = INITIAL_ADMIN_PHONE;
+
+    const count = await this.prisma.user.count();
+    if (count === 0) {
+      const password = process.env.INITIAL_ADMIN_PASSWORD || '12345678';
+      const passwordHash = await bcrypt.hash(password, 10);
+
+      await this.prisma.user.create({
+        data: {
+          phone: adminPhone,
+          first_name: 'Admin',
+          last_name: 'System',
+          role: UserRole.ADMIN,
+          password_hash: passwordHash,
+        },
+      });
+
+      console.log(`[SEED] Created initial admin with phone ${adminPhone}`);
+      if (!process.env.INITIAL_ADMIN_PASSWORD) {
+        console.warn(
+          `[WARNING] Default password '12345678' used for admin. Please change it immediately.`,
+        );
+      }
+      return;
+    }
 
     const user = await this.prisma.user.findFirst({
       where: { phone: adminPhone },
@@ -138,6 +163,45 @@ export class UsersService implements OnModuleInit {
       },
       { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
     );
+    return user as unknown as PublicUser;
+  }
+
+  async createAdminUser(dto: CreateUserDto): Promise<PublicUser> {
+    const phoneRaw = dto.phone.trim();
+    if (!isValidPhone(phoneRaw)) {
+      throw new BadRequestException('Невірний формат номера телефону. Приклад: +380501234567');
+    }
+
+    const normalizedPhone = normalizePhone(phoneRaw);
+    if (!normalizedPhone) {
+      throw new BadRequestException('Невірний формат номера телефону');
+    }
+
+    const existing = await this.findByPhoneNormalized(normalizedPhone);
+    if (existing) {
+      throw new ConflictException('Користувач з таким номером телефону вже існує');
+    }
+
+    const saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS || '10', 10);
+    const passwordHash = await bcrypt.hash(dto.password, saltRounds);
+
+    const user = await this.prisma.user.create({
+      data: {
+        phone: normalizedPhone,
+        first_name: dto.first_name.trim(),
+        last_name: dto.last_name.trim(),
+        password_hash: passwordHash,
+        role: dto.role || UserRole.DRIVER,
+      },
+      select: {
+        id: true,
+        phone: true,
+        first_name: true,
+        last_name: true,
+        role: true,
+      },
+    });
+
     return user as unknown as PublicUser;
   }
 

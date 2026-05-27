@@ -3,10 +3,18 @@ import { components } from './schema';
 
 export type UserListItemDto = components['schemas']['UserListItemDto'];
 export type UpdateUserDto = components['schemas']['UpdateUserDto'];
+export type CreateUserDto = components['schemas']['CreateUserDto'];
 export type PublicUserDto = components['schemas']['PublicUserDto'];
 
 export function fetchUsers(): Promise<UserListItemDto[]> {
   return apiFetch<UserListItemDto[]>('/api/users');
+}
+
+export function createUser(payload: CreateUserDto): Promise<PublicUserDto> {
+  return apiFetch<PublicUserDto>('/api/users', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
 }
 
 export function deleteUser(id: number): Promise<void> {

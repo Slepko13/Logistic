@@ -31,7 +31,8 @@ export interface paths {
     /** List all users */
     get: operations['UsersController_findAll'];
     put?: never;
-    post?: never;
+    /** Create new user */
+    post: operations['UsersController_create'];
     delete?: never;
     options?: never;
     head?: never;
@@ -73,23 +74,6 @@ export interface paths {
     patch: operations['UsersController_promoteToAdmin'];
     trace?: never;
   };
-  '/api/auth/register': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Register new user */
-    post: operations['AuthController_register'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
   '/api/auth/login': {
     parameters: {
       query?: never;
@@ -124,6 +108,230 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/trips': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['TripsController_findAllActive'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/trips/history': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['TripsController_findAllCompleted'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/trips/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['TripsController_findOne'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch: operations['TripsController_update'];
+    trace?: never;
+  };
+  '/api/trips/{id}/drivers': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['TripsController_addDriver'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/trips/{id}/drivers/{userId}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    delete: operations['TripsController_removeDriver'];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/trips/{id}/seats/{seatNumber}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    delete: operations['TripsController_removeSeat'];
+    options?: never;
+    head?: never;
+    patch: operations['TripsController_updateSeat'];
+    trace?: never;
+  };
+  '/api/trips/{id}/seats': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['TripsController_addSeat'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/trips/{id}/parcels': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['TripsController_addParcel'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/trips/{id}/parcels/{parcelId}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    delete: operations['TripsController_removeParcel'];
+    options?: never;
+    head?: never;
+    patch: operations['TripsController_updateParcel'];
+    trace?: never;
+  };
+  '/api/trips/{id}/complete': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['TripsController_completeTrip'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/vehicles': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['VehiclesController_findAll'];
+    put?: never;
+    post: operations['VehiclesController_create'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/vehicles/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['VehiclesController_findOne'];
+    put?: never;
+    post?: never;
+    delete: operations['VehiclesController_remove'];
+    options?: never;
+    head?: never;
+    patch: operations['VehiclesController_update'];
+    trace?: never;
+  };
+  '/api/cities': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['CitiesController_findAll'];
+    put?: never;
+    post: operations['CitiesController_create'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/cities/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['CitiesController_findOne'];
+    put?: never;
+    post?: never;
+    delete: operations['CitiesController_remove'];
+    options?: never;
+    head?: never;
+    patch: operations['CitiesController_update'];
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -141,6 +349,36 @@ export interface components {
       database: 'connected' | 'disconnected';
       /** @example Connection refused */
       message?: string;
+    };
+    CreateUserDto: {
+      /** @example +380501234567 */
+      phone: string;
+      /** @example Іван */
+      first_name: string;
+      /** @example Петренко */
+      last_name: string;
+      /** @example password123 */
+      password: string;
+      /**
+       * @example driver
+       * @enum {string}
+       */
+      role?: 'admin' | 'driver';
+    };
+    PublicUserDto: {
+      /** @example 1 */
+      id: number;
+      /** @example +380501234567 */
+      phone: string;
+      /** @example Іван */
+      first_name: string;
+      /** @example Петренко */
+      last_name: string;
+      /**
+       * @example driver
+       * @enum {string}
+       */
+      role: 'admin' | 'driver';
     };
     UserListItemDto: {
       /** @example 1 */
@@ -166,31 +404,12 @@ export interface components {
       first_name?: string;
       /** @example Петренко */
       last_name?: string;
-      /** @example password123 */
+      /** @example newPassword123 */
       password?: string;
     };
-    PublicUserDto: {
-      /** @example 1 */
-      id: number;
+    LoginDto: {
       /** @example +380501234567 */
       phone: string;
-      /** @example Іван */
-      first_name: string;
-      /** @example Петренко */
-      last_name: string;
-      /**
-       * @example driver
-       * @enum {string}
-       */
-      role: 'admin' | 'driver';
-    };
-    RegisterDto: {
-      /** @example +380501234567 */
-      phone: string;
-      /** @example Іван */
-      first_name: string;
-      /** @example Петренко */
-      last_name: string;
       /** @example password123 */
       password: string;
     };
@@ -199,12 +418,15 @@ export interface components {
       access_token: string;
       user: components['schemas']['PublicUserDto'];
     };
-    LoginDto: {
-      /** @example +380501234567 */
-      phone: string;
-      /** @example password123 */
-      password: string;
-    };
+    UpdateTripDto: Record<string, never>;
+    AddDriverDto: Record<string, never>;
+    UpdateSeatDto: Record<string, never>;
+    CreateParcelDto: Record<string, never>;
+    UpdateParcelDto: Record<string, never>;
+    CreateVehicleDto: Record<string, never>;
+    UpdateVehicleDto: Record<string, never>;
+    CreateCityDto: Record<string, never>;
+    UpdateCityDto: Record<string, never>;
   };
   responses: never;
   parameters: never;
@@ -248,6 +470,29 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['UserListItemDto'][];
+        };
+      };
+    };
+  };
+  UsersController_create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['CreateUserDto'];
+      };
+    };
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['PublicUserDto'];
         };
       };
     };
@@ -317,29 +562,6 @@ export interface operations {
       };
     };
   };
-  AuthController_register: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['RegisterDto'];
-      };
-    };
-    responses: {
-      201: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['AuthResponseDto'];
-        };
-      };
-    };
-  };
   AuthController_login: {
     parameters: {
       query?: never;
@@ -379,6 +601,472 @@ export interface operations {
         content: {
           'application/json': components['schemas']['PublicUserDto'];
         };
+      };
+    };
+  };
+  TripsController_findAllActive: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  TripsController_findAllCompleted: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  TripsController_findOne: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  TripsController_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['UpdateTripDto'];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  TripsController_addDriver: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['AddDriverDto'];
+      };
+    };
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  TripsController_removeDriver: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+        userId: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  TripsController_removeSeat: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+        seatNumber: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  TripsController_updateSeat: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+        seatNumber: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['UpdateSeatDto'];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  TripsController_addSeat: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  TripsController_addParcel: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['CreateParcelDto'];
+      };
+    };
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  TripsController_removeParcel: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+        parcelId: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  TripsController_updateParcel: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+        parcelId: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['UpdateParcelDto'];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  TripsController_completeTrip: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  VehiclesController_findAll: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  VehiclesController_create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['CreateVehicleDto'];
+      };
+    };
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  VehiclesController_findOne: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  VehiclesController_remove: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  VehiclesController_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['UpdateVehicleDto'];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  CitiesController_findAll: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  CitiesController_create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['CreateCityDto'];
+      };
+    };
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  CitiesController_findOne: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  CitiesController_remove: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  CitiesController_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['UpdateCityDto'];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
       };
     };
   };

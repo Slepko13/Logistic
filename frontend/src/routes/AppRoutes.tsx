@@ -18,7 +18,6 @@ const AdminTripsPage = lazy(() => import('@/pages/admin/AdminTripsPage'));
 const AdminTripHistoryPage = lazy(() => import('@/pages/admin/AdminTripHistoryPage'));
 const AdminLayout = lazy(() => import('@/components/layout/AdminLayout'));
 const LoginPage = lazy(() => import('@/pages/LoginPage'));
-const RegisterPage = lazy(() => import('@/pages/RegisterPage'));
 const NotFoundPage = lazy(() => import('@/pages/NotFoundPage'));
 const TripDetailPage = lazy(() => import('@/pages/TripDetailPage'));
 
@@ -69,7 +68,6 @@ export default function AppRoutes() {
             <Routes>
               <Route element={<GuestRoute />}>
                 <Route path="/login" element={<LoginPage />} />
-                <Route path="/register" element={<RegisterPage />} />
               </Route>
 
               <Route element={<ProtectedRoute />}>

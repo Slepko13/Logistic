@@ -1,7 +1,8 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsNotEmpty, MinLength, MaxLength } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsString, IsNotEmpty, MinLength, MaxLength, IsEnum, IsOptional } from 'class-validator';
+import { UserRole, UserRoleType } from '../user-role';
 
-export class RegisterDto {
+export class CreateUserDto {
   @ApiProperty({ example: '+380501234567' })
   @IsString()
   @IsNotEmpty()
@@ -26,4 +27,9 @@ export class RegisterDto {
   @MinLength(6)
   @MaxLength(100)
   password!: string;
+
+  @ApiPropertyOptional({ example: 'driver', enum: UserRole })
+  @IsEnum(UserRole)
+  @IsOptional()
+  role?: UserRoleType;
 }

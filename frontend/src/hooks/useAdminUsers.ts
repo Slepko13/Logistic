@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import * as usersApi from '@/api/users';
-import { UserListItemDto, UpdateUserDto } from '@/api/users';
+import { UserListItemDto, UpdateUserDto, CreateUserDto } from '@/api/users';
 import { useAuth } from '@/context/AuthContext';
 
 export interface ConfirmState {
@@ -18,6 +18,8 @@ export function useAdminUsers() {
   const [confirm, setConfirm] = useState<ConfirmState | null>(null);
   const [editingUser, setEditingUser] = useState<UserListItemDto | null>(null);
   const [editError, setEditError] = useState<string | null>(null);
+  const [isCreateDialogOpen, setCreateDialogOpen] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
   const [usersActionError, setUsersActionError] = useState<string | null>(null);
 
   // 1. Отримання користувачів
@@ -57,6 +59,21 @@ export function useAdminUsers() {
     onError: (err: unknown) => {
       const msg = err instanceof Error ? err.message : 'Помилка оновлення';
       setEditError(msg);
+      toast.error(msg);
+    },
+  });
+
+  // 5. Створення користувача
+  const createMutation = useMutation({
+    mutationFn: (payload: CreateUserDto) => usersApi.createUser(payload),
+    onSuccess: () => {
+      toast.success('Користувача успішно створено');
+      queryClient.invalidateQueries({ queryKey: ['adminUsers'] });
+      setCreateDialogOpen(false);
+    },
+    onError: (err: unknown) => {
+      const msg = err instanceof Error ? err.message : 'Помилка створення';
+      setCreateError(msg);
       toast.error(msg);
     },
   });
@@ -126,6 +143,14 @@ export function useAdminUsers() {
     [editingUser, updateMutation],
   );
 
+  const handleCreateUser = useCallback(
+    async (payload: CreateUserDto) => {
+      setCreateError(null);
+      createMutation.mutate(payload);
+    },
+    [createMutation],
+  );
+
   return {
     users,
     loading,
@@ -143,5 +168,10 @@ export function useAdminUsers() {
     openEditDialog,
     handleConfirmAction,
     handleSaveUser,
+    isCreateDialogOpen,
+    setCreateDialogOpen,
+    handleCreateUser,
+    creatingUser: createMutation.isPending,
+    createError,
   };
 }
