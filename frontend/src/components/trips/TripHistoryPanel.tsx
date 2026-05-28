@@ -77,17 +77,37 @@ export function DiffViewer({
             const valBefore = before ? before[key] : undefined;
             const valAfter = after ? after[key] : undefined;
 
-            if (valBefore === valAfter) return null;
+            if (JSON.stringify(valBefore) === JSON.stringify(valAfter)) return null;
 
-            const formatVal = (v: unknown) => {
+            const formatVal = (v: unknown): React.ReactNode => {
               if (v === null || v === undefined) return '-';
               if (typeof v === 'boolean') return v ? 'Так' : 'Ні';
-              if (typeof v === 'object') return JSON.stringify(v);
-              if (typeof v === 'string' && /^\\d{4}-\\d{2}-\\d{2}T/.test(v)) {
+              if (Array.isArray(v)) {
+                if (v.length === 0) return '-';
+                return (
+                  <ul className="list-disc list-inside m-0 p-0 text-left">
+                    {v.map((item, i) => (
+                      <li key={i}>{formatVal(item)}</li>
+                    ))}
+                  </ul>
+                );
+              }
+              if (typeof v === 'object') {
+                return (
+                  <div className="flex flex-col gap-1 text-left">
+                    {Object.entries(v as Record<string, unknown>).map(([k, val]) => (
+                      <span key={k} className="inline-flex gap-1 flex-wrap">
+                        <span className="font-medium text-gray-500">{k}:</span> {formatVal(val)}
+                      </span>
+                    ))}
+                  </div>
+                );
+              }
+              if (typeof v === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(v)) {
                 try {
                   return format(new Date(v), 'dd.MM.yyyy', { locale: uk });
                 } catch {
-                  return v;
+                  return String(v);
                 }
               }
               return String(v);
@@ -95,8 +115,6 @@ export function DiffViewer({
 
             const fBefore = formatVal(valBefore);
             const fAfter = formatVal(valAfter);
-
-            if (fBefore === fAfter) return null;
 
             return (
               <tr key={key} className="border-b last:border-0 hover:bg-muted/50">
