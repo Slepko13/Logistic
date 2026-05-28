@@ -196,14 +196,25 @@ export class TripsService {
               vehicle_id: trip.vehicle_id,
             },
             after: {
-              departure_city: updateTripDto.departure_city !== undefined ? updateTripDto.departure_city : trip.departure_city,
-              departure_date: updateTripDto.departure_date ? new Date(updateTripDto.departure_date) : trip.departure_date,
-              arrival_city: updateTripDto.arrival_city !== undefined ? updateTripDto.arrival_city : trip.arrival_city,
-              arrival_date: updateTripDto.arrival_date ? new Date(updateTripDto.arrival_date) : trip.arrival_date,
-              vehicle_id: updateTripDto.vehicle_id !== undefined ? updateTripDto.vehicle_id : trip.vehicle_id,
-            }
-          }
-        }
+              departure_city:
+                updateTripDto.departure_city !== undefined
+                  ? updateTripDto.departure_city
+                  : trip.departure_city,
+              departure_date: updateTripDto.departure_date
+                ? new Date(updateTripDto.departure_date)
+                : trip.departure_date,
+              arrival_city:
+                updateTripDto.arrival_city !== undefined
+                  ? updateTripDto.arrival_city
+                  : trip.arrival_city,
+              arrival_date: updateTripDto.arrival_date
+                ? new Date(updateTripDto.arrival_date)
+                : trip.arrival_date,
+              vehicle_id:
+                updateTripDto.vehicle_id !== undefined ? updateTripDto.vehicle_id : trip.vehicle_id,
+            },
+          },
+        },
       });
     });
 
@@ -273,9 +284,9 @@ export class TripsService {
           action: 'DRIVER_ADDED',
           details: `Додано водія: ${user.first_name} ${user.last_name}`,
           changes: {
-            after: { driver: `${user.first_name} ${user.last_name}` }
-          }
-        }
+            after: { driver: `${user.first_name} ${user.last_name}` },
+          },
+        },
       });
       return driver;
     });
@@ -306,7 +317,7 @@ export class TripsService {
       });
       const user = await tx.user.findUnique({ where: { id: userId } });
       const driverName = user ? `${user.first_name} ${user.last_name}` : `ID: ${userId}`;
-      
+
       await tx.tripHistory.create({
         data: {
           trip_id: tripId,
@@ -314,9 +325,9 @@ export class TripsService {
           action: 'DRIVER_REMOVED',
           details: `Видалено водія: ${driverName}`,
           changes: {
-            before: { driver: driverName }
-          }
-        }
+            before: { driver: driverName },
+          },
+        },
       });
       return { success: true };
     });
@@ -422,17 +433,20 @@ export class TripsService {
               last_name: seat.last_name,
               phone: seat.phone,
               boarding_address: seat.boarding_address,
-              baggage_info: seat.baggage_info
+              baggage_info: seat.baggage_info,
             },
             after: {
               first_name: dto.first_name !== undefined ? dto.first_name : seat.first_name,
               last_name: dto.last_name !== undefined ? dto.last_name : seat.last_name,
               phone: dto.phone !== undefined ? dto.phone : seat.phone,
-              boarding_address: dto.boarding_address !== undefined ? dto.boarding_address : seat.boarding_address,
-              baggage_info: (dto.baggage_info !== undefined ? dto.baggage_info : seat.baggage_info) as unknown as Prisma.InputJsonValue
-            }
-          }
-        }
+              boarding_address:
+                dto.boarding_address !== undefined ? dto.boarding_address : seat.boarding_address,
+              baggage_info: (dto.baggage_info !== undefined
+                ? dto.baggage_info
+                : seat.baggage_info) as unknown as Prisma.InputJsonValue,
+            },
+          },
+        },
       });
 
       return updatedSeat;
@@ -517,17 +531,17 @@ export class TripsService {
 
     return this.prisma.$transaction(async (tx) => {
       const parcel = await tx.tripParcel.create({
-      data: {
-        trip_id: tripId,
-        first_name: dto.first_name,
-        last_name: dto.last_name,
-        phone: dto.phone,
-        weight: dto.weight,
-        description: dto.description,
-        delivery_address: dto.delivery_address,
-        updated_by_id: updatedById,
-      },
-    });
+        data: {
+          trip_id: tripId,
+          first_name: dto.first_name,
+          last_name: dto.last_name,
+          phone: dto.phone,
+          weight: dto.weight,
+          description: dto.description,
+          delivery_address: dto.delivery_address,
+          updated_by_id: updatedById,
+        },
+      });
 
       await tx.tripHistory.create({
         data: {
@@ -543,9 +557,9 @@ export class TripsService {
               weight: dto.weight,
               description: dto.description,
               delivery_address: dto.delivery_address,
-            }
-          }
-        }
+            },
+          },
+        },
       });
       return parcel;
     });
@@ -604,11 +618,12 @@ export class TripsService {
               phone: dto.phone !== undefined ? dto.phone : parcel.phone,
               weight: dto.weight !== undefined ? dto.weight : parcel.weight,
               description: dto.description !== undefined ? dto.description : parcel.description,
-              delivery_address: dto.delivery_address !== undefined ? dto.delivery_address : parcel.delivery_address,
+              delivery_address:
+                dto.delivery_address !== undefined ? dto.delivery_address : parcel.delivery_address,
               is_delivered: dto.is_delivered !== undefined ? dto.is_delivered : parcel.is_delivered,
-            }
-          }
-        }
+            },
+          },
+        },
       });
 
       return updatedParcel;
@@ -649,9 +664,9 @@ export class TripsService {
               description: parcel.description,
               delivery_address: parcel.delivery_address,
               is_delivered: parcel.is_delivered,
-            }
-          }
-        }
+            },
+          },
+        },
       });
       return { success: true };
     });
@@ -683,9 +698,9 @@ export class TripsService {
           details: 'Рейс закрито',
           changes: {
             before: { status: trip.status },
-            after: { status: 'completed' }
-          }
-        }
+            after: { status: 'completed' },
+          },
+        },
       });
       return completedTrip;
     });
@@ -727,10 +742,10 @@ export class TripsService {
           changes: {
             after: {
               vehicle_id: vehicleId,
-              status: 'active'
-            }
-          }
-        }
+              status: 'active',
+            },
+          },
+        },
       });
 
       return newTrip;
