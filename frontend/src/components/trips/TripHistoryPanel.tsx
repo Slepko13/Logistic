@@ -1,14 +1,15 @@
 import React from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '../ui/card';
+import { Card, CardContent } from '../ui/card';
 import { useGetTripAuditHistory } from '../../api/services/trips/queries';
-import { Loader2, Activity } from 'lucide-react';
+import { Loader2, Activity, ArrowUpDown } from 'lucide-react';
 import { format } from 'date-fns';
 import { uk } from 'date-fns/locale';
+import { CollapsibleCard } from '@/components/common/CollapsibleCard';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
 import { Input } from '../ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Button } from '../ui/button';
-import { ChevronLeft, ChevronRight, Search, Filter, ArrowDownUp } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Search, Filter } from 'lucide-react';
 
 export const ACTION_MAP: Record<string, string> = {
   TRIP_CREATED: 'Створено рейс',
@@ -186,50 +187,48 @@ export function TripHistoryPanel({ tripId }: TripHistoryPanelProps) {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <CardTitle className="text-lg font-medium flex items-center gap-2">
-            <Activity className="h-5 w-5" />
-            Історія змін рейсу
-          </CardTitle>
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="relative">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Пошук..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="pl-8 w-[200px] h-9"
-              />
-            </div>
-            <Select value={filterAction} onValueChange={setFilterAction}>
-              <SelectTrigger className="w-[140px] h-9">
-                <Filter className="w-4 h-4 mr-2" />
-                <SelectValue placeholder="Фільтр" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Всі події</SelectItem>
-                <SelectItem value="trip">Зміни рейсу</SelectItem>
-                <SelectItem value="parcel">Посилки</SelectItem>
-                <SelectItem value="seat">Пасажири</SelectItem>
-                <SelectItem value="driver">Водії</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={sortOrder} onValueChange={(v: 'asc' | 'desc') => setSortOrder(v)}>
-              <SelectTrigger className="w-[140px] h-9">
-                <ArrowDownUp className="w-4 h-4 mr-2" />
-                <SelectValue placeholder="Сортування" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="desc">Спершу нові</SelectItem>
-                <SelectItem value="asc">Спершу старі</SelectItem>
-              </SelectContent>
-            </Select>
+    <CollapsibleCard
+      title="Історія змін рейсу"
+      icon={<Activity className="h-5 w-5" />}
+      headerAction={
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="relative">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Пошук..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-8 w-[200px] h-9"
+            />
           </div>
+          <Select value={filterAction} onValueChange={setFilterAction}>
+            <SelectTrigger className="w-[140px] h-9">
+              <Filter className="w-4 h-4 mr-2" />
+              <SelectValue placeholder="Фільтр" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Всі події</SelectItem>
+              <SelectItem value="trip">Зміни рейсу</SelectItem>
+              <SelectItem value="parcel">Посилки</SelectItem>
+              <SelectItem value="seat">Пасажири</SelectItem>
+              <SelectItem value="driver">Водії</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc');
+            }}
+            className="h-9"
+          >
+            <ArrowUpDown className="h-4 w-4 mr-2" />
+            {sortOrder === 'desc' ? 'Нові спочатку' : 'Старі спочатку'}
+          </Button>
         </div>
-      </CardHeader>
-      <CardContent>
+      }
+    >
+      <div className="space-y-4">
         {isLoading ? (
           <div className="flex justify-center items-center h-48">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -318,7 +317,7 @@ export function TripHistoryPanel({ tripId }: TripHistoryPanelProps) {
             </div>
           </div>
         )}
-      </CardContent>
+      </div>
 
       <Dialog open={!!selectedEvent} onOpenChange={(open) => !open && setSelectedEvent(null)}>
         <DialogContent className="max-w-2xl">
@@ -331,6 +330,6 @@ export function TripHistoryPanel({ tripId }: TripHistoryPanelProps) {
           {selectedEvent && <DiffViewer changes={selectedEvent.changes} />}
         </DialogContent>
       </Dialog>
-    </Card>
+    </CollapsibleCard>
   );
 }

@@ -3,7 +3,6 @@ import { useParams, useNavigate } from 'react-router-dom';
 
 import PageLoader from '@/components/common/PageLoader';
 import { useAuth } from '@/context/AuthContext';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -65,6 +64,7 @@ import { TripSeat, TripParcel } from '@/api/services/trips/requests';
 import { useGetUsers } from '@/api/services/users/queries';
 import { TripHistoryPanel } from '@/components/trips/TripHistoryPanel';
 import { EntityHistoryModal } from '@/components/trips/EntityHistoryModal';
+import { CollapsibleCard } from '@/components/common/CollapsibleCard';
 
 export default function TripDetailPage() {
   const { id } = useParams();
@@ -457,16 +457,12 @@ export default function TripDetailPage() {
       </div>
 
       {/* DRIVERS SECTION */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <User className="w-5 h-5 text-indigo-500" /> Водії ({trip.drivers.length})
-          </CardTitle>
-          <CardDescription>
-            Призначені водії на цей рейс. Адміністратор може додавати або видаляти водіїв.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      <CollapsibleCard
+        title={`Водії (${trip.drivers.length})`}
+        icon={<User className="w-5 h-5 text-indigo-500" />}
+        description="Призначені водії на цей рейс. Адміністратор може додавати або видаляти водіїв."
+      >
+        <div className="space-y-4">
           {/* List of current drivers */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {trip.drivers.map((driver) => (
@@ -531,134 +527,123 @@ export default function TripDetailPage() {
               </Button>
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </CollapsibleCard>
 
       {/* SEATS SECTION */}
-      <Card>
-        <CardHeader className="flex flex-row items-start justify-between">
-          <div>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Users className="w-5 h-5 text-green-500" /> Місця для пасажирів
-            </CardTitle>
-            <CardDescription>Бронювання місць, багаж та інформація про пасажирів.</CardDescription>
-          </div>
-          {!isClosed && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => addSeatMutation.mutate()}
-              disabled={addSeatMutation.isPending}
-            >
+      <CollapsibleCard
+        title="Місця для пасажирів"
+        icon={<Users className="w-5 h-5 text-green-500" />}
+        description="Бронювання місць, багаж та інформація про пасажирів."
+        headerAction={
+          !isClosed && (
+            <Button variant="outline" size="sm" onClick={() => addSeatMutation.mutate()}>
               <Plus className="w-4 h-4 mr-1" /> Додати місце
             </Button>
-          )}
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {trip.seats.map((seat) => {
-              const isOccupied = seat.first_name || seat.last_name;
+          )
+        }
+      >
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {trip.seats.map((seat) => {
+            const isOccupied = seat.first_name || seat.last_name;
 
-              return (
-                <div
-                  key={seat.id}
-                  className="flex flex-col p-4 border rounded-lg bg-card relative group"
-                >
-                  <div className="flex justify-between items-start mb-2">
-                    <Badge variant={isOccupied ? 'default' : 'outline'} className="text-sm">
-                      Місце {seat.seat_number}
-                    </Badge>
-                    {!isClosed && (
+            return (
+              <div
+                key={seat.id}
+                className="flex flex-col p-4 border rounded-lg bg-card relative group"
+              >
+                <div className="flex justify-between items-start mb-2">
+                  <Badge variant={isOccupied ? 'default' : 'outline'} className="text-sm">
+                    Місце {seat.seat_number}
+                  </Badge>
+                  {!isClosed && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity hover:text-destructive"
+                      onClick={() => handleDeleteSeatClick(seat.seat_number)}
+                      title="Видалити місце повністю"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  )}
+                </div>
+
+                {isOccupied ? (
+                  <div className="flex-grow space-y-1 mt-1">
+                    <p className="font-medium text-lg">
+                      {seat.first_name} {seat.last_name}
+                    </p>
+                    <p className="text-sm text-muted-foreground flex items-center gap-1">
+                      <Phone className="w-3 h-3 text-emerald-500" />{' '}
+                      {seat.phone || 'Немає телефону'}
+                    </p>
+                    {seat.boarding_address && (
+                      <p className="text-sm text-muted-foreground flex items-center gap-1 mt-0.5">
+                        <MapPin className="w-3 h-3 shrink-0 text-rose-500" />{' '}
+                        <span className="truncate" title={seat.boarding_address}>
+                          {seat.boarding_address}
+                        </span>
+                      </p>
+                    )}
+                    {Array.isArray(seat.baggage_info) && seat.baggage_info.length > 0 && (
+                      <div className="mt-2 text-sm text-muted-foreground">
+                        <p className="font-medium text-xs uppercase tracking-wider mb-1">Багаж:</p>
+                        <ul className="list-disc list-inside space-y-0.5">
+                          {seat.baggage_info.map((bagItem: unknown, idx: number) => {
+                            const b = bagItem as Record<string, unknown>;
+                            return (
+                              <li key={idx}>
+                                {(b.name as string) || 'Сумка'} —{' '}
+                                {b.weight ? `${b.weight} кг` : 'вага не вказана'}
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="flex-grow flex items-center justify-center py-4">
+                    <p className="text-sm text-muted-foreground italic">Вільне місце</p>
+                  </div>
+                )}
+
+                {!isClosed && (
+                  <div className="flex gap-2 mt-4 pt-3 border-t">
+                    <Button
+                      variant={isOccupied ? 'outline' : 'default'}
+                      className="flex-1"
+                      onClick={() => handleOpenSeatModal(seat)}
+                    >
+                      {isOccupied ? (
+                        <>
+                          <Edit className="w-4 h-4 mr-2" /> Редагувати
+                        </>
+                      ) : (
+                        <>
+                          <UserPlus className="w-4 h-4 mr-2 text-indigo-400" /> Забронювати
+                        </>
+                      )}
+                    </Button>
+                    {isOccupied && (
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-6 w-6 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity hover:text-destructive"
-                        onClick={() => handleDeleteSeatClick(seat.seat_number)}
-                        title="Видалити місце повністю"
+                        className="text-destructive hover:bg-destructive/10"
+                        onClick={() => handleClearSeatClick(seat.seat_number)}
+                        disabled={updateSeatMutation.isPending}
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
                     )}
                   </div>
-
-                  {isOccupied ? (
-                    <div className="flex-grow space-y-1 mt-1">
-                      <p className="font-medium text-lg">
-                        {seat.first_name} {seat.last_name}
-                      </p>
-                      <p className="text-sm text-muted-foreground flex items-center gap-1">
-                        <Phone className="w-3 h-3 text-emerald-500" />{' '}
-                        {seat.phone || 'Немає телефону'}
-                      </p>
-                      {seat.boarding_address && (
-                        <p className="text-sm text-muted-foreground flex items-center gap-1 mt-0.5">
-                          <MapPin className="w-3 h-3 shrink-0 text-rose-500" />{' '}
-                          <span className="truncate" title={seat.boarding_address}>
-                            {seat.boarding_address}
-                          </span>
-                        </p>
-                      )}
-                      {Array.isArray(seat.baggage_info) && seat.baggage_info.length > 0 && (
-                        <div className="mt-2 text-sm text-muted-foreground">
-                          <p className="font-medium text-xs uppercase tracking-wider mb-1">
-                            Багаж:
-                          </p>
-                          <ul className="list-disc list-inside space-y-0.5">
-                            {seat.baggage_info.map((bagItem: unknown, idx: number) => {
-                              const b = bagItem as Record<string, unknown>;
-                              return (
-                                <li key={idx}>
-                                  {(b.name as string) || 'Сумка'} —{' '}
-                                  {b.weight ? `${b.weight} кг` : 'вага не вказана'}
-                                </li>
-                              );
-                            })}
-                          </ul>
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="flex-grow flex items-center justify-center py-4">
-                      <p className="text-sm text-muted-foreground italic">Вільне місце</p>
-                    </div>
-                  )}
-
-                  {!isClosed && (
-                    <div className="flex gap-2 mt-4 pt-3 border-t">
-                      <Button
-                        variant={isOccupied ? 'outline' : 'default'}
-                        className="flex-1"
-                        onClick={() => handleOpenSeatModal(seat)}
-                      >
-                        {isOccupied ? (
-                          <>
-                            <Edit className="w-4 h-4 mr-2" /> Редагувати
-                          </>
-                        ) : (
-                          <>
-                            <UserPlus className="w-4 h-4 mr-2 text-indigo-400" /> Забронювати
-                          </>
-                        )}
-                      </Button>
-                      {isOccupied && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="text-destructive hover:bg-destructive/10"
-                          onClick={() => handleClearSeatClick(seat.seat_number)}
-                          disabled={updateSeatMutation.isPending}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      )}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </CardContent>
-      </Card>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </CollapsibleCard>
 
       {/* SEAT MODAL */}
       <Dialog open={isSeatModalOpen} onOpenChange={setIsSeatModalOpen}>
@@ -782,22 +767,20 @@ export default function TripDetailPage() {
       </Dialog>
 
       {/* PARCELS SECTION */}
-      <Card>
-        <CardHeader className="flex flex-row items-start justify-between">
-          <div>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Package className="w-5 h-5 text-orange-500" /> Передачі
-            </CardTitle>
-            <CardDescription>Управління доставкою передач, адреси та статуси.</CardDescription>
-          </div>
-          {!isClosed && (
+      <CollapsibleCard
+        title="Передачі"
+        icon={<Package className="w-5 h-5 text-orange-500" />}
+        description="Управління доставкою передач, адреси та статуси."
+        headerAction={
+          !isClosed && (
             <Button variant="outline" size="sm" onClick={() => handleOpenParcelModal()}>
               <Plus className="w-4 h-4 mr-2 text-emerald-400" />
               Додати передачу
             </Button>
-          )}
-        </CardHeader>
-        <CardContent>
+          )
+        }
+      >
+        <div className="space-y-4">
           {/* Parcel Search and Filter Bar */}
           <div className="flex flex-col sm:flex-row gap-4 mb-4">
             <div className="relative flex-1">
@@ -989,8 +972,8 @@ export default function TripDetailPage() {
               </div>
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </CollapsibleCard>
 
       {/* PARCEL MODAL */}
       <Dialog open={isParcelModalOpen} onOpenChange={setIsParcelModalOpen}>
