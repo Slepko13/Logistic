@@ -86,11 +86,13 @@ export function DiffViewer({
               if (Array.isArray(v)) {
                 if (v.length === 0) return '-';
                 return (
-                  <ul className="list-disc list-inside m-0 p-0 text-left">
+                  <div className="flex flex-col gap-2 text-left">
                     {v.map((item, i) => (
-                      <li key={i}>{formatVal(item)}</li>
+                      <div key={i} className="pl-2 border-l-2 border-muted">
+                        {formatVal(item)}
+                      </div>
                     ))}
-                  </ul>
+                  </div>
                 );
               }
               if (typeof v === 'object') {
