@@ -62,7 +62,7 @@ export interface TripHistory {
   user_id: number | null;
   action: string;
   details: string | null;
-  changes?: any;
+  changes?: Record<string, unknown> | null;
   created_at: string;
   user?: {
     id: number;
@@ -166,7 +166,10 @@ export async function getTrips(): Promise<Trip[]> {
   return apiFetch<Trip[]>(ENDPOINTS.TRIPS.GET_ALL);
 }
 
-export async function getTripAuditHistory(tripId: number, params?: GetTripAuditHistoryParams): Promise<PaginatedHistory> {
+export async function getTripAuditHistory(
+  tripId: number,
+  params?: GetTripAuditHistoryParams,
+): Promise<PaginatedHistory> {
   const query = new URLSearchParams();
   if (params?.page) query.append('page', params.page.toString());
   if (params?.limit) query.append('limit', params.limit.toString());

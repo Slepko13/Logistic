@@ -7,8 +7,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/componen
 import { Button } from '@/components/ui/button';
 import { useGetActiveTrips, useUpdateTripMutation } from '@/api/services/trips/queries';
 import { useGetCities } from '@/api/services/cities/queries';
-import { Users, Package, MapPin, Check } from 'lucide-react';
+import { MapPin, Package, Users, Check } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
@@ -117,9 +118,8 @@ export default function DashboardPage() {
             <label className="text-sm font-medium text-muted-foreground">
               Загальна дата відправлення
             </label>
-            <input
+            <Input
               type="date"
-              className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
               value={globalDepDate}
               onChange={(e) => setGlobalDepDate(e.target.value)}
             />
@@ -128,9 +128,8 @@ export default function DashboardPage() {
             <label className="text-sm font-medium text-muted-foreground">
               Загальна дата прибуття
             </label>
-            <input
+            <Input
               type="date"
-              className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
               value={globalArrDate}
               min={globalDepDate || ''}
               onChange={(e) => setGlobalArrDate(e.target.value)}
@@ -170,13 +169,16 @@ export default function DashboardPage() {
                     <MapPin className="w-4 h-4 text-green-500" />
                     <span className="text-sm font-semibold">Звідки</span>
                   </div>
-                  <div className="grid grid-cols-[minmax(0,1fr)_135px] gap-2">
+                  <div className="grid grid-cols-[minmax(0,1fr)_150px] gap-2">
                     <Select
                       value={trip.departure_city || 'none'}
                       onValueChange={(value) =>
                         updateMutation.mutate({
                           id: trip.id,
-                          payload: { departure_city: value === 'none' ? '' : value, version: trip.version },
+                          payload: {
+                            departure_city: value === 'none' ? '' : value,
+                            version: trip.version,
+                          },
                         })
                       }
                     >
@@ -192,23 +194,23 @@ export default function DashboardPage() {
                         ))}
                       </SelectContent>
                     </Select>
-                    <input
+                    <Input
                       type="date"
-                      className="flex h-9 w-full rounded-md border border-input bg-transparent px-2 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                       value={
                         trip.departure_date
                           ? new Date(trip.departure_date).toISOString().slice(0, 10)
                           : ''
                       }
-                      onChange={(e) =>
+                      onChange={(e) => {
+                        const val = e.target.value;
                         updateMutation.mutate({
                           id: trip.id,
                           payload: {
-                            departure_date: new Date(e.target.value).toISOString(),
+                            departure_date: val ? new Date(val).toISOString() : null,
                             version: trip.version,
                           },
-                        })
-                      }
+                        });
+                      }}
                     />
                   </div>
                 </div>
@@ -218,13 +220,16 @@ export default function DashboardPage() {
                     <MapPin className="w-4 h-4 text-red-500" />
                     <span className="text-sm font-semibold">Куди</span>
                   </div>
-                  <div className="grid grid-cols-[minmax(0,1fr)_135px] gap-2">
+                  <div className="grid grid-cols-[minmax(0,1fr)_150px] gap-2">
                     <Select
                       value={trip.arrival_city || 'none'}
                       onValueChange={(value) =>
                         updateMutation.mutate({
                           id: trip.id,
-                          payload: { arrival_city: value === 'none' ? '' : value, version: trip.version },
+                          payload: {
+                            arrival_city: value === 'none' ? '' : value,
+                            version: trip.version,
+                          },
                         })
                       }
                     >
@@ -240,9 +245,8 @@ export default function DashboardPage() {
                         ))}
                       </SelectContent>
                     </Select>
-                    <input
+                    <Input
                       type="date"
-                      className="flex h-9 w-full rounded-md border border-input bg-transparent px-2 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                       value={
                         trip.arrival_date
                           ? new Date(trip.arrival_date).toISOString().slice(0, 10)
@@ -253,15 +257,16 @@ export default function DashboardPage() {
                           ? new Date(trip.departure_date).toISOString().slice(0, 10)
                           : ''
                       }
-                      onChange={(e) =>
+                      onChange={(e) => {
+                        const val = e.target.value;
                         updateMutation.mutate({
                           id: trip.id,
                           payload: {
-                            arrival_date: new Date(e.target.value).toISOString(),
+                            arrival_date: val ? new Date(val).toISOString() : null,
                             version: trip.version,
                           },
-                        })
-                      }
+                        });
+                      }}
                     />
                   </div>
                 </div>

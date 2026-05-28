@@ -19,7 +19,7 @@ const ACTION_MAP: Record<string, string> = {
   PARCEL_ADDED: 'Додано посилку',
   PARCEL_UPDATED: 'Оновлено посилку',
   PARCEL_REMOVED: 'Видалено посилку',
-  TRIP_COMPLETED: 'Рейс завершено'
+  TRIP_COMPLETED: 'Рейс завершено',
 };
 
 const FIELD_MAP: Record<string, string> = {
@@ -28,7 +28,7 @@ const FIELD_MAP: Record<string, string> = {
   arrival_city: 'Місто прибуття',
   arrival_date: 'Дата прибуття',
   vehicle_id: 'ID Автобуса',
-  first_name: 'Ім\'я',
+  first_name: "Ім'я",
   last_name: 'Прізвище',
   phone: 'Телефон',
   boarding_address: 'Адреса посадки',
@@ -39,7 +39,7 @@ const FIELD_MAP: Record<string, string> = {
   is_delivered: 'Статус доставки',
   status: 'Статус',
   user_id: 'ID Водія',
-  driver: 'Водій'
+  driver: 'Водій',
 };
 
 function getEventColor(action: string) {
@@ -50,7 +50,7 @@ function getEventColor(action: string) {
   return 'bg-primary';
 }
 
-function DiffViewer({ changes }: { changes: any }) {
+function DiffViewer({ changes }: { changes: Record<string, Record<string, unknown>> | null }) {
   if (!changes) return null;
 
   const { before, after } = changes;
@@ -75,14 +75,14 @@ function DiffViewer({ changes }: { changes: any }) {
 
             if (valBefore === valAfter) return null;
 
-            const formatVal = (v: any) => {
+            const formatVal = (v: unknown) => {
               if (v === null || v === undefined) return '-';
               if (typeof v === 'boolean') return v ? 'Так' : 'Ні';
               if (typeof v === 'object') return JSON.stringify(v);
               if (typeof v === 'string' && /^\\d{4}-\\d{2}-\\d{2}T/.test(v)) {
                 try {
                   return format(new Date(v), 'dd.MM.yyyy', { locale: uk });
-                } catch (e) {
+                } catch {
                   return v;
                 }
               }
@@ -130,7 +130,11 @@ export function TripHistoryPanel({ tripId }: TripHistoryPanelProps) {
     setPage(1);
   }, [debouncedSearch, filterAction, sortOrder, limit]);
 
-  const { data: paginatedData, isLoading, error } = useGetTripAuditHistory(tripId, {
+  const {
+    data: paginatedData,
+    isLoading,
+    error,
+  } = useGetTripAuditHistory(tripId, {
     page,
     limit,
     search: debouncedSearch || undefined,
@@ -138,6 +142,7 @@ export function TripHistoryPanel({ tripId }: TripHistoryPanelProps) {
     sortOrder,
   });
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [selectedEvent, setSelectedEvent] = React.useState<any | null>(null);
 
   const history = paginatedData?.data || [];
@@ -211,14 +216,18 @@ export function TripHistoryPanel({ tripId }: TripHistoryPanelProps) {
         ) : (
           <div className="relative border-l border-gray-200 ml-3 space-y-6">
             {history.map((event) => (
-              <div 
-                key={event.id} 
+              <div
+                key={event.id}
                 className={`relative pl-6 py-2 rounded-md transition-colors ${event.changes ? 'hover:bg-muted/50 cursor-pointer' : ''}`}
                 onClick={() => event.changes && setSelectedEvent(event)}
               >
-                <div className={`absolute w-3 h-3 ${getEventColor(event.action)} rounded-full -left-1.5 top-3.5 ring-4 ring-white`} />
+                <div
+                  className={`absolute w-3 h-3 ${getEventColor(event.action)} rounded-full -left-1.5 top-3.5 ring-4 ring-white`}
+                />
                 <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between mb-1">
-                  <h4 className="text-sm font-semibold text-gray-900">{ACTION_MAP[event.action] || event.action}</h4>
+                  <h4 className="text-sm font-semibold text-gray-900">
+                    {ACTION_MAP[event.action] || event.action}
+                  </h4>
                   <time className="text-xs text-gray-500">
                     {format(new Date(event.created_at), 'd MMM yyyy, HH:mm:ss', { locale: uk })}
                   </time>
@@ -228,7 +237,8 @@ export function TripHistoryPanel({ tripId }: TripHistoryPanelProps) {
                   <span className="font-medium">Користувач:</span>
                   {event.user ? (
                     <span>
-                      {event.user.first_name} {event.user.last_name} ({event.user.role === 'admin' ? 'Адмін' : 'Водій'})
+                      {event.user.first_name} {event.user.last_name} (
+                      {event.user.role === 'admin' ? 'Адмін' : 'Водій'})
                     </span>
                   ) : (
                     <span>Система</span>
@@ -288,7 +298,8 @@ export function TripHistoryPanel({ tripId }: TripHistoryPanelProps) {
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>
-              Деталі змін: {selectedEvent ? ACTION_MAP[selectedEvent.action] || selectedEvent.action : ''}
+              Деталі змін:{' '}
+              {selectedEvent ? ACTION_MAP[selectedEvent.action] || selectedEvent.action : ''}
             </DialogTitle>
           </DialogHeader>
           {selectedEvent && <DiffViewer changes={selectedEvent.changes} />}
