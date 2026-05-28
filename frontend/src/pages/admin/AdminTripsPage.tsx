@@ -282,7 +282,9 @@ export default function AdminTripsPage() {
                   <Label htmlFor="t_dep_city">Місто відправлення</Label>
                   <Select
                     value={form.departure_city || 'none'}
-                    onValueChange={(value) => setForm({ ...form, departure_city: value === 'none' ? '' : value })}
+                    onValueChange={(value) =>
+                      setForm({ ...form, departure_city: value === 'none' ? '' : value })
+                    }
                   >
                     <SelectTrigger id="t_dep_city" className="w-full">
                       <SelectValue placeholder="Оберіть місто" />
@@ -301,7 +303,9 @@ export default function AdminTripsPage() {
                   <Label htmlFor="t_arr_city">Місто прибуття</Label>
                   <Select
                     value={form.arrival_city || 'none'}
-                    onValueChange={(value) => setForm({ ...form, arrival_city: value === 'none' ? '' : value })}
+                    onValueChange={(value) =>
+                      setForm({ ...form, arrival_city: value === 'none' ? '' : value })
+                    }
                   >
                     <SelectTrigger id="t_arr_city" className="w-full">
                       <SelectValue placeholder="Оберіть місто" />

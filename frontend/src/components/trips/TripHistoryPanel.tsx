@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Button } from '../ui/button';
 import { ChevronLeft, ChevronRight, Search, Filter, ArrowDownUp } from 'lucide-react';
 
-const ACTION_MAP: Record<string, string> = {
+export const ACTION_MAP: Record<string, string> = {
   TRIP_CREATED: 'Створено рейс',
   TRIP_UPDATED: 'Оновлено рейс',
   DRIVER_ADDED: 'Додано водія',
@@ -42,7 +42,7 @@ const FIELD_MAP: Record<string, string> = {
   driver: 'Водій',
 };
 
-function getEventColor(action: string) {
+export function getEventColor(action: string) {
   if (action.startsWith('TRIP_')) return 'bg-blue-500';
   if (action.startsWith('PARCEL_')) return 'bg-amber-500';
   if (action.startsWith('SEAT_')) return 'bg-emerald-500';

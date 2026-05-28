@@ -50,7 +50,7 @@ export function useGetTripHistory(params?: GetTripHistoryParams) {
 export function useGetTripAuditHistory(
   tripId: number,
   params?: GetTripAuditHistoryParams,
-  enabled = true
+  enabled = true,
 ) {
   return useQuery({
     queryKey: [...QUERY_KEYS.TRIPS.DETAIL(tripId), 'audit_history', params],

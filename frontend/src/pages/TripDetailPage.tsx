@@ -45,6 +45,7 @@ import {
   Search,
   ArrowUpDown,
   CheckCircle,
+  Activity,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import {
@@ -63,6 +64,7 @@ import {
 import { TripSeat, TripParcel } from '@/api/services/trips/requests';
 import { useGetUsers } from '@/api/services/users/queries';
 import { TripHistoryPanel } from '@/components/trips/TripHistoryPanel';
+import { EntityHistoryModal } from '@/components/trips/EntityHistoryModal';
 
 export default function TripDetailPage() {
   const { id } = useParams();
@@ -92,6 +94,12 @@ export default function TripDetailPage() {
   // Parcel modal state
   const [isParcelModalOpen, setIsParcelModalOpen] = useState(false);
   const [editingParcelId, setEditingParcelId] = useState<number | null>(null);
+
+  // Entity history modal state
+  const [isEntityHistoryOpen, setIsEntityHistoryOpen] = useState(false);
+  const [entityHistorySearchQuery, setEntityHistorySearchQuery] = useState<string | null>(null);
+  const [entityHistoryName, setEntityHistoryName] = useState<string>('');
+
   const [parcelForm, setParcelForm] = useState({
     first_name: '',
     last_name: '',
@@ -498,7 +506,11 @@ export default function TripDetailPage() {
                 onValueChange={(value) => setSelectedDriverId(value)}
               >
                 <SelectTrigger className="w-full sm:max-w-xs h-9">
-                  <SelectValue placeholder={availableDrivers?.length === 0 ? "Немає вільних водіїв" : "Оберіть водія..."} />
+                  <SelectValue
+                    placeholder={
+                      availableDrivers?.length === 0 ? 'Немає вільних водіїв' : 'Оберіть водія...'
+                    }
+                  />
                 </SelectTrigger>
                 <SelectContent>
                   {availableDrivers?.map((d) => (
@@ -653,7 +665,22 @@ export default function TripDetailPage() {
         <DialogContent>
           <form onSubmit={handleSaveSeat}>
             <DialogHeader>
-              <DialogTitle>Редагування місця {editingSeatNumber}</DialogTitle>
+              <DialogTitle className="flex justify-between items-center pr-4">
+                <span>Редагування місця {editingSeatNumber}</span>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setEntityHistoryName(`місця ${editingSeatNumber}`);
+                    setEntityHistorySearchQuery(`місце ${editingSeatNumber}`);
+                    setIsEntityHistoryOpen(true);
+                  }}
+                >
+                  <Activity className="w-4 h-4 mr-2" />
+                  Історія змін
+                </Button>
+              </DialogTitle>
             </DialogHeader>
             <div className="space-y-4 py-4 max-h-[60vh] overflow-y-auto px-1">
               <div className="space-y-2">
@@ -970,8 +997,25 @@ export default function TripDetailPage() {
         <DialogContent>
           <form onSubmit={handleSaveParcel}>
             <DialogHeader>
-              <DialogTitle>
-                {editingParcelId ? 'Редагування передачі' : 'Нова передача'}
+              <DialogTitle className="flex justify-between items-center pr-4">
+                <span>{editingParcelId ? 'Редагування передачі' : 'Нова передача'}</span>
+                {editingParcelId && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const parcel = parcelsData?.data.find((p) => p.id === editingParcelId);
+                      const pNumber = parcel?.parcel_number || '';
+                      setEntityHistoryName(`посилки №${pNumber}`);
+                      setEntityHistorySearchQuery(`посилку №${pNumber}`);
+                      setIsEntityHistoryOpen(true);
+                    }}
+                  >
+                    <Activity className="w-4 h-4 mr-2" />
+                    Історія змін
+                  </Button>
+                )}
               </DialogTitle>
             </DialogHeader>
             <div className="space-y-4 py-4 max-h-[60vh] overflow-y-auto px-1">
@@ -1121,6 +1165,14 @@ export default function TripDetailPage() {
           await completeTripMutation.mutateAsync();
         }}
         loading={completeTripMutation.isPending}
+      />
+
+      <EntityHistoryModal
+        tripId={tripId}
+        searchQuery={entityHistorySearchQuery}
+        isOpen={isEntityHistoryOpen}
+        onClose={() => setIsEntityHistoryOpen(false)}
+        entityName={entityHistoryName}
       />
     </div>
   );
