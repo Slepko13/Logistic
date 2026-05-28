@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { AuthModule } from './auth/auth.module';
@@ -8,6 +8,7 @@ import { UsersModule } from './users/users.module';
 import { TripsModule } from './trips/trips.module';
 import { VehiclesModule } from './vehicles/vehicles.module';
 import { CitiesModule } from './cities/cities.module';
+import { XssMiddleware } from './common/middlewares/xss.middleware';
 
 // AppModule - це найголовніший модуль вашого бекенду.
 // Тут ми "склеюємо" всі інші модулі (Auth, Database) в одну велику програму.
@@ -44,4 +45,8 @@ import { CitiesModule } from './cities/cities.module';
     },
   ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(XssMiddleware).forRoutes('*');
+  }
+}
