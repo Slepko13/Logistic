@@ -49,8 +49,31 @@ export class TripsController {
 
   @UseGuards(AdminGuard)
   @Post()
-  createTrip(@Body('vehicle_id', ParseIntPipe) vehicleId: number) {
-    return this.tripsService.createTrip(vehicleId);
+  createTrip(
+    @Body('vehicle_id', ParseIntPipe) vehicleId: number,
+    @Req() req: { user: { id: number } },
+  ) {
+    return this.tripsService.createTrip(vehicleId, req.user.id);
+  }
+
+  @Get(':id/history')
+  getTripHistory(
+    @Param('id', ParseIntPipe) id: number,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('search') search?: string,
+    @Query('filterAction') filterAction?: string,
+    @Query('sortBy') sortBy?: string,
+    @Query('sortOrder') sortOrder?: 'asc' | 'desc',
+  ) {
+    return this.tripsService.getTripHistory(id, {
+      page: page ? parseInt(page, 10) : undefined,
+      limit: limit ? parseInt(limit, 10) : undefined,
+      search,
+      filterAction,
+      sortBy,
+      sortOrder,
+    });
   }
 
   @Get(':id')
@@ -59,8 +82,12 @@ export class TripsController {
   }
 
   @Patch(':id')
-  update(@Param('id', ParseIntPipe) id: number, @Body() updateTripDto: UpdateTripDto) {
-    return this.tripsService.update(id, updateTripDto);
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateTripDto: UpdateTripDto,
+    @Req() req: { user: { id: number } },
+  ) {
+    return this.tripsService.update(id, updateTripDto, req.user.id);
   }
 
   @UseGuards(AdminGuard)
@@ -71,8 +98,12 @@ export class TripsController {
 
   @UseGuards(AdminGuard)
   @Post(':id/drivers')
-  addDriver(@Param('id', ParseIntPipe) id: number, @Body() addDriverDto: AddDriverDto) {
-    return this.tripsService.addDriver(id, addDriverDto);
+  addDriver(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() addDriverDto: AddDriverDto,
+    @Req() req: { user: { id: number } },
+  ) {
+    return this.tripsService.addDriver(id, addDriverDto, req.user.id);
   }
 
   @UseGuards(AdminGuard)
@@ -80,8 +111,9 @@ export class TripsController {
   removeDriver(
     @Param('id', ParseIntPipe) id: number,
     @Param('userId', ParseIntPipe) userId: number,
+    @Req() req: { user: { id: number } },
   ) {
-    return this.tripsService.removeDriver(id, userId);
+    return this.tripsService.removeDriver(id, userId, req.user.id);
   }
 
   @Patch(':id/seats/:seatNumber')
@@ -89,9 +121,9 @@ export class TripsController {
     @Param('id', ParseIntPipe) id: number,
     @Param('seatNumber', ParseIntPipe) seatNumber: number,
     @Body() updateSeatDto: UpdateSeatDto,
-    @Req() req: { user: { sub: number } },
+    @Req() req: { user: { id: number } },
   ) {
-    return this.tripsService.updateSeat(id, seatNumber, updateSeatDto, req.user.sub);
+    return this.tripsService.updateSeat(id, seatNumber, updateSeatDto, req.user.id);
   }
 
   @Post(':id/seats')
@@ -132,9 +164,9 @@ export class TripsController {
   addParcel(
     @Param('id', ParseIntPipe) id: number,
     @Body() createParcelDto: CreateParcelDto,
-    @Req() req: { user: { sub: number } },
+    @Req() req: { user: { id: number } },
   ) {
-    return this.tripsService.addParcel(id, createParcelDto, req.user.sub);
+    return this.tripsService.addParcel(id, createParcelDto, req.user.id);
   }
 
   @Patch(':id/parcels/:parcelId')
@@ -142,25 +174,27 @@ export class TripsController {
     @Param('id', ParseIntPipe) id: number,
     @Param('parcelId', ParseIntPipe) parcelId: number,
     @Body() updateParcelDto: UpdateParcelDto,
-    @Req() req: { user: { sub: number } },
+    @Req() req: { user: { id: number } },
   ) {
-    return this.tripsService.updateParcel(id, parcelId, updateParcelDto, req.user.sub);
+    return this.tripsService.updateParcel(id, parcelId, updateParcelDto, req.user.id);
   }
 
   @Delete(':id/parcels/:parcelId')
   removeParcel(
     @Param('id', ParseIntPipe) id: number,
     @Param('parcelId', ParseIntPipe) parcelId: number,
+    @Req() req: { user: { id: number } },
     @Query('version', new ParseIntPipe({ optional: true })) version?: number,
   ) {
-    return this.tripsService.removeParcel(id, parcelId, version);
+    return this.tripsService.removeParcel(id, parcelId, req.user.id, version);
   }
 
   @Post(':id/complete')
   completeTrip(
     @Param('id', ParseIntPipe) id: number,
+    @Req() req: { user: { id: number } },
     @Query('version', new ParseIntPipe({ optional: true })) version?: number,
   ) {
-    return this.tripsService.completeTrip(id, version);
+    return this.tripsService.completeTrip(id, req.user.id, version);
   }
 }

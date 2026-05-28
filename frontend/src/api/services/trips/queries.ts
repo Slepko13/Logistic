@@ -21,6 +21,8 @@ import {
   UpdateTripPayload,
   GetTripParcelsParams,
   GetTripHistoryParams,
+  getTripAuditHistory,
+  GetTripAuditHistoryParams,
 } from './requests';
 import toast from 'react-hot-toast';
 
@@ -42,6 +44,18 @@ export function useGetTripHistory(params?: GetTripHistoryParams) {
   return useQuery({
     queryKey: [...QUERY_KEYS.TRIPS.HISTORY, params],
     queryFn: () => getTripHistory(params),
+  });
+}
+
+export function useGetTripAuditHistory(
+  tripId: number,
+  params?: GetTripAuditHistoryParams,
+  enabled = true
+) {
+  return useQuery({
+    queryKey: [...QUERY_KEYS.TRIPS.DETAIL(tripId), 'audit_history', params],
+    queryFn: () => getTripAuditHistory(tripId, params),
+    enabled,
   });
 }
 

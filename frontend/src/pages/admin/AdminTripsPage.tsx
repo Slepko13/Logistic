@@ -21,6 +21,13 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import PageLoader from '@/components/common/PageLoader';
 import {
   useGetTrips,
@@ -177,7 +184,6 @@ export default function AdminTripsPage() {
               <TableHead>Маршрут</TableHead>
               <TableHead>Дати</TableHead>
               <TableHead>Водії</TableHead>
-              <TableHead>Статус</TableHead>
               <TableHead className="text-right">Дії</TableHead>
             </TableRow>
           </TableHeader>
@@ -216,11 +222,6 @@ export default function AdminTripsPage() {
                     )}
                   </div>
                 </TableCell>
-                <TableCell>
-                  <Badge variant={trip.status === 'active' ? 'default' : 'outline'}>
-                    {trip.status}
-                  </Badge>
-                </TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-1">
                     <Button variant="ghost" size="icon" onClick={() => handleOpenModal(trip)}>
@@ -240,8 +241,8 @@ export default function AdminTripsPage() {
             ))}
             {trips?.length === 0 && (
               <TableRow>
-                <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
-                  Немає рейсів.
+                <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
+                  Рейсів не знайдено
                 </TableCell>
               </TableRow>
             )}
@@ -258,56 +259,62 @@ export default function AdminTripsPage() {
             <div className="space-y-4 py-4 max-h-[70vh] overflow-y-auto px-1">
               <div className="space-y-2">
                 <Label htmlFor="t_vehicle">Транспортний засіб (Автобус)</Label>
-                <select
-                  id="t_vehicle"
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  value={form.vehicle_id}
-                  onChange={(e) => setForm({ ...form, vehicle_id: e.target.value })}
+                <Select
+                  value={form.vehicle_id || undefined}
+                  onValueChange={(value) => setForm({ ...form, vehicle_id: value })}
                   required
                 >
-                  <option value="" disabled>
-                    Оберіть автобус
-                  </option>
-                  {vehicles?.map((v) => (
-                    <option key={v.id} value={v.id}>
-                      {v.name} {v.plate_number ? `(${v.plate_number})` : ''}
-                    </option>
-                  ))}
-                </select>
+                  <SelectTrigger id="t_vehicle" className="w-full">
+                    <SelectValue placeholder="Оберіть автобус" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {vehicles?.map((v) => (
+                      <SelectItem key={v.id} value={v.id.toString()}>
+                        {v.name} {v.plate_number ? `(${v.plate_number})` : ''}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="t_dep_city">Місто відправлення</Label>
-                  <select
-                    id="t_dep_city"
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                    value={form.departure_city}
-                    onChange={(e) => setForm({ ...form, departure_city: e.target.value })}
+                  <Select
+                    value={form.departure_city || 'none'}
+                    onValueChange={(value) => setForm({ ...form, departure_city: value === 'none' ? '' : value })}
                   >
-                    <option value="">Оберіть місто</option>
-                    {cities?.map((c) => (
-                      <option key={c.id} value={c.name}>
-                        {c.name}
-                      </option>
-                    ))}
-                  </select>
+                    <SelectTrigger id="t_dep_city" className="w-full">
+                      <SelectValue placeholder="Оберіть місто" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">-- Оберіть місто --</SelectItem>
+                      {cities?.map((c) => (
+                        <SelectItem key={c.id} value={c.name}>
+                          {c.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="t_arr_city">Місто прибуття</Label>
-                  <select
-                    id="t_arr_city"
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                    value={form.arrival_city}
-                    onChange={(e) => setForm({ ...form, arrival_city: e.target.value })}
+                  <Select
+                    value={form.arrival_city || 'none'}
+                    onValueChange={(value) => setForm({ ...form, arrival_city: value === 'none' ? '' : value })}
                   >
-                    <option value="">Оберіть місто</option>
-                    {cities?.map((c) => (
-                      <option key={c.id} value={c.name}>
-                        {c.name}
-                      </option>
-                    ))}
-                  </select>
+                    <SelectTrigger id="t_arr_city" className="w-full">
+                      <SelectValue placeholder="Оберіть місто" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">-- Оберіть місто --</SelectItem>
+                      {cities?.map((c) => (
+                        <SelectItem key={c.id} value={c.name}>
+                          {c.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 
@@ -367,20 +374,23 @@ export default function AdminTripsPage() {
                 </div>
 
                 <div className="flex gap-2 items-center">
-                  <select
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                    value={selectedDriverToAdd}
-                    onChange={(e) => setSelectedDriverToAdd(e.target.value)}
+                  <Select
+                    value={selectedDriverToAdd || undefined}
+                    onValueChange={(value) => setSelectedDriverToAdd(value)}
                   >
-                    <option value="">Оберіть водія для додавання...</option>
-                    {driversList
-                      .filter((d) => !form.driverIds.includes(d.id))
-                      .map((driver) => (
-                        <option key={driver.id} value={driver.id}>
-                          {driver.first_name} {driver.last_name} ({driver.phone})
-                        </option>
-                      ))}
-                  </select>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Оберіть водія для додавання..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {driversList
+                        .filter((d) => !form.driverIds.includes(d.id))
+                        .map((driver) => (
+                          <SelectItem key={driver.id} value={driver.id.toString()}>
+                            {driver.first_name} {driver.last_name} ({driver.phone})
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
                   <Button
                     type="button"
                     variant="secondary"
@@ -412,19 +422,18 @@ export default function AdminTripsPage() {
           <form onSubmit={handleCreateSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label>Оберіть автобус</Label>
-              <select
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                value={addVehicleId}
-                onChange={(e) => setAddVehicleId(e.target.value)}
-                required
-              >
-                <option value="">-- Оберіть автобус --</option>
-                {vehicles?.map((vehicle) => (
-                  <option key={vehicle.id} value={vehicle.id}>
-                    {vehicle.name} ({vehicle.plate_number})
-                  </option>
-                ))}
-              </select>
+              <Select value={addVehicleId} onValueChange={setAddVehicleId} required>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="-- Оберіть автобус --" />
+                </SelectTrigger>
+                <SelectContent>
+                  {vehicles?.map((vehicle) => (
+                    <SelectItem key={vehicle.id} value={vehicle.id.toString()}>
+                      {vehicle.name} ({vehicle.plate_number})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setIsAddModalOpen(false)}>

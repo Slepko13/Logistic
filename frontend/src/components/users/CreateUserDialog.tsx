@@ -14,6 +14,14 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Controller } from 'react-hook-form';
 import { isValidPhone, normalizePhone } from '@/lib/validation/auth';
 import { CreateUserDto } from '@/api/services/users/requests';
 
@@ -60,6 +68,7 @@ export default function CreateUserDialog({
     register,
     handleSubmit,
     reset,
+    control,
     formState: { errors },
   } = useForm<CreateUserFormValues>({
     resolver: zodResolver(createUserSchema),
@@ -139,14 +148,21 @@ export default function CreateUserDialog({
             </div>
             <div className="space-y-2">
               <Label htmlFor="create-role">Роль</Label>
-              <select
-                id="create-role"
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                {...register('role')}
-              >
-                <option value="driver">Водій</option>
-                <option value="admin">Адміністратор</option>
-              </select>
+              <Controller
+                control={control}
+                name="role"
+                render={({ field }) => (
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <SelectTrigger id="create-role" className="w-full">
+                      <SelectValue placeholder="Оберіть роль" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="driver">Водій</SelectItem>
+                      <SelectItem value="admin">Адміністратор</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
+              />
               {errors.role && <p className="text-sm text-destructive">{errors.role.message}</p>}
             </div>
             {error && <p className="text-sm text-destructive">{error}</p>}

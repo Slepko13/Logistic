@@ -56,6 +56,22 @@ export interface TripParcel {
   };
 }
 
+export interface TripHistory {
+  id: number;
+  trip_id: number;
+  user_id: number | null;
+  action: string;
+  details: string | null;
+  changes?: any;
+  created_at: string;
+  user?: {
+    id: number;
+    first_name: string;
+    last_name: string;
+    role: string;
+  } | null;
+}
+
 export interface UpdateTripPayload {
   departure_city?: string | null;
   departure_date?: string | null;
@@ -97,6 +113,22 @@ export interface PaginatedTrips {
   totalPages: number;
 }
 
+export interface PaginatedHistory {
+  data: TripHistory[];
+  total: number;
+  page: number;
+  totalPages: number;
+}
+
+export interface GetTripAuditHistoryParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  filterAction?: string;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}
+
 export interface Trip {
   id: number;
   vehicle_id: number;
@@ -111,6 +143,7 @@ export interface Trip {
   drivers: TripDriver[];
   seats: TripSeat[];
   parcels: TripParcel[];
+  history?: TripHistory[];
 }
 
 export async function getActiveTrips(): Promise<Trip[]> {
@@ -131,6 +164,20 @@ export async function getTripHistory(params?: GetTripHistoryParams): Promise<Pag
 
 export async function getTrips(): Promise<Trip[]> {
   return apiFetch<Trip[]>(ENDPOINTS.TRIPS.GET_ALL);
+}
+
+export async function getTripAuditHistory(tripId: number, params?: GetTripAuditHistoryParams): Promise<PaginatedHistory> {
+  const query = new URLSearchParams();
+  if (params?.page) query.append('page', params.page.toString());
+  if (params?.limit) query.append('limit', params.limit.toString());
+  if (params?.search) query.append('search', params.search);
+  if (params?.filterAction) query.append('filterAction', params.filterAction);
+  if (params?.sortBy) query.append('sortBy', params.sortBy);
+  if (params?.sortOrder) query.append('sortOrder', params.sortOrder);
+
+  const qs = query.toString();
+  const url = `${ENDPOINTS.TRIPS.GET_BY_ID(tripId)}/history${qs ? `?${qs}` : ''}`;
+  return apiFetch<PaginatedHistory>(url);
 }
 
 export async function createTrip(vehicle_id: number): Promise<Trip> {

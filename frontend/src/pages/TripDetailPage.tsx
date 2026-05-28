@@ -62,6 +62,7 @@ import {
 } from '@/api/services/trips/queries';
 import { TripSeat, TripParcel } from '@/api/services/trips/requests';
 import { useGetUsers } from '@/api/services/users/queries';
+import { TripHistoryPanel } from '@/components/trips/TripHistoryPanel';
 
 export default function TripDetailPage() {
   const { id } = useParams();
@@ -492,25 +493,21 @@ export default function TripDetailPage() {
           {/* Add driver controls (Admin only) */}
           {user?.role === 'admin' && !isClosed && (
             <div className="flex items-center gap-3 pt-4 border-t">
-              <select
-                className="flex h-9 w-full sm:max-w-xs rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                value={selectedDriverId}
-                onChange={(e) => setSelectedDriverId(e.target.value)}
+              <Select
+                value={selectedDriverId || undefined}
+                onValueChange={(value) => setSelectedDriverId(value)}
               >
-                <option value="" disabled>
-                  Оберіть водія...
-                </option>
-                {availableDrivers?.map((d) => (
-                  <option key={d.id} value={d.id}>
-                    {d.first_name} {d.last_name} ({d.phone})
-                  </option>
-                ))}
-                {availableDrivers?.length === 0 && (
-                  <option value="" disabled>
-                    Немає вільних водіїв
-                  </option>
-                )}
-              </select>
+                <SelectTrigger className="w-full sm:max-w-xs h-9">
+                  <SelectValue placeholder={availableDrivers?.length === 0 ? "Немає вільних водіїв" : "Оберіть водія..."} />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableDrivers?.map((d) => (
+                    <SelectItem key={d.id} value={d.id.toString()}>
+                      {d.first_name} {d.last_name} ({d.phone})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <Button
                 onClick={() => {
                   if (selectedDriverId) addDriverMutation.mutate(Number(selectedDriverId));
@@ -1059,6 +1056,9 @@ export default function TripDetailPage() {
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* HISTORY SECTION */}
+      <TripHistoryPanel tripId={tripId} />
 
       {/* COMPLETE TRIP */}
       {!isClosed && (

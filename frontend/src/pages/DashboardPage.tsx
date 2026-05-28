@@ -9,6 +9,13 @@ import { useGetActiveTrips, useUpdateTripMutation } from '@/api/services/trips/q
 import { useGetCities } from '@/api/services/cities/queries';
 import { Users, Package, MapPin, Check } from 'lucide-react';
 import toast from 'react-hot-toast';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 export default function DashboardPage() {
   useAuth();
@@ -68,35 +75,43 @@ export default function DashboardPage() {
             <label className="text-sm font-medium text-muted-foreground">
               Загальне місто відправлення
             </label>
-            <select
-              className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-              value={globalDepCity}
-              onChange={(e) => setGlobalDepCity(e.target.value)}
+            <Select
+              value={globalDepCity || 'none'}
+              onValueChange={(value) => setGlobalDepCity(value === 'none' ? '' : value)}
             >
-              <option value="">Не змінювати</option>
-              {cities?.map((city) => (
-                <option key={city.id} value={city.name}>
-                  {city.name}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger className="h-9 w-full">
+                <SelectValue placeholder="Не змінювати" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Не змінювати</SelectItem>
+                {cities?.map((city) => (
+                  <SelectItem key={city.id} value={city.name}>
+                    {city.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="space-y-2 flex-grow min-w-[150px]">
             <label className="text-sm font-medium text-muted-foreground">
               Загальне місто прибуття
             </label>
-            <select
-              className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-              value={globalArrCity}
-              onChange={(e) => setGlobalArrCity(e.target.value)}
+            <Select
+              value={globalArrCity || 'none'}
+              onValueChange={(value) => setGlobalArrCity(value === 'none' ? '' : value)}
             >
-              <option value="">Не змінювати</option>
-              {cities?.map((city) => (
-                <option key={city.id} value={city.name}>
-                  {city.name}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger className="h-9 w-full">
+                <SelectValue placeholder="Не змінювати" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Не змінювати</SelectItem>
+                {cities?.map((city) => (
+                  <SelectItem key={city.id} value={city.name}>
+                    {city.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="space-y-2 flex-grow min-w-[150px]">
             <label className="text-sm font-medium text-muted-foreground">
@@ -156,25 +171,27 @@ export default function DashboardPage() {
                     <span className="text-sm font-semibold">Звідки</span>
                   </div>
                   <div className="grid grid-cols-[minmax(0,1fr)_135px] gap-2">
-                    <select
-                      className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                      value={trip.departure_city || ''}
-                      onChange={(e) =>
+                    <Select
+                      value={trip.departure_city || 'none'}
+                      onValueChange={(value) =>
                         updateMutation.mutate({
                           id: trip.id,
-                          payload: { departure_city: e.target.value, version: trip.version },
+                          payload: { departure_city: value === 'none' ? '' : value, version: trip.version },
                         })
                       }
                     >
-                      <option value="" disabled>
-                        Місто
-                      </option>
-                      {cities?.map((city) => (
-                        <option key={city.id} value={city.name}>
-                          {city.name}
-                        </option>
-                      ))}
-                    </select>
+                      <SelectTrigger className="h-9 w-full">
+                        <SelectValue placeholder="Місто" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">-- Місто --</SelectItem>
+                        {cities?.map((city) => (
+                          <SelectItem key={city.id} value={city.name}>
+                            {city.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <input
                       type="date"
                       className="flex h-9 w-full rounded-md border border-input bg-transparent px-2 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
@@ -202,25 +219,27 @@ export default function DashboardPage() {
                     <span className="text-sm font-semibold">Куди</span>
                   </div>
                   <div className="grid grid-cols-[minmax(0,1fr)_135px] gap-2">
-                    <select
-                      className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                      value={trip.arrival_city || ''}
-                      onChange={(e) =>
+                    <Select
+                      value={trip.arrival_city || 'none'}
+                      onValueChange={(value) =>
                         updateMutation.mutate({
                           id: trip.id,
-                          payload: { arrival_city: e.target.value, version: trip.version },
+                          payload: { arrival_city: value === 'none' ? '' : value, version: trip.version },
                         })
                       }
                     >
-                      <option value="" disabled>
-                        Місто
-                      </option>
-                      {cities?.map((city) => (
-                        <option key={city.id} value={city.name}>
-                          {city.name}
-                        </option>
-                      ))}
-                    </select>
+                      <SelectTrigger className="h-9 w-full">
+                        <SelectValue placeholder="Місто" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">-- Місто --</SelectItem>
+                        {cities?.map((city) => (
+                          <SelectItem key={city.id} value={city.name}>
+                            {city.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <input
                       type="date"
                       className="flex h-9 w-full rounded-md border border-input bg-transparent px-2 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
