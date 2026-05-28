@@ -74,7 +74,7 @@ model TripHistory {
   changes    Json?
   created_at DateTime @default(now()) @db.Timestamptz()
 
-  trip Trip  @relation(fields: [trip_id], references: [id])
+  trip Trip  @relation(fields: [trip_id], references: [id], onDelete: Cascade)
   user User? @relation(fields: [user_id], references: [id])
 
   @@map("trip_history")
