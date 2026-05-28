@@ -34,6 +34,7 @@ const FIELD_MAP: Record<string, string> = {
   boarding_address: 'Адреса посадки',
   baggage_info: 'Інформація про багаж',
   weight: 'Вага (кг)',
+  name: 'Назва',
   description: 'Опис посилки',
   delivery_address: 'Адреса доставки',
   is_delivered: 'Статус доставки',
@@ -97,7 +98,8 @@ export function DiffViewer({
                   <div className="flex flex-col gap-1 text-left">
                     {Object.entries(v as Record<string, unknown>).map(([k, val]) => (
                       <span key={k} className="inline-flex gap-1 flex-wrap">
-                        <span className="font-medium text-gray-500">{k}:</span> {formatVal(val)}
+                        <span className="font-medium text-gray-500">{FIELD_MAP[k] || k}:</span>{' '}
+                        {formatVal(val)}
                       </span>
                     ))}
                   </div>
