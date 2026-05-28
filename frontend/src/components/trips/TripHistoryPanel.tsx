@@ -50,7 +50,11 @@ export function getEventColor(action: string) {
   return 'bg-primary';
 }
 
-function DiffViewer({ changes }: { changes: Record<string, Record<string, unknown>> | null }) {
+export function DiffViewer({
+  changes,
+}: {
+  changes: Record<string, Record<string, unknown>> | null;
+}) {
   if (!changes) return null;
 
   const { before, after } = changes;

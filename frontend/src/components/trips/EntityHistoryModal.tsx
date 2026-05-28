@@ -4,7 +4,7 @@ import { format } from 'date-fns';
 import { uk } from 'date-fns/locale';
 import { Activity, Loader2 } from 'lucide-react';
 import { useGetTripAuditHistory } from '@/api/services/trips/queries';
-import { ACTION_MAP, getEventColor } from './TripHistoryPanel';
+import { ACTION_MAP, getEventColor, DiffViewer } from './TripHistoryPanel';
 import { TripHistory } from '@/api/services/trips/requests';
 
 interface EntityHistoryModalProps {
@@ -108,30 +108,11 @@ export function EntityHistoryModal({
               {selectedEvent ? ACTION_MAP[selectedEvent.action] || selectedEvent.action : ''}
             </DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4 bg-muted/30 p-4 rounded-lg">
-              <div>
-                <h4 className="font-semibold text-sm mb-2 text-muted-foreground">Було</h4>
-                <pre className="text-xs bg-white p-2 rounded border overflow-auto max-h-[300px]">
-                  {selectedEvent?.changes?.before
-                    ? JSON.stringify(selectedEvent.changes.before, null, 2)
-                    : 'Немає даних'}
-                </pre>
-              </div>
-              <div>
-                <h4 className="font-semibold text-sm mb-2 text-muted-foreground">Стало</h4>
-                <pre className="text-xs bg-white p-2 rounded border overflow-auto max-h-[300px]">
-                  {selectedEvent?.changes?.after
-                    ? JSON.stringify(selectedEvent.changes.after, null, 2)
-                    : 'Немає даних'}
-                </pre>
-              </div>
-            </div>
-            <div className="text-sm text-muted-foreground pt-2">
-              Час дії:{' '}
-              {selectedEvent && format(new Date(selectedEvent.created_at), 'PPpp', { locale: uk })}
-            </div>
-          </div>
+          {selectedEvent && (
+            <DiffViewer
+              changes={(selectedEvent.changes as Record<string, Record<string, unknown>>) || null}
+            />
+          )}
         </DialogContent>
       </Dialog>
     </>
