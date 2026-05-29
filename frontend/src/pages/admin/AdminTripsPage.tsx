@@ -13,6 +13,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { Card, CardContent } from '@/components/ui/card';
 import {
   Dialog,
   DialogContent,
@@ -175,87 +176,91 @@ export default function AdminTripsPage() {
         <Button onClick={() => setIsAddModalOpen(true)}>Створити рейс</Button>
       </div>
 
-      <div className="rounded-xl border bg-card overflow-x-auto shadow-sm">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-[80px]">ID</TableHead>
-              <TableHead>Автобус</TableHead>
-              <TableHead>Маршрут</TableHead>
-              <TableHead>Дати</TableHead>
-              <TableHead>Водії</TableHead>
-              <TableHead className="text-right">Дії</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {trips?.map((trip) => (
-              <TableRow key={trip.id}>
-                <TableCell className="font-medium text-muted-foreground">{trip.id}</TableCell>
-                <TableCell className="font-medium">
-                  {trip.vehicle.name}{' '}
-                  <span className="text-xs text-muted-foreground block">
-                    {trip.vehicle.plate_number}
-                  </span>
-                </TableCell>
-                <TableCell>
-                  {trip.departure_city || '—'} → {trip.arrival_city || '—'}
-                </TableCell>
-                <TableCell className="text-sm">
-                  <div>
-                    <span className="text-muted-foreground">Відпр:</span>{' '}
-                    {trip.departure_date ? new Date(trip.departure_date).toLocaleDateString() : '—'}
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground">Приб:</span>{' '}
-                    {trip.arrival_date ? new Date(trip.arrival_date).toLocaleDateString() : '—'}
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <div className="flex flex-wrap gap-1">
-                    {trip.drivers.map((d) => (
-                      <Badge key={d.user_id} variant="secondary" className="text-xs">
-                        {d.user.first_name} {d.user.last_name}
-                      </Badge>
-                    ))}
-                    {trip.drivers.length === 0 && (
-                      <span className="text-muted-foreground text-sm">Немає водіїв</span>
-                    )}
-                  </div>
-                </TableCell>
-                <TableCell className="text-right">
-                  <div className="flex flex-wrap justify-end gap-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleOpenModal(trip)}
-                      title="Редагувати рейс"
-                    >
-                      <Pencil className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      size="sm"
-                      title="Видалити рейс"
-                      onClick={() => handleDeleteClick(trip.id)}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-            {trips?.length === 0 && (
+      <Card className="min-w-0 overflow-hidden">
+        <CardContent className="p-0 px-4 sm:px-6 overflow-x-auto">
+          <Table>
+            <TableHeader>
               <TableRow>
-                <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
-                  Рейсів не знайдено
-                </TableCell>
+                <TableHead className="w-[80px]">ID</TableHead>
+                <TableHead>Автобус</TableHead>
+                <TableHead>Маршрут</TableHead>
+                <TableHead>Дати</TableHead>
+                <TableHead>Водії</TableHead>
+                <TableHead className="text-right">Дії</TableHead>
               </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
+            </TableHeader>
+            <TableBody>
+              {trips?.map((trip) => (
+                <TableRow key={trip.id}>
+                  <TableCell className="font-medium text-muted-foreground">{trip.id}</TableCell>
+                  <TableCell className="font-medium">
+                    {trip.vehicle.name}{' '}
+                    <span className="text-xs text-muted-foreground block">
+                      {trip.vehicle.plate_number}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    {trip.departure_city || '—'} → {trip.arrival_city || '—'}
+                  </TableCell>
+                  <TableCell className="text-sm">
+                    <div>
+                      <span className="text-muted-foreground">Відпр:</span>{' '}
+                      {trip.departure_date
+                        ? new Date(trip.departure_date).toLocaleDateString()
+                        : '—'}
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">Приб:</span>{' '}
+                      {trip.arrival_date ? new Date(trip.arrival_date).toLocaleDateString() : '—'}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex flex-wrap gap-1">
+                      {trip.drivers.map((d) => (
+                        <Badge key={d.user_id} variant="secondary" className="text-xs">
+                          {d.user.first_name} {d.user.last_name}
+                        </Badge>
+                      ))}
+                      {trip.drivers.length === 0 && (
+                        <span className="text-muted-foreground text-sm">Немає водіїв</span>
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex flex-wrap justify-end gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleOpenModal(trip)}
+                        title="Редагувати рейс"
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="sm"
+                        title="Видалити рейс"
+                        onClick={() => handleDeleteClick(trip.id)}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+              {trips?.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
+                    Рейсів не знайдено
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
 
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="max-w-2xl">

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 
 import { Plus, Pencil, Trash2 } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -76,57 +77,59 @@ export default function AdminCitiesPage() {
         </Button>
       </div>
 
-      <div className="rounded-xl border bg-card overflow-x-auto shadow-sm">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-[80px]">ID</TableHead>
-              <TableHead>Назва міста</TableHead>
-              <TableHead className="text-right">Дії</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {cities?.map((c) => (
-              <TableRow key={c.id}>
-                <TableCell className="font-medium text-muted-foreground">{c.id}</TableCell>
-                <TableCell className="font-medium">{c.name}</TableCell>
-                <TableCell className="text-right">
-                  <div className="flex flex-wrap justify-end gap-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleOpenModal(c)}
-                      title="Редагувати місто"
-                    >
-                      <Pencil className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      size="sm"
-                      title="Видалити місто"
-                      onClick={() => {
-                        setCityToDelete(c.id);
-                        setDeleteConfirmOpen(true);
-                      }}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-            {cities?.length === 0 && (
+      <Card className="min-w-0 overflow-hidden">
+        <CardContent className="p-0 px-4 sm:px-6 overflow-x-auto">
+          <Table>
+            <TableHeader>
               <TableRow>
-                <TableCell colSpan={3} className="h-24 text-center text-muted-foreground">
-                  Немає міст. Додайте перше місто.
-                </TableCell>
+                <TableHead className="w-[80px]">ID</TableHead>
+                <TableHead>Назва міста</TableHead>
+                <TableHead className="text-right">Дії</TableHead>
               </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
+            </TableHeader>
+            <TableBody>
+              {cities?.map((c) => (
+                <TableRow key={c.id}>
+                  <TableCell className="font-medium text-muted-foreground">{c.id}</TableCell>
+                  <TableCell className="font-medium">{c.name}</TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex flex-wrap justify-end gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleOpenModal(c)}
+                        title="Редагувати місто"
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="sm"
+                        title="Видалити місто"
+                        onClick={() => {
+                          setCityToDelete(c.id);
+                          setDeleteConfirmOpen(true);
+                        }}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+              {cities?.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={3} className="h-24 text-center text-muted-foreground">
+                    Немає міст. Додайте перше місто.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
 
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent>

@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import PageLoader from '@/components/common/PageLoader';
 import { useGetTripHistory, useDeleteTripMutation } from '@/api/services/trips/queries';
 import { Trip, TripDriver } from '@/api/services/trips/requests';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Trash2, Search, ArrowUpDown } from 'lucide-react';
@@ -96,96 +97,100 @@ export default function AdminTripHistoryPage() {
         </div>
       </div>
 
-      <div className="rounded-xl border bg-card overflow-x-auto shadow-sm">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead
-                className="w-[80px] cursor-pointer hover:bg-muted/50 transition-colors"
-                onClick={() => handleSort('id')}
-              >
-                <div className="flex items-center gap-1">
-                  ID <ArrowUpDown className="h-3 w-3" />
-                </div>
-              </TableHead>
-              <TableHead>Автобус</TableHead>
-              <TableHead>Маршрут</TableHead>
-              <TableHead
-                className="cursor-pointer hover:bg-muted/50 transition-colors"
-                onClick={() => handleSort('departure_date')}
-              >
-                <div className="flex items-center gap-1">
-                  Дати <ArrowUpDown className="h-3 w-3" />
-                </div>
-              </TableHead>
-              <TableHead>Водії</TableHead>
-              <TableHead className="text-right">Дії</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {tripsData?.data?.map((trip: Trip) => (
-              <TableRow
-                key={trip.id}
-                className="cursor-pointer hover:bg-muted/50 transition-colors"
-                onClick={() => navigate(`/trips/${trip.id}`)}
-              >
-                <TableCell className="font-medium text-muted-foreground">{trip.id}</TableCell>
-                <TableCell className="font-medium">
-                  {trip.vehicle.name}{' '}
-                  <span className="text-xs text-muted-foreground block">
-                    {trip.vehicle.plate_number}
-                  </span>
-                </TableCell>
-                <TableCell>
-                  {trip.departure_city || '—'} → {trip.arrival_city || '—'}
-                </TableCell>
-                <TableCell className="text-sm">
-                  <div>
-                    <span className="text-muted-foreground">Відпр:</span>{' '}
-                    {trip.departure_date ? new Date(trip.departure_date).toLocaleDateString() : '—'}
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground">Приб:</span>{' '}
-                    {trip.arrival_date ? new Date(trip.arrival_date).toLocaleDateString() : '—'}
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <div className="flex flex-wrap gap-1">
-                    {trip.drivers.map((d: TripDriver) => (
-                      <Badge key={d.user_id} variant="secondary" className="text-xs">
-                        {d.user.first_name} {d.user.last_name}
-                      </Badge>
-                    ))}
-                    {trip.drivers.length === 0 && (
-                      <span className="text-muted-foreground text-sm">Немає водіїв</span>
-                    )}
-                  </div>
-                </TableCell>
-                <TableCell className="text-right">
-                  <div className="flex flex-wrap justify-end gap-2">
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      size="sm"
-                      title="Видалити запис"
-                      onClick={(e) => handleDeleteClick(e, trip.id)}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-            {tripsData?.data?.length === 0 && (
+      <Card className="min-w-0 overflow-hidden">
+        <CardContent className="p-0 px-4 sm:px-6 overflow-x-auto">
+          <Table>
+            <TableHeader>
               <TableRow>
-                <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
-                  Не знайдено завершених рейсів.
-                </TableCell>
+                <TableHead
+                  className="w-[80px] cursor-pointer hover:bg-muted/50 transition-colors"
+                  onClick={() => handleSort('id')}
+                >
+                  <div className="flex items-center gap-1">
+                    ID <ArrowUpDown className="h-3 w-3" />
+                  </div>
+                </TableHead>
+                <TableHead>Автобус</TableHead>
+                <TableHead>Маршрут</TableHead>
+                <TableHead
+                  className="cursor-pointer hover:bg-muted/50 transition-colors"
+                  onClick={() => handleSort('departure_date')}
+                >
+                  <div className="flex items-center gap-1">
+                    Дати <ArrowUpDown className="h-3 w-3" />
+                  </div>
+                </TableHead>
+                <TableHead>Водії</TableHead>
+                <TableHead className="text-right">Дії</TableHead>
               </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
+            </TableHeader>
+            <TableBody>
+              {tripsData?.data?.map((trip: Trip) => (
+                <TableRow
+                  key={trip.id}
+                  className="cursor-pointer hover:bg-muted/50 transition-colors"
+                  onClick={() => navigate(`/trips/${trip.id}`)}
+                >
+                  <TableCell className="font-medium text-muted-foreground">{trip.id}</TableCell>
+                  <TableCell className="font-medium">
+                    {trip.vehicle.name}{' '}
+                    <span className="text-xs text-muted-foreground block">
+                      {trip.vehicle.plate_number}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    {trip.departure_city || '—'} → {trip.arrival_city || '—'}
+                  </TableCell>
+                  <TableCell className="text-sm">
+                    <div>
+                      <span className="text-muted-foreground">Відпр:</span>{' '}
+                      {trip.departure_date
+                        ? new Date(trip.departure_date).toLocaleDateString()
+                        : '—'}
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">Приб:</span>{' '}
+                      {trip.arrival_date ? new Date(trip.arrival_date).toLocaleDateString() : '—'}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex flex-wrap gap-1">
+                      {trip.drivers.map((d: TripDriver) => (
+                        <Badge key={d.user_id} variant="secondary" className="text-xs">
+                          {d.user.first_name} {d.user.last_name}
+                        </Badge>
+                      ))}
+                      {trip.drivers.length === 0 && (
+                        <span className="text-muted-foreground text-sm">Немає водіїв</span>
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex flex-wrap justify-end gap-2">
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="sm"
+                        title="Видалити запис"
+                        onClick={(e) => handleDeleteClick(e, trip.id)}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+              {tripsData?.data?.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
+                    Не знайдено завершених рейсів.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
 
       {tripsData && tripsData.total > 0 && (
         <div className="flex items-center justify-between">
