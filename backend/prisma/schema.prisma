@@ -18,6 +18,8 @@ model User {
   last_name     String       @db.VarChar(64)
   password_hash String       @db.VarChar(255)
   role          String       @default("driver") @db.VarChar(16)
+  is_driver     Boolean      @default(true)
+  is_deleted    Boolean      @default(false)
   created_at    DateTime     @default(now()) @db.Timestamptz()
   tripDrivers   TripDriver[]
   tripSeats     TripSeat[]

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import { Edit, Trash2 } from 'lucide-react';
+import { Pencil, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -175,7 +175,7 @@ export default function AdminTripsPage() {
         <Button onClick={() => setIsAddModalOpen(true)}>Створити рейс</Button>
       </div>
 
-      <div className="rounded-md border bg-card overflow-x-auto">
+      <div className="rounded-xl border bg-card overflow-x-auto shadow-sm">
         <Table>
           <TableHeader>
             <TableRow>
@@ -223,14 +223,21 @@ export default function AdminTripsPage() {
                   </div>
                 </TableCell>
                 <TableCell className="text-right">
-                  <div className="flex justify-end gap-1">
-                    <Button variant="ghost" size="icon" onClick={() => handleOpenModal(trip)}>
-                      <Edit className="w-4 h-4" />
+                  <div className="flex flex-wrap justify-end gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleOpenModal(trip)}
+                      title="Редагувати рейс"
+                    >
+                      <Pencil className="w-4 h-4" />
                     </Button>
                     <Button
-                      variant="ghost"
-                      size="icon"
-                      className="text-destructive hover:bg-destructive/10"
+                      type="button"
+                      variant="destructive"
+                      size="sm"
+                      title="Видалити рейс"
                       onClick={() => handleDeleteClick(trip.id)}
                     >
                       <Trash2 className="w-4 h-4" />
@@ -364,9 +371,9 @@ export default function AdminTripsPage() {
                           </span>
                           <Button
                             type="button"
-                            variant="ghost"
+                            variant="destructive"
                             size="sm"
-                            className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+                            title="Видалити водія"
                             onClick={() => handleRemoveDriver(driverId)}
                           >
                             <Trash2 className="w-4 h-4" />

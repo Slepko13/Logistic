@@ -21,6 +21,7 @@ export interface PublicUser {
   first_name: string;
   last_name: string;
   role: UserRoleType;
+  is_driver: boolean;
 }
 
 export interface UserListItem extends PublicUser {
@@ -75,37 +76,45 @@ export class UsersService implements OnModuleInit {
     }
   }
 
-  async findByPhone(phone: string) {
+  async findByPhone(phone: string, includeDeleted = false) {
     const keys = phoneLookupKeys(phone);
     const digitsVariants = keys.map(phoneDigits).filter(Boolean);
 
     // Шукаємо по точним співпадінням
     const exactMatch = await this.prisma.user.findFirst({
-      where: { phone: { in: keys } },
+      where: { phone: { in: keys }, ...(includeDeleted ? {} : { is_deleted: false }) },
     });
     if (exactMatch) return exactMatch;
 
     // Якщо не знайшли - використовуємо сирий запит для складної логіки з регулярками
     if (digitsVariants.length > 0) {
-      const rawUsers = await this.prisma.$queryRaw<User[]>(
-        Prisma.sql`SELECT * FROM users WHERE regexp_replace(phone, '\\D', '', 'g') = ANY(${digitsVariants}::text[])`,
-      );
-      return rawUsers[0] ?? null;
+      if (includeDeleted) {
+        const rawUsers = await this.prisma.$queryRaw<User[]>(
+          Prisma.sql`SELECT * FROM users WHERE regexp_replace(phone, '\\D', '', 'g') = ANY(${digitsVariants}::text[])`,
+        );
+        return rawUsers[0] ?? null;
+      } else {
+        const rawUsers = await this.prisma.$queryRaw<User[]>(
+          Prisma.sql`SELECT * FROM users WHERE regexp_replace(phone, '\\D', '', 'g') = ANY(${digitsVariants}::text[]) AND is_deleted = false`,
+        );
+        return rawUsers[0] ?? null;
+      }
     }
 
     return null;
   }
 
-  async findByPhoneNormalized(phone: string) {
+  async findByPhoneNormalized(phone: string, includeDeleted = false) {
     const normalized = normalizePhone(phone);
     if (!normalized) {
-      return this.findByPhone(phone);
+      return this.findByPhone(phone, includeDeleted);
     }
-    return this.findByPhone(normalized);
+    return this.findByPhone(normalized, includeDeleted);
   }
 
   async findAll(): Promise<UserListItem[]> {
     const users = await this.prisma.user.findMany({
+      where: { is_deleted: false },
       orderBy: { created_at: 'desc' },
       select: {
         id: true,
@@ -113,6 +122,24 @@ export class UsersService implements OnModuleInit {
         first_name: true,
         last_name: true,
         role: true,
+        is_driver: true,
+        created_at: true,
+      },
+    });
+    return users as unknown as UserListItem[];
+  }
+
+  async findDeletedUsers(): Promise<UserListItem[]> {
+    const users = await this.prisma.user.findMany({
+      where: { is_deleted: true },
+      orderBy: { created_at: 'desc' },
+      select: {
+        id: true,
+        phone: true,
+        first_name: true,
+        last_name: true,
+        role: true,
+        is_driver: true,
         created_at: true,
       },
     });
@@ -128,6 +155,7 @@ export class UsersService implements OnModuleInit {
         first_name: true,
         last_name: true,
         role: true,
+        is_driver: true,
       },
     });
     return user as unknown as PublicUser | null;
@@ -139,6 +167,32 @@ export class UsersService implements OnModuleInit {
     lastName: string,
     passwordHash: string,
   ): Promise<PublicUser> {
+    const existing = await this.findByPhoneNormalized(phone, true);
+    if (existing) {
+      if (existing.is_deleted) {
+        const restoredUser = await this.prisma.user.update({
+          where: { id: existing.id },
+          data: {
+            first_name: firstName,
+            last_name: lastName,
+            password_hash: passwordHash,
+            is_deleted: false,
+            is_driver: true,
+          },
+          select: {
+            id: true,
+            phone: true,
+            first_name: true,
+            last_name: true,
+            role: true,
+            is_driver: true,
+          },
+        });
+        return restoredUser as unknown as PublicUser;
+      }
+      throw new ConflictException('Користувач з таким номером телефону вже існує');
+    }
+
     const user = await this.prisma.$transaction(
       async (tx) => {
         const count = await tx.user.count();
@@ -158,6 +212,7 @@ export class UsersService implements OnModuleInit {
             first_name: true,
             last_name: true,
             role: true,
+            is_driver: true,
           },
         });
       },
@@ -177,8 +232,33 @@ export class UsersService implements OnModuleInit {
       throw new BadRequestException('Невірний формат номера телефону');
     }
 
-    const existing = await this.findByPhoneNormalized(normalizedPhone);
+    const existing = await this.findByPhoneNormalized(normalizedPhone, true);
     if (existing) {
+      if (existing.is_deleted) {
+        const saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS || '10', 10);
+        const passwordHash = await bcrypt.hash(dto.password, saltRounds);
+
+        const restoredUser = await this.prisma.user.update({
+          where: { id: existing.id },
+          data: {
+            first_name: dto.first_name.trim(),
+            last_name: dto.last_name.trim(),
+            password_hash: passwordHash,
+            role: dto.role || UserRole.DRIVER,
+            is_deleted: false,
+            is_driver: true,
+          },
+          select: {
+            id: true,
+            phone: true,
+            first_name: true,
+            last_name: true,
+            role: true,
+            is_driver: true,
+          },
+        });
+        return restoredUser as unknown as PublicUser;
+      }
       throw new ConflictException('Користувач з таким номером телефону вже існує');
     }
 
@@ -199,6 +279,7 @@ export class UsersService implements OnModuleInit {
         first_name: true,
         last_name: true,
         role: true,
+        is_driver: true,
       },
     });
 
@@ -214,9 +295,74 @@ export class UsersService implements OnModuleInit {
       throw new ForbiddenException('Неможливо видалити адміністратора');
     }
 
-    await this.prisma.user.delete({
-      where: { id },
+    await this.prisma.$transaction(async (tx) => {
+      // Find all active trips where this user is a driver
+      const activeTripsWithDriver = await tx.tripDriver.findMany({
+        where: {
+          user_id: id,
+          trip: {
+            status: 'active',
+          },
+        },
+      });
+
+      if (activeTripsWithDriver.length > 0) {
+        // Remove from active trips
+        await tx.tripDriver.deleteMany({
+          where: {
+            user_id: id,
+            trip_id: {
+              in: activeTripsWithDriver.map((td) => td.trip_id),
+            },
+          },
+        });
+
+        // Add history records for active trips
+        const driverName = `${target.first_name} ${target.last_name}`;
+        for (const td of activeTripsWithDriver) {
+          await tx.tripHistory.create({
+            data: {
+              trip_id: td.trip_id,
+              action: 'DRIVER_REMOVED',
+              details: `Видалено водія: ${driverName} (акаунт видалено)`,
+              changes: {
+                before: { driver: driverName },
+              },
+            },
+          });
+        }
+      }
+
+      // Soft delete the user
+      await tx.user.update({
+        where: { id },
+        data: { is_deleted: true },
+      });
     });
+  }
+
+  async restoreUser(id: number): Promise<PublicUser> {
+    const target = await this.prisma.user.findUnique({ where: { id } });
+    if (!target) {
+      throw new NotFoundException('Користувача не знайдено');
+    }
+    if (!target.is_deleted) {
+      throw new BadRequestException('Користувач вже активний');
+    }
+
+    const updated = await this.prisma.user.update({
+      where: { id },
+      data: { is_deleted: false },
+      select: {
+        id: true,
+        phone: true,
+        first_name: true,
+        last_name: true,
+        role: true,
+        is_driver: true,
+      },
+    });
+    return updated as unknown as PublicUser;
   }
 
   async promoteToAdmin(id: number): Promise<PublicUser> {
@@ -237,6 +383,7 @@ export class UsersService implements OnModuleInit {
         first_name: true,
         last_name: true,
         role: true,
+        is_driver: true,
       },
     });
     return updated as unknown as PublicUser;
@@ -292,8 +439,76 @@ export class UsersService implements OnModuleInit {
         first_name: true,
         last_name: true,
         role: true,
+        is_driver: true,
       },
     });
+    return updated as unknown as PublicUser;
+  }
+
+  async toggleDriverStatus(id: number): Promise<PublicUser> {
+    const target = await this.findById(id);
+    if (!target) {
+      throw new NotFoundException('Користувача не знайдено');
+    }
+
+    const newStatus = !target.is_driver;
+
+    const updated = await this.prisma.$transaction(async (tx) => {
+      const updatedUser = await tx.user.update({
+        where: { id },
+        data: { is_driver: newStatus },
+        select: {
+          id: true,
+          phone: true,
+          first_name: true,
+          last_name: true,
+          role: true,
+          is_driver: true,
+        },
+      });
+
+      if (!newStatus) {
+        // Find all active trips where this user is a driver
+        const activeTripsWithDriver = await tx.tripDriver.findMany({
+          where: {
+            user_id: id,
+            trip: {
+              status: 'active',
+            },
+          },
+        });
+
+        if (activeTripsWithDriver.length > 0) {
+          // Remove from TripDriver
+          await tx.tripDriver.deleteMany({
+            where: {
+              user_id: id,
+              trip_id: {
+                in: activeTripsWithDriver.map((td) => td.trip_id),
+              },
+            },
+          });
+
+          // Add history records
+          const driverName = `${updatedUser.first_name} ${updatedUser.last_name}`;
+          for (const td of activeTripsWithDriver) {
+            await tx.tripHistory.create({
+              data: {
+                trip_id: td.trip_id,
+                action: 'DRIVER_REMOVED',
+                details: `Видалено водія: ${driverName} (знято статус водія)`,
+                changes: {
+                  before: { driver: driverName },
+                },
+              },
+            });
+          }
+        }
+      }
+
+      return updatedUser;
+    });
+
     return updated as unknown as PublicUser;
   }
 
@@ -304,6 +519,7 @@ export class UsersService implements OnModuleInit {
       first_name: user.first_name,
       last_name: user.last_name,
       role: user.role as UserRoleType,
+      is_driver: user.is_driver,
     };
   }
 }

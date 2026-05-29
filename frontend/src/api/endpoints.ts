@@ -15,6 +15,7 @@ export const ENDPOINTS = {
     UPDATE: (id: number | string) => `/api/users/${id}`,
     DELETE: (id: number | string) => `/api/users/${id}`,
     PROMOTE_ADMIN: (id: number | string) => `/api/users/${id}/promote-admin`,
+    TOGGLE_DRIVER: (id: number | string) => `/api/users/${id}/toggle-driver-status`,
   },
   VEHICLES: {
     GET_ALL: '/api/vehicles',

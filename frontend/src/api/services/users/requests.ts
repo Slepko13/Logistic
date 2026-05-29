@@ -32,3 +32,15 @@ export function updateUser(id: number, payload: UpdateUserDto): Promise<PublicUs
 export function promoteToAdmin(id: number): Promise<PublicUserDto> {
   return apiFetch<PublicUserDto>(ENDPOINTS.USERS.PROMOTE_ADMIN(id), { method: 'PATCH' });
 }
+
+export function toggleDriverStatus(id: number): Promise<PublicUserDto> {
+  return apiFetch<PublicUserDto>(ENDPOINTS.USERS.TOGGLE_DRIVER(id), { method: 'PATCH' });
+}
+
+export function getDeletedUsers(): Promise<UserListItemDto[]> {
+  return apiFetch<UserListItemDto[]>('/api/users/deleted');
+}
+
+export function restoreUser(id: number): Promise<PublicUserDto> {
+  return apiFetch<PublicUserDto>(`/api/users/${id}/restore`, { method: 'POST' });
+}

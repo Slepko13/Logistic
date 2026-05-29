@@ -1,4 +1,5 @@
 import UsersTable from '@/components/users/UsersTable';
+import DeletedUsersTable from '@/components/users/DeletedUsersTable';
 import EditUserDialog from '@/components/users/EditUserDialog';
 import CreateUserDialog from '@/components/users/CreateUserDialog';
 import PageLoader from '@/components/common/PageLoader';
@@ -7,6 +8,13 @@ import { Button } from '@/components/ui/button';
 import { PlusIcon } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useAdminUsers } from '@/hooks/useAdminUsers';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 
 export default function AdminUsersPage() {
   const { user, isAdmin } = useAuth();
@@ -33,6 +41,11 @@ export default function AdminUsersPage() {
     handleCreateUser,
     creatingUser,
     createError,
+    handleToggleDriverStatus,
+    togglingDriver,
+    deletedUsers,
+    handleRestoreUser,
+    restoringUser,
   } = useAdminUsers();
 
   const confirmConfig =
@@ -63,7 +76,7 @@ export default function AdminUsersPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <h1 className="text-2xl font-bold tracking-tight">Користувачі</h1>
+        <h2 className="text-xl font-bold tracking-tight">Користувачі</h2>
         <Button onClick={() => setCreateDialogOpen(true)}>
           <PlusIcon className="mr-2 h-4 w-4 text-emerald-400" />
           Додати користувача
@@ -77,8 +90,35 @@ export default function AdminUsersPage() {
         onDeleteRequest={openDeleteConfirm}
         onEditRequest={openEditDialog}
         onPromoteRequest={openPromoteConfirm}
+        onToggleDriverRequest={handleToggleDriverStatus}
         actionError={usersActionError}
+        togglingDriver={togglingDriver}
       />
+
+      {isAdmin && deletedUsers.length > 0 && (
+        <Card className="min-w-0 overflow-hidden">
+          <Accordion type="single" collapsible className="w-full">
+            <AccordionItem value="deleted-users" className="border-none">
+              <AccordionTrigger className="px-6 pt-0 pb-0 hover:no-underline hover:bg-transparent">
+                <CardHeader className="px-0 py-0 text-left w-full border-none">
+                  <CardTitle className="text-lg font-semibold tracking-tight">
+                    Видалені користувачі ({deletedUsers.length})
+                  </CardTitle>
+                </CardHeader>
+              </AccordionTrigger>
+              <AccordionContent className="px-6 pb-0 pt-6 [&>div]:pb-0">
+                <CardContent className="px-0 py-0 min-w-0">
+                  <DeletedUsersTable
+                    users={deletedUsers}
+                    onRestoreRequest={handleRestoreUser}
+                    restoringUser={restoringUser}
+                  />
+                </CardContent>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+        </Card>
+      )}
 
       <EditUserDialog
         open={!!editingUser}

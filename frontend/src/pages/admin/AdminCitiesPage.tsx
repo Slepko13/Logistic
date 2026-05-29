@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import { Plus, Edit, Trash2 } from 'lucide-react';
+import { Plus, Pencil, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -76,7 +76,7 @@ export default function AdminCitiesPage() {
         </Button>
       </div>
 
-      <div className="rounded-md border bg-card max-w-2xl">
+      <div className="rounded-xl border bg-card overflow-x-auto shadow-sm">
         <Table>
           <TableHeader>
             <TableRow>
@@ -91,14 +91,21 @@ export default function AdminCitiesPage() {
                 <TableCell className="font-medium text-muted-foreground">{c.id}</TableCell>
                 <TableCell className="font-medium">{c.name}</TableCell>
                 <TableCell className="text-right">
-                  <div className="flex justify-end gap-1">
-                    <Button variant="ghost" size="icon" onClick={() => handleOpenModal(c)}>
-                      <Edit className="w-4 h-4" />
+                  <div className="flex flex-wrap justify-end gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleOpenModal(c)}
+                      title="Редагувати місто"
+                    >
+                      <Pencil className="w-4 h-4" />
                     </Button>
                     <Button
-                      variant="ghost"
-                      size="icon"
-                      className="text-destructive hover:bg-destructive/10"
+                      type="button"
+                      variant="destructive"
+                      size="sm"
+                      title="Видалити місто"
                       onClick={() => {
                         setCityToDelete(c.id);
                         setDeleteConfirmOpen(true);

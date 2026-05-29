@@ -35,7 +35,7 @@ import {
   UserPlus,
   Trash2,
   User,
-  Edit,
+  Pencil,
   Users,
   Phone,
   Package,
@@ -432,10 +432,9 @@ export default function TripDetailPage() {
 
   const isClosed = trip.status === 'completed';
 
-  // Filter available drivers (users with role 'driver' or 'admin' who are not already added)
+  // Filter available drivers (users where is_driver is true and who are not already added)
   const availableDrivers = allUsers?.filter(
-    (u) =>
-      (u.role === 'driver' || u.role === 'admin') && !trip.drivers.some((d) => d.user_id === u.id),
+    (u) => u.is_driver && !trip.drivers.some((d) => d.user_id === u.id),
   );
 
   return (
@@ -478,9 +477,10 @@ export default function TripDetailPage() {
                 </div>
                 {user?.role === 'admin' && !isClosed && (
                   <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                    type="button"
+                    variant="destructive"
+                    size="sm"
+                    title="Видалити водія"
                     onClick={() => removeDriverMutation.mutate(driver.user_id)}
                     disabled={removeDriverMutation.isPending}
                   >
@@ -558,13 +558,14 @@ export default function TripDetailPage() {
                   </Badge>
                   {!isClosed && (
                     <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-6 w-6 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity hover:text-destructive"
+                      type="button"
+                      variant="destructive"
+                      size="sm"
+                      className="h-7 w-7 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
                       onClick={() => handleDeleteSeatClick(seat.seat_number)}
                       title="Видалити місце повністю"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash2 className="w-3.5 h-3.5" />
                     </Button>
                   )}
                 </div>
@@ -618,7 +619,7 @@ export default function TripDetailPage() {
                     >
                       {isOccupied ? (
                         <>
-                          <Edit className="w-4 h-4 mr-2" /> Редагувати
+                          <Pencil className="w-4 h-4 mr-2" /> Редагувати
                         </>
                       ) : (
                         <>
@@ -628,9 +629,10 @@ export default function TripDetailPage() {
                     </Button>
                     {isOccupied && (
                       <Button
-                        variant="ghost"
-                        size="icon"
-                        className="text-destructive hover:bg-destructive/10"
+                        type="button"
+                        variant="destructive"
+                        size="sm"
+                        title="Звільнити місце"
                         onClick={() => handleClearSeatClick(seat.seat_number)}
                         disabled={updateSeatMutation.isPending}
                       >
@@ -740,10 +742,11 @@ export default function TripDetailPage() {
                     </div>
                     <Button
                       type="button"
-                      variant="ghost"
+                      variant="destructive"
                       size="icon"
+                      className="h-8 w-8 shrink-0"
+                      title="Видалити сумку"
                       onClick={() => handleRemoveBaggage(index)}
-                      className="text-destructive hover:bg-destructive/10 shrink-0"
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>
@@ -886,19 +889,21 @@ export default function TripDetailPage() {
                     </TableCell>
                     <TableCell className="text-right">
                       {!isClosed && (
-                        <div className="flex justify-end gap-1">
+                        <div className="flex flex-wrap justify-end gap-2">
                           <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8"
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            title="Редагувати передачу"
                             onClick={() => handleOpenParcelModal(parcel)}
                           >
-                            <Edit className="w-4 h-4" />
+                            <Pencil className="w-4 h-4" />
                           </Button>
                           <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-destructive hover:bg-destructive/10"
+                            type="button"
+                            variant="destructive"
+                            size="sm"
+                            title="Видалити передачу"
                             onClick={() => handleDeleteParcelClick(parcel.id)}
                           >
                             <Trash2 className="w-4 h-4" />

@@ -43,6 +43,14 @@ export class UsersController {
     return this.usersService.findAll();
   }
 
+  @Get('deleted')
+  @UseGuards(AdminGuard)
+  @ApiOperation({ summary: 'List all deleted users' })
+  @ApiResponse({ status: 200, type: [UserListItemDto] })
+  findDeletedUsers() {
+    return this.usersService.findDeletedUsers();
+  }
+
   @Delete(':id')
   @UseGuards(AdminGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
@@ -67,5 +75,21 @@ export class UsersController {
   @ApiResponse({ status: 200, type: PublicUserDto })
   promoteToAdmin(@Param('id', ParseIntPipe) id: number) {
     return this.usersService.promoteToAdmin(id);
+  }
+
+  @Patch(':id/toggle-driver-status')
+  @UseGuards(AdminGuard)
+  @ApiOperation({ summary: 'Toggle whether user is eligible to be a driver' })
+  @ApiResponse({ status: 200, type: PublicUserDto })
+  toggleDriverStatus(@Param('id', ParseIntPipe) id: number) {
+    return this.usersService.toggleDriverStatus(id);
+  }
+
+  @Post(':id/restore')
+  @UseGuards(AdminGuard)
+  @ApiOperation({ summary: 'Restore deleted user' })
+  @ApiResponse({ status: 200, type: PublicUserDto })
+  restoreUser(@Param('id', ParseIntPipe) id: number) {
+    return this.usersService.restoreUser(id);
   }
 }

@@ -3,10 +3,13 @@ import { useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import {
   useGetUsers,
+  useGetDeletedUsers,
   useCreateUserMutation,
   useUpdateUserMutation,
   useDeleteUserMutation,
   usePromoteToAdminMutation,
+  useToggleDriverStatusMutation,
+  useRestoreUserMutation,
 } from '@/api/services/users/queries';
 import { UserListItemDto, UpdateUserDto, CreateUserDto } from '@/api/services/users/requests';
 import { useAuth } from '@/context/AuthContext';
@@ -36,8 +39,22 @@ export function useAdminUsers() {
   // 2. Видалення користувача
   const deleteMutation = useDeleteUserMutation();
 
+  // 2.5. Відновлення користувача та Отримання видалених
+  const { data: deletedUsers = [], isLoading: loadingDeleted } = useGetDeletedUsers();
+  const restoreMutation = useRestoreUserMutation();
+
+  const handleRestoreUser = useCallback(
+    (userId: number) => {
+      restoreMutation.mutate(userId);
+    },
+    [restoreMutation],
+  );
+
   // 3. Підвищення до адміністратора
   const promoteMutation = usePromoteToAdminMutation();
+
+  // 3.5. Перемикання статусу водія
+  const toggleDriverMutation = useToggleDriverStatusMutation();
 
   // 4. Оновлення користувача
   const _updateMutation = useUpdateUserMutation();
@@ -96,6 +113,23 @@ export function useAdminUsers() {
     setEditError(null);
     setEditingUser(targetUser);
   }, []);
+
+  const handleToggleDriverStatus = useCallback(
+    (targetUser: UserListItemDto) => {
+      setUsersActionError(null);
+      toggleDriverMutation.mutate(targetUser.id, {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: ['adminUsers'] });
+        },
+        onError: (err: unknown) => {
+          const msg = err instanceof Error ? err.message : 'Помилка оновлення статусу водія';
+          setUsersActionError(msg);
+          toast.error(msg);
+        },
+      });
+    },
+    [toggleDriverMutation, queryClient],
+  );
 
   const handleConfirmAction = useCallback(() => {
     if (!confirm) return;
@@ -171,5 +205,11 @@ export function useAdminUsers() {
     handleCreateUser,
     creatingUser: createMutation.isPending,
     createError,
+    handleToggleDriverStatus,
+    togglingDriver: toggleDriverMutation.isPending,
+    deletedUsers,
+    loadingDeleted,
+    handleRestoreUser,
+    restoringUser: restoreMutation.isPending,
   };
 }

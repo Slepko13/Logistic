@@ -1,4 +1,4 @@
-import { Pencil, Shield, Trash2 } from 'lucide-react';
+import { Pencil, Shield, Trash2, Car } from 'lucide-react';
 import { ROLE_LABELS, UserRole, UserRoleType } from '@/constants/userRole';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -21,7 +21,9 @@ export interface UsersTableProps {
   onDeleteRequest: (user: UserListItemDto) => void;
   onEditRequest: (user: UserListItemDto) => void;
   onPromoteRequest: (user: UserListItemDto) => void;
+  onToggleDriverRequest: (user: UserListItemDto) => void;
   actionError?: string | null;
+  togglingDriver?: boolean;
 }
 
 export default function UsersTable({
@@ -31,19 +33,21 @@ export default function UsersTable({
   onDeleteRequest,
   onEditRequest,
   onPromoteRequest,
+  onToggleDriverRequest,
   actionError,
+  togglingDriver,
 }: UsersTableProps) {
   return (
-    <Card>
+    <Card className="min-w-0">
       <CardHeader>
         <CardTitle className="text-lg">Зареєстровані користувачі</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-3">
+      <CardContent className="space-y-3 min-w-0">
         {actionError && <p className="text-sm text-destructive">{actionError}</p>}
         {users.length === 0 ? (
           <p className="text-sm text-muted-foreground">Користувачів ще немає.</p>
         ) : (
-          <Table>
+          <Table className="[&_td]:whitespace-normal [&_th]:whitespace-normal">
             <TableHeader>
               <TableRow>
                 <TableHead>ID</TableHead>
@@ -51,6 +55,7 @@ export default function UsersTable({
                 <TableHead>Імʼя</TableHead>
                 <TableHead>Телефон</TableHead>
                 <TableHead>Роль</TableHead>
+                <TableHead>Водій</TableHead>
                 <TableHead>Дата реєстрації</TableHead>
                 {isAdmin && <TableHead className="text-right">Дії</TableHead>}
               </TableRow>
@@ -71,12 +76,20 @@ export default function UsersTable({
                         {ROLE_LABELS[u.role as UserRoleType] || u.role}
                       </Badge>
                     </TableCell>
+                    <TableCell>
+                      <Badge
+                        variant={u.is_driver ? 'outline' : 'secondary'}
+                        className={u.is_driver ? 'border-emerald-500 text-emerald-600' : ''}
+                      >
+                        {u.is_driver ? 'Так' : 'Ні'}
+                      </Badge>
+                    </TableCell>
                     <TableCell className="text-muted-foreground">
                       {formatDate(u.created_at)}
                     </TableCell>
                     {isAdmin && (
                       <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
+                        <div className="flex flex-wrap justify-end gap-2 min-w-[120px]">
                           {!isTargetAdmin && (
                             <>
                               <Button
@@ -100,6 +113,21 @@ export default function UsersTable({
                             aria-label="Редагувати користувача"
                           >
                             <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            type="button"
+                            variant={u.is_driver ? 'secondary' : 'outline'}
+                            size="sm"
+                            onClick={() => onToggleDriverRequest(u)}
+                            disabled={togglingDriver}
+                            title={u.is_driver ? 'Забрати права водія' : 'Зробити водієм'}
+                            aria-label={u.is_driver ? 'Забрати права водія' : 'Зробити водієм'}
+                          >
+                            {u.is_driver ? (
+                              <Car className="h-4 w-4 text-emerald-500" />
+                            ) : (
+                              <Car className="h-4 w-4 text-muted-foreground" />
+                            )}
                           </Button>
                           {!isTargetAdmin && (
                             <>

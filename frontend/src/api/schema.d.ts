@@ -74,6 +74,23 @@ export interface paths {
     patch: operations['UsersController_promoteToAdmin'];
     trace?: never;
   };
+  '/api/users/{id}/toggle-driver-status': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    /** Toggle whether user is eligible to be a driver */
+    patch: operations['UsersController_toggleDriverStatus'];
+    trace?: never;
+  };
   '/api/auth/login': {
     parameters: {
       query?: never;
@@ -117,7 +134,7 @@ export interface paths {
     };
     get: operations['TripsController_findAllActive'];
     put?: never;
-    post?: never;
+    post: operations['TripsController_createTrip'];
     delete?: never;
     options?: never;
     head?: never;
@@ -140,6 +157,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/trips/{id}/history': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['TripsController_getTripHistory'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/trips/{id}': {
     parameters: {
       query?: never;
@@ -150,7 +183,7 @@ export interface paths {
     get: operations['TripsController_findOne'];
     put?: never;
     post?: never;
-    delete?: never;
+    delete: operations['TripsController_deleteTrip'];
     options?: never;
     head?: never;
     patch: operations['TripsController_update'];
@@ -227,7 +260,7 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    get?: never;
+    get: operations['TripsController_getParcels'];
     put?: never;
     post: operations['TripsController_addParcel'];
     delete?: never;
@@ -379,6 +412,11 @@ export interface components {
        * @enum {string}
        */
       role: 'admin' | 'driver';
+      /**
+       * @description Чи може користувач бути призначений водієм на рейс
+       * @example true
+       */
+      is_driver: boolean;
     };
     UserListItemDto: {
       /** @example 1 */
@@ -394,6 +432,11 @@ export interface components {
        * @enum {string}
        */
       role: 'admin' | 'driver';
+      /**
+       * @description Чи може користувач бути призначений водієм на рейс
+       * @example true
+       */
+      is_driver: boolean;
       /** @example 2024-01-01T00:00:00.000Z */
       created_at: string;
     };
@@ -562,6 +605,27 @@ export interface operations {
       };
     };
   };
+  UsersController_toggleDriverStatus: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['PublicUserDto'];
+        };
+      };
+    };
+  };
   AuthController_login: {
     parameters: {
       query?: never;
@@ -621,9 +685,32 @@ export interface operations {
       };
     };
   };
-  TripsController_findAllCompleted: {
+  TripsController_createTrip: {
     parameters: {
       query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  TripsController_findAllCompleted: {
+    parameters: {
+      query: {
+        page: string;
+        limit: string;
+        search: string;
+        sortBy: string;
+        sortOrder: string;
+      };
       header?: never;
       path?: never;
       cookie?: never;
@@ -638,7 +725,52 @@ export interface operations {
       };
     };
   };
+  TripsController_getTripHistory: {
+    parameters: {
+      query: {
+        page: string;
+        limit: string;
+        search: string;
+        filterAction: string;
+        sortBy: string;
+        sortOrder: string;
+      };
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
   TripsController_findOne: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  TripsController_deleteTrip: {
     parameters: {
       query?: never;
       header?: never;
@@ -725,7 +857,9 @@ export interface operations {
   };
   TripsController_removeSeat: {
     parameters: {
-      query?: never;
+      query: {
+        version: number;
+      };
       header?: never;
       path: {
         id: number;
@@ -786,6 +920,32 @@ export interface operations {
       };
     };
   };
+  TripsController_getParcels: {
+    parameters: {
+      query: {
+        page: string;
+        limit: string;
+        search: string;
+        status: string;
+        sortBy: string;
+        sortOrder: string;
+      };
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
   TripsController_addParcel: {
     parameters: {
       query?: never;
@@ -811,7 +971,9 @@ export interface operations {
   };
   TripsController_removeParcel: {
     parameters: {
-      query?: never;
+      query: {
+        version: number;
+      };
       header?: never;
       path: {
         id: number;
@@ -855,7 +1017,9 @@ export interface operations {
   };
   TripsController_completeTrip: {
     parameters: {
-      query?: never;
+      query: {
+        version: number;
+      };
       header?: never;
       path: {
         id: number;

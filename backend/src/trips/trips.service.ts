@@ -252,8 +252,8 @@ export class TripsService {
       throw new NotFoundException('User not found');
     }
 
-    if (user.role !== 'driver' && user.role !== 'admin') {
-      throw new BadRequestException('User is not a driver');
+    if (!user.is_driver) {
+      throw new BadRequestException('Користувач не є водієм');
     }
 
     // Check if already added

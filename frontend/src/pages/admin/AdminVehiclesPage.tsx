@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import { Plus, Edit, Trash2 } from 'lucide-react';
+import { Plus, Pencil, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -77,7 +77,7 @@ export default function AdminVehiclesPage() {
         </Button>
       </div>
 
-      <div className="rounded-md border bg-card">
+      <div className="rounded-xl border bg-card overflow-x-auto shadow-sm">
         <Table>
           <TableHeader>
             <TableRow>
@@ -94,14 +94,21 @@ export default function AdminVehiclesPage() {
                 <TableCell className="font-medium">{v.name}</TableCell>
                 <TableCell>{v.plate_number || '—'}</TableCell>
                 <TableCell className="text-right">
-                  <div className="flex justify-end gap-1">
-                    <Button variant="ghost" size="icon" onClick={() => handleOpenModal(v)}>
-                      <Edit className="w-4 h-4" />
+                  <div className="flex flex-wrap justify-end gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleOpenModal(v)}
+                      title="Редагувати автобус"
+                    >
+                      <Pencil className="w-4 h-4" />
                     </Button>
                     <Button
-                      variant="ghost"
-                      size="icon"
-                      className="text-destructive hover:bg-destructive/10"
+                      type="button"
+                      variant="destructive"
+                      size="sm"
+                      title="Видалити автобус"
                       onClick={() => {
                         setVehicleToDelete(v.id);
                         setDeleteConfirmOpen(true);

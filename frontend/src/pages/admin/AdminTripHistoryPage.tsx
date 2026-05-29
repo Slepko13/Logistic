@@ -96,7 +96,7 @@ export default function AdminTripHistoryPage() {
         </div>
       </div>
 
-      <div className="rounded-md border bg-card overflow-x-auto">
+      <div className="rounded-xl border bg-card overflow-x-auto shadow-sm">
         <Table>
           <TableHeader>
             <TableRow>
@@ -162,14 +162,17 @@ export default function AdminTripHistoryPage() {
                   </div>
                 </TableCell>
                 <TableCell className="text-right">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-destructive hover:bg-destructive/10"
-                    onClick={(e) => handleDeleteClick(e, trip.id)}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
+                  <div className="flex flex-wrap justify-end gap-2">
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="sm"
+                      title="Видалити запис"
+                      onClick={(e) => handleDeleteClick(e, trip.id)}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
                 </TableCell>
               </TableRow>
             ))}

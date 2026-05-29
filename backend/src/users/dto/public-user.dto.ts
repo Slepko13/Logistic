@@ -15,6 +15,9 @@ export class PublicUserDto {
 
   @ApiProperty({ enum: ['admin', 'driver'], example: 'driver' })
   role!: string;
+
+  @ApiProperty({ example: true, description: 'Чи може користувач бути призначений водієм на рейс' })
+  is_driver!: boolean;
 }
 
 export class UserListItemDto extends PublicUserDto {

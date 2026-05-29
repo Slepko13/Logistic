@@ -6,6 +6,9 @@ import {
   updateUser,
   deleteUser,
   promoteToAdmin,
+  toggleDriverStatus,
+  getDeletedUsers,
+  restoreUser,
   UpdateUserDto,
 } from './requests';
 import toast from 'react-hot-toast';
@@ -63,5 +66,36 @@ export function usePromoteToAdminMutation() {
       toast.success('Користувача зроблено адміністратором');
     },
     onError: (e: Error) => toast.error(e.message || 'Помилка оновлення ролі'),
+  });
+}
+
+export function useToggleDriverStatusMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: toggleDriverStatus,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.USERS.ALL });
+      toast.success('Статус водія оновлено');
+    },
+    onError: (e: Error) => toast.error(e.message || 'Помилка оновлення статусу водія'),
+  });
+}
+
+export function useGetDeletedUsers() {
+  return useQuery({
+    queryKey: [...QUERY_KEYS.USERS.ALL, 'deleted'],
+    queryFn: getDeletedUsers,
+  });
+}
+
+export function useRestoreUserMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: restoreUser,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.USERS.ALL });
+      toast.success('Користувача успішно відновлено');
+    },
+    onError: (e: Error) => toast.error(e.message || 'Помилка відновлення користувача'),
   });
 }
