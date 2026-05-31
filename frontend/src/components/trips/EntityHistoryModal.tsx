@@ -4,7 +4,8 @@ import { format } from 'date-fns';
 import { uk } from 'date-fns/locale';
 import { Activity, Loader2 } from 'lucide-react';
 import { useGetTripAuditHistory } from '@/api/services/trips/queries';
-import { ACTION_MAP, getEventColor, DiffViewer } from './TripHistoryPanel';
+import { ACTION_MAP, getEventColor } from './TripHistoryPanel';
+import { DiffViewer } from './DiffViewer';
 import { TripHistory } from '@/api/services/trips/requests';
 
 interface EntityHistoryModalProps {
