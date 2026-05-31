@@ -302,7 +302,7 @@ export default function AdminTripsPage() {
                       <SelectValue placeholder="Оберіть місто" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="none">-- Оберіть місто --</SelectItem>
+                      <SelectItem value="none">Оберіть місто</SelectItem>
                       {cities?.map((c) => (
                         <SelectItem key={c.id} value={c.name}>
                           {c.name}
@@ -323,7 +323,7 @@ export default function AdminTripsPage() {
                       <SelectValue placeholder="Оберіть місто" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="none">-- Оберіть місто --</SelectItem>
+                      <SelectItem value="none">Оберіть місто</SelectItem>
                       {cities?.map((c) => (
                         <SelectItem key={c.id} value={c.name}>
                           {c.name}

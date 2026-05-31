@@ -186,7 +186,7 @@ export default function DashboardPage() {
                         <SelectValue placeholder="Місто" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="none">-- Місто --</SelectItem>
+                        <SelectItem value="none">Місто</SelectItem>
                         {cities?.map((city) => (
                           <SelectItem key={city.id} value={city.name}>
                             {city.name}
@@ -237,7 +237,7 @@ export default function DashboardPage() {
                         <SelectValue placeholder="Місто" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="none">-- Місто --</SelectItem>
+                        <SelectItem value="none">Місто</SelectItem>
                         {cities?.map((city) => (
                           <SelectItem key={city.id} value={city.name}>
                             {city.name}
