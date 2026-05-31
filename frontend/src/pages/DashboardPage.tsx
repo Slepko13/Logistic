@@ -164,38 +164,15 @@ export default function DashboardPage() {
               </CardHeader>
 
               <CardContent className="pt-4 flex-grow space-y-5">
-                <div className="space-y-3">
-                  <div className="flex gap-2 items-center">
-                    <MapPin className="w-4 h-4 text-green-500" />
-                    <span className="text-sm font-semibold">Звідки</span>
-                  </div>
-                  <div className="grid grid-cols-[minmax(0,1fr)_150px] gap-2">
-                    <Select
-                      value={trip.departure_city || 'none'}
-                      onValueChange={(value) =>
-                        updateMutation.mutate({
-                          id: trip.id,
-                          payload: {
-                            departure_city: value === 'none' ? '' : value,
-                            version: trip.version,
-                          },
-                        })
-                      }
-                    >
-                      <SelectTrigger className="h-9 w-full">
-                        <SelectValue placeholder="Місто" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="none">Місто</SelectItem>
-                        {cities?.map((city) => (
-                          <SelectItem key={city.id} value={city.name}>
-                            {city.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <div className="flex gap-2 items-center">
+                      <MapPin className="w-4 h-4 text-green-500" />
+                      <span className="text-sm font-semibold">Звідки</span>
+                    </div>
                     <Input
                       type="date"
+                      className="w-[130px] h-8 text-xs py-0 px-2"
                       value={
                         trip.departure_date
                           ? new Date(trip.departure_date).toISOString().slice(0, 10)
@@ -213,40 +190,41 @@ export default function DashboardPage() {
                       }}
                     />
                   </div>
+                  <Select
+                    value={trip.departure_city || 'none'}
+                    onValueChange={(value) =>
+                      updateMutation.mutate({
+                        id: trip.id,
+                        payload: {
+                          departure_city: value === 'none' ? '' : value,
+                          version: trip.version,
+                        },
+                      })
+                    }
+                  >
+                    <SelectTrigger className="h-9 w-full">
+                      <SelectValue placeholder="Місто" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Місто</SelectItem>
+                      {cities?.map((city) => (
+                        <SelectItem key={city.id} value={city.name}>
+                          {city.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
-                <div className="space-y-3">
-                  <div className="flex gap-2 items-center">
-                    <MapPin className="w-4 h-4 text-red-500" />
-                    <span className="text-sm font-semibold">Куди</span>
-                  </div>
-                  <div className="grid grid-cols-[minmax(0,1fr)_150px] gap-2">
-                    <Select
-                      value={trip.arrival_city || 'none'}
-                      onValueChange={(value) =>
-                        updateMutation.mutate({
-                          id: trip.id,
-                          payload: {
-                            arrival_city: value === 'none' ? '' : value,
-                            version: trip.version,
-                          },
-                        })
-                      }
-                    >
-                      <SelectTrigger className="h-9 w-full">
-                        <SelectValue placeholder="Місто" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="none">Місто</SelectItem>
-                        {cities?.map((city) => (
-                          <SelectItem key={city.id} value={city.name}>
-                            {city.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <div className="flex gap-2 items-center">
+                      <MapPin className="w-4 h-4 text-red-500" />
+                      <span className="text-sm font-semibold">Куди</span>
+                    </div>
                     <Input
                       type="date"
+                      className="w-[130px] h-8 text-xs py-0 px-2"
                       value={
                         trip.arrival_date
                           ? new Date(trip.arrival_date).toISOString().slice(0, 10)
@@ -269,6 +247,30 @@ export default function DashboardPage() {
                       }}
                     />
                   </div>
+                  <Select
+                    value={trip.arrival_city || 'none'}
+                    onValueChange={(value) =>
+                      updateMutation.mutate({
+                        id: trip.id,
+                        payload: {
+                          arrival_city: value === 'none' ? '' : value,
+                          version: trip.version,
+                        },
+                      })
+                    }
+                  >
+                    <SelectTrigger className="h-9 w-full">
+                      <SelectValue placeholder="Місто" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Місто</SelectItem>
+                      {cities?.map((city) => (
+                        <SelectItem key={city.id} value={city.name}>
+                          {city.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="flex gap-4 pt-3 border-t border-border/50">
