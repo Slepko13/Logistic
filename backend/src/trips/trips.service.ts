@@ -141,7 +141,7 @@ export class TripsService {
     });
 
     if (!trip) {
-      throw new NotFoundException('Trip not found');
+      throw new NotFoundException('Рейс не знайдено');
     }
 
     return trip;
@@ -154,7 +154,7 @@ export class TripsService {
       });
 
       if (!trip) {
-        throw new NotFoundException(`Trip with ID ${id} not found`);
+        throw new NotFoundException(`Рейс з ID ${id} не знайдено`);
       }
 
       if (updateTripDto.version !== undefined && trip.version !== updateTripDto.version) {
@@ -249,7 +249,7 @@ export class TripsService {
     });
 
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException('Користувача не знайдено');
     }
 
     if (!user.is_driver) {
@@ -303,7 +303,7 @@ export class TripsService {
     });
 
     if (!existing) {
-      throw new NotFoundException('Driver not found on this trip');
+      throw new NotFoundException('Водія не знайдено на цьому рейсі');
     }
 
     return this.prisma.$transaction(async (tx) => {
@@ -368,7 +368,7 @@ export class TripsService {
       });
 
       if (!seat) {
-        throw new NotFoundException('Seat not found');
+        throw new NotFoundException('Місце не знайдено');
       }
 
       if (version !== undefined && seat.version !== version) {
@@ -397,7 +397,7 @@ export class TripsService {
       });
 
       if (!seat) {
-        throw new NotFoundException('Seat not found');
+        throw new NotFoundException('Місце не знайдено');
       }
 
       if (dto.version !== undefined && seat.version !== dto.version) {
@@ -572,7 +572,7 @@ export class TripsService {
       });
 
       if (!parcel || parcel.trip_id !== tripId) {
-        throw new NotFoundException('Parcel not found');
+        throw new NotFoundException('Посилку не знайдено');
       }
 
       if (dto.version !== undefined && parcel.version !== dto.version) {
@@ -637,7 +637,7 @@ export class TripsService {
       });
 
       if (!parcel || parcel.trip_id !== tripId) {
-        throw new NotFoundException('Parcel not found');
+        throw new NotFoundException('Посилку не знайдено');
       }
 
       if (version !== undefined && parcel.version !== version) {
@@ -677,7 +677,7 @@ export class TripsService {
   async completeTrip(tripId: number, updatedById: number, version?: number) {
     return this.prisma.$transaction(async (tx) => {
       const trip = await tx.trip.findUnique({ where: { id: tripId } });
-      if (!trip) throw new NotFoundException('Trip not found');
+      if (!trip) throw new NotFoundException('Рейс не знайдено');
 
       if (version !== undefined && trip.version !== version) {
         throw new ConflictException(

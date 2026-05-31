@@ -15,7 +15,7 @@ export class CitiesService {
     } catch (err) {
       const e = err as { code?: string };
       if (e.code === 'P2002') {
-        throw new ConflictException('City with this name already exists');
+        throw new ConflictException('Місто з такою назвою вже існує');
       }
       throw e;
     }
@@ -32,7 +32,7 @@ export class CitiesService {
       where: { id },
     });
     if (!city) {
-      throw new NotFoundException(`City with ID ${id} not found`);
+      throw new NotFoundException(`Місто з ID ${id} не знайдено`);
     }
     return city;
   }
@@ -47,7 +47,7 @@ export class CitiesService {
     } catch (err) {
       const e = err as { code?: string };
       if (e.code === 'P2002') {
-        throw new ConflictException('City with this name already exists');
+        throw new ConflictException('Місто з такою назвою вже існує');
       }
       throw e;
     }

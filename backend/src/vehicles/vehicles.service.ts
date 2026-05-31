@@ -25,7 +25,7 @@ export class VehiclesService {
       where: { id },
     });
     if (!vehicle) {
-      throw new NotFoundException(`Vehicle with ID ${id} not found`);
+      throw new NotFoundException(`Автобус з ID ${id} не знайдено`);
     }
     return vehicle;
   }
