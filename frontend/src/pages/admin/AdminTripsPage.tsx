@@ -50,6 +50,7 @@ export default function AdminTripsPage() {
   const [editingTripId, setEditingTripId] = useState<number | null>(null);
   const [selectedDriverToAdd, setSelectedDriverToAdd] = useState<string>('');
   const [addVehicleId, setAddVehicleId] = useState<string>('');
+  const [addSeatsCount, setAddSeatsCount] = useState<number>(7);
 
   const [form, setForm] = useState<{
     vehicle_id: string;
@@ -94,12 +95,16 @@ export default function AdminTripsPage() {
   const handleCreateSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!addVehicleId) return;
-    createMutation.mutate(parseInt(addVehicleId), {
-      onSuccess: () => {
-        setIsAddModalOpen(false);
-        setAddVehicleId('');
+    createMutation.mutate(
+      { vehicleId: parseInt(addVehicleId), seatsCount: addSeatsCount },
+      {
+        onSuccess: () => {
+          setIsAddModalOpen(false);
+          setAddVehicleId('');
+          setAddSeatsCount(7);
+        },
       },
-    });
+    );
   };
 
   const handleDeleteClick = (id: number) => {
@@ -341,6 +346,7 @@ export default function AdminTripsPage() {
                     id="t_dep_date"
                     type="date"
                     value={form.departure_date ? form.departure_date.slice(0, 10) : ''}
+                    max={form.arrival_date ? form.arrival_date.slice(0, 10) : ''}
                     onChange={(e) => setForm({ ...form, departure_date: e.target.value })}
                   />
                 </div>
@@ -450,6 +456,17 @@ export default function AdminTripsPage() {
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Кількість місць</Label>
+              <Input
+                type="number"
+                min={1}
+                max={100}
+                required
+                value={addSeatsCount}
+                onChange={(e) => setAddSeatsCount(parseInt(e.target.value) || 1)}
+              />
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setIsAddModalOpen(false)}>

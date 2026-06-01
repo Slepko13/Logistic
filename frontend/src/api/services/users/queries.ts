@@ -28,7 +28,6 @@ export function useCreateUserMutation() {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.USERS.ALL });
       toast.success('Користувача додано успішно');
     },
-    onError: (e: Error) => toast.error(e.message || 'Помилка додавання користувача'),
   });
 }
 
@@ -41,7 +40,6 @@ export function useUpdateUserMutation() {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.USERS.ALL });
       toast.success('Користувача оновлено');
     },
-    onError: (e: Error) => toast.error(e.message || 'Помилка оновлення користувача'),
   });
 }
 
@@ -53,7 +51,6 @@ export function useDeleteUserMutation() {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.USERS.ALL });
       toast.success('Користувача видалено');
     },
-    onError: (e: Error) => toast.error(e.message || 'Помилка видалення користувача'),
   });
 }
 
@@ -65,7 +62,6 @@ export function usePromoteToAdminMutation() {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.USERS.ALL });
       toast.success('Користувача зроблено адміністратором');
     },
-    onError: (e: Error) => toast.error(e.message || 'Помилка оновлення ролі'),
   });
 }
 
@@ -77,7 +73,6 @@ export function useToggleDriverStatusMutation() {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.USERS.ALL });
       toast.success('Статус водія оновлено');
     },
-    onError: (e: Error) => toast.error(e.message || 'Помилка оновлення статусу водія'),
   });
 }
 
@@ -96,6 +91,5 @@ export function useRestoreUserMutation() {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.USERS.ALL });
       toast.success('Користувача успішно відновлено');
     },
-    onError: (e: Error) => toast.error(e.message || 'Помилка відновлення користувача'),
   });
 }

@@ -79,7 +79,8 @@ export function useCreateTripMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (vehicleId: number) => createTrip(vehicleId),
+    mutationFn: ({ vehicleId, seatsCount }: { vehicleId: number; seatsCount?: number }) =>
+      createTrip(vehicleId, seatsCount),
     onSuccess: () => {
       toast.success('Рейс успішно створено');
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.TRIPS.ALL });
@@ -133,7 +134,6 @@ export function useCompleteTripMutation() {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.TRIPS.DETAIL(tripId) });
       toast.success('Рейс завершено');
     },
-    onError: (e: Error) => toast.error(e.message || 'Помилка завершення рейсу'),
   });
 }
 
@@ -146,7 +146,6 @@ export function useAddTripDriverMutation() {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.TRIPS.DETAIL(tripId) });
       toast.success('Водія додано');
     },
-    onError: (e: Error) => toast.error(e.message || 'Помилка додавання водія'),
   });
 }
 
@@ -159,7 +158,6 @@ export function useRemoveTripDriverMutation() {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.TRIPS.DETAIL(tripId) });
       toast.success('Водія видалено');
     },
-    onError: (e: Error) => toast.error(e.message || 'Помилка видалення водія'),
   });
 }
 
@@ -171,7 +169,6 @@ export function useAddTripSeatMutation() {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.TRIPS.DETAIL(tripId) });
       toast.success('Нове місце додано');
     },
-    onError: (e: Error) => toast.error(e.message || 'Помилка додавання місця'),
   });
 }
 
@@ -190,7 +187,6 @@ export function useUpdateTripSeatMutation() {
     onSuccess: (_, { tripId }) => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.TRIPS.DETAIL(tripId) });
     },
-    onError: (e: Error) => toast.error(e.message || 'Помилка оновлення місця'),
   });
 }
 
@@ -209,7 +205,6 @@ export function useRemoveTripSeatMutation() {
     onSuccess: (_, { tripId }) => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.TRIPS.DETAIL(tripId) });
     },
-    onError: (e: Error) => toast.error(e.message || 'Помилка видалення місця'),
   });
 }
 
@@ -227,7 +222,6 @@ export function useAddTripParcelMutation() {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.TRIPS.DETAIL(tripId) });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.TRIPS.PARCELS(tripId) });
     },
-    onError: (e: Error) => toast.error(e.message || 'Помилка додавання передачі'),
   });
 }
 
@@ -247,7 +241,6 @@ export function useUpdateTripParcelMutation() {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.TRIPS.DETAIL(tripId) });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.TRIPS.PARCELS(tripId) });
     },
-    onError: (e: Error) => toast.error(e.message || 'Помилка оновлення передачі'),
   });
 }
 
@@ -267,6 +260,5 @@ export function useRemoveTripParcelMutation() {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.TRIPS.DETAIL(tripId) });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.TRIPS.PARCELS(tripId) });
     },
-    onError: (e: Error) => toast.error(e.message || 'Помилка видалення передачі'),
   });
 }

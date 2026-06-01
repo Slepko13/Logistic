@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { cn } from '@/lib/utils';
 
 import { useNavigate } from 'react-router-dom';
 import PageLoader from '@/components/common/PageLoader';
@@ -33,10 +34,13 @@ export default function DashboardPage() {
 
   const updateMutation = useUpdateTripMutation();
 
+  const [errorTripIds, setErrorTripIds] = useState<Set<number>>(new Set());
+
   const applyGlobalSettings = async () => {
     if (!trips) return;
+    setErrorTripIds(new Set());
 
-    const promises: Promise<unknown>[] = [];
+    const promises: { tripId: number; p: Promise<unknown> }[] = [];
     trips.forEach((trip) => {
       const payload: Record<string, unknown> = {};
       if (globalDepDate) payload.departure_date = new Date(globalDepDate).toISOString();
@@ -46,16 +50,29 @@ export default function DashboardPage() {
 
       if (Object.keys(payload).length > 0) {
         payload.version = trip.version;
-        promises.push(updateMutation.mutateAsync({ id: trip.id, payload }));
+        promises.push({
+          tripId: trip.id,
+          p: updateMutation.mutateAsync({ id: trip.id, payload }),
+        });
       }
     });
 
     if (promises.length > 0) {
-      try {
-        await Promise.all(promises);
-        toast.success(`Оновлено дані для ${promises.length} рейсів`);
-      } catch {
-        toast.error('Помилка при оновленні деяких рейсів');
+      const results = await Promise.allSettled(promises.map((x) => x.p));
+      const failedIds = new Set<number>();
+      let successCount = 0;
+
+      results.forEach((res, i) => {
+        if (res.status === 'rejected') failedIds.add(promises[i].tripId);
+        else successCount++;
+      });
+
+      if (failedIds.size > 0) {
+        setErrorTripIds(failedIds);
+        toast.error(`Не вдалося оновити ${failedIds.size} рейсів (ймовірно, конфлікт дат)`);
+      }
+      if (successCount > 0) {
+        toast.success(`Оновлено дані для ${successCount} рейсів`);
       }
     }
   };
@@ -71,7 +88,7 @@ export default function DashboardPage() {
       </div>
 
       <Card className="bg-muted/30 border-dashed">
-        <CardContent className="pt-6 flex flex-wrap items-end gap-4">
+        <CardContent className="pt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 items-end gap-4">
           <div className="space-y-2 flex-grow min-w-[150px]">
             <label className="text-sm font-medium text-muted-foreground">
               Загальне місто відправлення
@@ -93,7 +110,7 @@ export default function DashboardPage() {
               </SelectContent>
             </Select>
           </div>
-          <div className="space-y-2 flex-grow min-w-[150px]">
+          <div className="space-y-2">
             <label className="text-sm font-medium text-muted-foreground">
               Загальне місто прибуття
             </label>
@@ -114,17 +131,18 @@ export default function DashboardPage() {
               </SelectContent>
             </Select>
           </div>
-          <div className="space-y-2 flex-grow min-w-[150px]">
+          <div className="space-y-2">
             <label className="text-sm font-medium text-muted-foreground">
               Загальна дата відправлення
             </label>
             <Input
               type="date"
               value={globalDepDate}
+              max={globalArrDate || ''}
               onChange={(e) => setGlobalDepDate(e.target.value)}
             />
           </div>
-          <div className="space-y-2 flex-grow min-w-[150px]">
+          <div className="space-y-2">
             <label className="text-sm font-medium text-muted-foreground">
               Загальна дата прибуття
             </label>
@@ -136,12 +154,12 @@ export default function DashboardPage() {
             />
           </div>
           <Button
-            className="w-full sm:w-auto mt-2 sm:mt-0"
+            className="w-full h-9 px-4 whitespace-nowrap"
             onClick={applyGlobalSettings}
             disabled={!globalDepDate && !globalArrDate && !globalDepCity && !globalArrCity}
           >
-            <Check className="w-4 h-4 mr-2 text-emerald-400" />
-            Застосувати до всіх
+            <Check className="w-4 h-4 mr-2 text-emerald-400 shrink-0" />
+            <span className="truncate">Застосувати</span>
           </Button>
         </CardContent>
       </Card>
@@ -172,21 +190,42 @@ export default function DashboardPage() {
                     </div>
                     <Input
                       type="date"
-                      className="w-[130px] h-8 text-xs py-0 px-2"
+                      className={cn(
+                        'w-[130px] h-8 text-xs py-0 px-2',
+                        errorTripIds.has(trip.id) &&
+                          'border-red-500 focus-visible:ring-red-500 text-red-600',
+                      )}
                       value={
                         trip.departure_date
                           ? new Date(trip.departure_date).toISOString().slice(0, 10)
                           : ''
                       }
+                      max={
+                        trip.arrival_date
+                          ? new Date(trip.arrival_date).toISOString().slice(0, 10)
+                          : ''
+                      }
                       onChange={(e) => {
                         const val = e.target.value;
-                        updateMutation.mutate({
-                          id: trip.id,
-                          payload: {
-                            departure_date: val ? new Date(val).toISOString() : null,
-                            version: trip.version,
+                        updateMutation.mutate(
+                          {
+                            id: trip.id,
+                            payload: {
+                              departure_date: val ? new Date(val).toISOString() : null,
+                              version: trip.version,
+                            },
                           },
-                        });
+                          {
+                            onError: () => setErrorTripIds((prev) => new Set(prev).add(trip.id)),
+                            onSuccess: () => {
+                              setErrorTripIds((prev) => {
+                                const next = new Set(prev);
+                                next.delete(trip.id);
+                                return next;
+                              });
+                            },
+                          },
+                        );
                       }}
                     />
                   </div>
@@ -224,7 +263,11 @@ export default function DashboardPage() {
                     </div>
                     <Input
                       type="date"
-                      className="w-[130px] h-8 text-xs py-0 px-2"
+                      className={cn(
+                        'w-[130px] h-8 text-xs py-0 px-2',
+                        errorTripIds.has(trip.id) &&
+                          'border-red-500 focus-visible:ring-red-500 text-red-600',
+                      )}
                       value={
                         trip.arrival_date
                           ? new Date(trip.arrival_date).toISOString().slice(0, 10)
@@ -237,13 +280,25 @@ export default function DashboardPage() {
                       }
                       onChange={(e) => {
                         const val = e.target.value;
-                        updateMutation.mutate({
-                          id: trip.id,
-                          payload: {
-                            arrival_date: val ? new Date(val).toISOString() : null,
-                            version: trip.version,
+                        updateMutation.mutate(
+                          {
+                            id: trip.id,
+                            payload: {
+                              arrival_date: val ? new Date(val).toISOString() : null,
+                              version: trip.version,
+                            },
                           },
-                        });
+                          {
+                            onError: () => setErrorTripIds((prev) => new Set(prev).add(trip.id)),
+                            onSuccess: () => {
+                              setErrorTripIds((prev) => {
+                                const next = new Set(prev);
+                                next.delete(trip.id);
+                                return next;
+                              });
+                            },
+                          },
+                        );
                       }}
                     />
                   </div>

@@ -24,7 +24,6 @@ export function useCreateVehicleMutation() {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.VEHICLES.ALL });
       toast.success('Автобус додано');
     },
-    onError: (e: Error) => toast.error(e.message || 'Помилка додавання автобуса'),
   });
 }
 
@@ -37,7 +36,6 @@ export function useUpdateVehicleMutation() {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.VEHICLES.ALL });
       toast.success('Автобус оновлено');
     },
-    onError: (e: Error) => toast.error(e.message || 'Помилка оновлення автобуса'),
   });
 }
 
@@ -49,6 +47,5 @@ export function useDeleteVehicleMutation() {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.VEHICLES.ALL });
       toast.success('Автобус видалено');
     },
-    onError: (e: Error) => toast.error(e.message || 'Помилка видалення автобуса'),
   });
 }

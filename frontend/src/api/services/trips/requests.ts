@@ -183,10 +183,10 @@ export async function getTripAuditHistory(
   return apiFetch<PaginatedHistory>(url);
 }
 
-export async function createTrip(vehicle_id: number): Promise<Trip> {
+export async function createTrip(vehicle_id: number, seatsCount?: number): Promise<Trip> {
   return apiFetch<Trip>(ENDPOINTS.TRIPS.CREATE, {
     method: 'POST',
-    body: JSON.stringify({ vehicle_id }),
+    body: JSON.stringify({ vehicle_id, seatsCount }),
   });
 }
 

@@ -18,7 +18,6 @@ export function useCreateCityMutation() {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.CITIES.ALL });
       toast.success('Місто додано успішно');
     },
-    onError: (e: Error) => toast.error(e.message || 'Помилка додавання міста'),
   });
 }
 
@@ -31,7 +30,6 @@ export function useUpdateCityMutation() {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.CITIES.ALL });
       toast.success('Місто оновлено успішно');
     },
-    onError: (e: Error) => toast.error(e.message || 'Помилка оновлення міста'),
   });
 }
 
@@ -43,6 +41,5 @@ export function useDeleteCityMutation() {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.CITIES.ALL });
       toast.success('Місто видалено успішно');
     },
-    onError: (e: Error) => toast.error(e.message || 'Помилка видалення міста'),
   });
 }

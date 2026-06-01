@@ -2,6 +2,7 @@ import 'dotenv/config'; // Обов'язково першим рядком, що
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
+import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import { AppModule } from './app.module';
@@ -36,6 +37,9 @@ async function bootstrap() {
 
   // Валідація DTO
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }));
+
+  // Глобальний обробник помилок (ховає Prisma-помилки від клієнта)
+  app.useGlobalFilters(new AllExceptionsFilter());
 
   // LOGGING: Логування всіх вхідних запитів у консоль (дуже корисно для відладки)
   app.use(morgan('dev'));

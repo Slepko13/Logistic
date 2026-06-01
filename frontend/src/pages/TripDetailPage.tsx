@@ -849,7 +849,7 @@ export default function TripDetailPage() {
         open={completeTripConfirmOpen}
         onOpenChange={setCompleteTripConfirmOpen}
         title="Завершити рейс?"
-        description="Ви дійсно хочете завершити цей рейс? Поточний рейс буде переведено в архів, а для цього автобуса буде створено новий пустий рейс з 7 місцями."
+        description="Ви дійсно хочете завершити цей рейс? Поточний рейс буде переведено в архів (історію)."
         confirmLabel="Завершити рейс"
         confirmVariant="default"
         onConfirm={executeCompleteTrip}
