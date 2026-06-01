@@ -1,8 +1,5 @@
-import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-
 import PageLoader from '@/components/common/PageLoader';
-import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -46,397 +43,111 @@ import {
   CheckCircle,
   Activity,
 } from 'lucide-react';
-import toast from 'react-hot-toast';
-import {
-  useGetTrip,
-  useAddTripDriverMutation,
-  useRemoveTripDriverMutation,
-  useUpdateTripSeatMutation,
-  useAddTripSeatMutation,
-  useRemoveTripSeatMutation,
-  useAddTripParcelMutation,
-  useUpdateTripParcelMutation,
-  useRemoveTripParcelMutation,
-  useCompleteTripMutation,
-  useGetTripParcels,
-} from '@/api/services/trips/queries';
-import { TripSeat, TripParcel } from '@/api/services/trips/requests';
-import { useGetUsers } from '@/api/services/users/queries';
 import { TripHistoryPanel } from '@/components/trips/TripHistoryPanel';
 import { EntityHistoryModal } from '@/components/trips/EntityHistoryModal';
 import { CollapsibleCard } from '@/components/common/CollapsibleCard';
+import { useTripDetail } from '@/hooks/useTripDetail';
 
 export default function TripDetailPage() {
   const { id } = useParams();
   const tripId = Number(id);
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const [selectedDriverId, setSelectedDriverId] = useState<string>('');
 
-  // Seat modal state
-  const [isSeatModalOpen, setIsSeatModalOpen] = useState(false);
-  const [editingSeatNumber, setEditingSeatNumber] = useState<number | null>(null);
-  const [seatForm, setSeatForm] = useState<{
-    first_name: string;
-    last_name: string;
-    phone: string;
-    boarding_address: string;
-    baggage_info: { name: string; weight: number }[];
-  }>({ first_name: '', last_name: '', phone: '', boarding_address: '', baggage_info: [] });
+  const {
+    currentUser: user,
+    trip,
+    isLoadingTrip,
+    isClosed,
 
-  // Confirm modals state
-  const [clearSeatConfirmOpen, setClearSeatConfirmOpen] = useState(false);
-  const [seatToClear, setSeatToClear] = useState<number | null>(null);
+    // Drivers
+    selectedDriverId,
+    setSelectedDriverId,
+    availableDrivers,
+    addDriver,
+    removeDriver,
 
-  const [deleteSeatConfirmOpen, setDeleteSeatConfirmOpen] = useState(false);
-  const [seatToDelete, setSeatToDelete] = useState<number | null>(null);
+    // Seats
+    isSeatModalOpen,
+    setIsSeatModalOpen,
+    editingSeatNumber,
+    seatForm,
+    setSeatForm,
+    handleOpenSeatModal,
+    handleAddBaggage,
+    handleRemoveBaggage,
+    handleBaggageChange,
+    handleSaveSeat,
+    addSeat,
 
-  // Parcel modal state
-  const [isParcelModalOpen, setIsParcelModalOpen] = useState(false);
-  const [editingParcelId, setEditingParcelId] = useState<number | null>(null);
+    // Clear Seat Confirmation
+    clearSeatConfirmOpen,
+    setClearSeatConfirmOpen,
+    handleClearSeatClick,
+    executeClearSeat,
 
-  // Entity history modal state
-  const [isEntityHistoryOpen, setIsEntityHistoryOpen] = useState(false);
-  const [entityHistorySearchQuery, setEntityHistorySearchQuery] = useState<string | null>(null);
-  const [entityHistoryName, setEntityHistoryName] = useState<string>('');
+    // Delete Seat Confirmation
+    deleteSeatConfirmOpen,
+    setDeleteSeatConfirmOpen,
+    handleDeleteSeatClick,
+    executeDeleteSeat,
 
-  const [parcelForm, setParcelForm] = useState({
-    first_name: '',
-    last_name: '',
-    phone: '',
-    weight: 0,
-    description: '',
-    delivery_address: '',
-  });
+    // Parcels
+    parcelsData,
+    parcels: filteredAndSortedParcels,
+    isLoadingParcels,
+    isParcelModalOpen,
+    setIsParcelModalOpen,
+    editingParcelId,
+    parcelForm,
+    setParcelForm,
+    handleOpenParcelModal,
+    handleSaveParcel,
+    handleToggleParcelDelivered,
+    handleDeleteParcelClick,
+    deleteParcelConfirmOpen,
+    setDeleteParcelConfirmOpen,
+    executeDeleteParcel,
 
-  const [deleteParcelConfirmOpen, setDeleteParcelConfirmOpen] = useState(false);
-  const [parcelToDelete, setParcelToDelete] = useState<number | null>(null);
+    // Parcel Search & Pagination
+    parcelSearchQuery,
+    setParcelSearchQuery,
+    parcelStatusFilter,
+    setParcelStatusFilter,
+    handleParcelSort,
+    parcelPage,
+    setParcelPage,
+    parcelLimit,
+    setParcelLimit,
 
-  const [completeTripConfirmOpen, setCompleteTripConfirmOpen] = useState(false);
+    // Trip Completion
+    completeTripConfirmOpen,
+    setCompleteTripConfirmOpen,
 
-  // Parcel Filter & Sort State
-  const [parcelSearchQuery, setParcelSearchQuery] = useState('');
-  const [parcelStatusFilter, setParcelStatusFilter] = useState<string>('all');
-  const [parcelSortConfig, setParcelSortConfig] = useState<{
-    key: 'sender' | 'phone' | 'status';
-    direction: 'asc' | 'desc';
-  } | null>(null);
+    // Entity History Modals
+    isEntityHistoryOpen,
+    setIsEntityHistoryOpen,
+    entityHistorySearchQuery,
+    setEntityHistorySearchQuery,
+    entityHistoryName,
+    setEntityHistoryName,
 
-  const [parcelPage, setParcelPage] = useState(1);
-  const [parcelLimit, setParcelLimit] = useState(10);
-  const [debouncedParcelSearchQuery, setDebouncedParcelSearchQuery] = useState('');
+    // Loading/State flags
+    addingDriver,
+    removingDriver,
+    addingSeat,
+    savingSeat,
+    clearingSeat,
+    deletingSeat,
+    savingParcel,
+    deletingParcel,
+    completingTrip,
 
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedParcelSearchQuery(parcelSearchQuery);
-      setParcelPage(1); // Reset page on new search
-    }, 500);
-    return () => clearTimeout(handler);
-  }, [parcelSearchQuery]);
-
-  const { data: trip, isLoading: isLoadingTrip } = useGetTrip(tripId);
-
-  const { data: parcelsData, isLoading: isLoadingParcels } = useGetTripParcels(tripId, {
-    page: parcelPage,
-    limit: parcelLimit,
-    search: debouncedParcelSearchQuery || undefined,
-    status: parcelStatusFilter !== 'all' ? parcelStatusFilter : undefined,
-    sortBy: parcelSortConfig?.key,
-    sortOrder: parcelSortConfig?.direction,
-  });
-
-  // Fetch all users (only admin has access, but we try anyway. Error is ignored if not admin)
-  const { data: allUsers } = useGetUsers();
-
-  const _addDriverMutation = useAddTripDriverMutation();
-  const addDriverMutation = {
-    ..._addDriverMutation,
-    mutate: (userId: number) =>
-      _addDriverMutation.mutate({ tripId, userId }, { onSuccess: () => setSelectedDriverId('') }),
-  };
-
-  const _removeDriverMutation = useRemoveTripDriverMutation();
-  const removeDriverMutation = {
-    ..._removeDriverMutation,
-    mutate: (userId: number) => _removeDriverMutation.mutate({ tripId, userId }),
-  };
-
-  const _updateSeatMutation = useUpdateTripSeatMutation();
-  const updateSeatMutation = {
-    ..._updateSeatMutation,
-    mutateAsync: (vars: {
-      seatNumber: number;
-      payload: Record<string, unknown>;
-      version?: number;
-    }) => _updateSeatMutation.mutateAsync({ tripId, ...vars }),
-    mutate: (vars: { seatNumber: number; payload: Record<string, unknown>; version?: number }) =>
-      _updateSeatMutation.mutate(
-        { tripId, ...vars },
-        {
-          onSuccess: () => {
-            toast.success('Місце оновлено');
-            setIsSeatModalOpen(false);
-          },
-        },
-      ),
-  };
-
-  const _addSeatMutation = useAddTripSeatMutation();
-  const addSeatMutation = {
-    ..._addSeatMutation,
-    mutate: () => _addSeatMutation.mutate(tripId),
-  };
-
-  const _removeSeatMutation = useRemoveTripSeatMutation();
-  const removeSeatMutation = {
-    ..._removeSeatMutation,
-    mutateAsync: (seatNumber: number, version?: number) =>
-      _removeSeatMutation.mutateAsync({ tripId, seatNumber, version }),
-  };
-
-  const filteredAndSortedParcels = parcelsData?.data || [];
-
-  const handleParcelSort = (key: 'sender' | 'phone' | 'status') => {
-    setParcelSortConfig((current) => {
-      if (current?.key === key) {
-        if (current.direction === 'asc') return { key, direction: 'desc' };
-        return null; // toggle off
-      }
-      return { key, direction: 'asc' };
-    });
-  };
-
-  const handleOpenSeatModal = (seat: TripSeat) => {
-    setEditingSeatNumber(seat.seat_number);
-    setSeatForm({
-      first_name: seat.first_name || '',
-      last_name: seat.last_name || '',
-      phone: seat.phone || '',
-      boarding_address: seat.boarding_address || trip?.departure_city || '',
-      baggage_info: Array.isArray(seat.baggage_info)
-        ? (seat.baggage_info as { name: string; weight: number }[])
-        : [],
-    });
-    setIsSeatModalOpen(true);
-  };
-
-  const handleAddBaggage = () => {
-    setSeatForm((prev) => ({
-      ...prev,
-      baggage_info: [...prev.baggage_info, { name: '', weight: 0 }],
-    }));
-  };
-
-  const handleRemoveBaggage = (index: number) => {
-    setSeatForm((prev) => ({
-      ...prev,
-      baggage_info: prev.baggage_info.filter((_, i) => i !== index),
-    }));
-  };
-
-  const handleBaggageChange = (index: number, field: 'name' | 'weight', value: string | number) => {
-    setSeatForm((prev) => {
-      const newBaggage = [...prev.baggage_info];
-      newBaggage[index] = { ...newBaggage[index], [field]: value };
-      return { ...prev, baggage_info: newBaggage };
-    });
-  };
-
-  const handleSaveSeat = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (editingSeatNumber !== null) {
-      const seatVersion = trip?.seats.find((s) => s.seat_number === editingSeatNumber)?.version;
-      updateSeatMutation.mutate({
-        seatNumber: editingSeatNumber,
-        version: seatVersion,
-        payload: {
-          first_name: seatForm.first_name || null,
-          last_name: seatForm.last_name || null,
-          phone: seatForm.phone || null,
-          boarding_address: seatForm.boarding_address || null,
-          baggage_info: seatForm.baggage_info.length > 0 ? seatForm.baggage_info : null,
-        },
-      });
-    }
-  };
-
-  const handleClearSeatClick = (seatNumber: number) => {
-    setSeatToClear(seatNumber);
-    setClearSeatConfirmOpen(true);
-  };
-
-  const executeClearSeat = async () => {
-    if (seatToClear !== null) {
-      const seatVersion = trip?.seats.find((s) => s.seat_number === seatToClear)?.version;
-      await updateSeatMutation.mutateAsync({
-        seatNumber: seatToClear,
-        version: seatVersion,
-        payload: {
-          first_name: null,
-          last_name: null,
-          phone: null,
-          boarding_address: null,
-          baggage_info: null,
-        },
-      });
-      setClearSeatConfirmOpen(false);
-      setSeatToClear(null);
-    }
-  };
-
-  const handleDeleteSeatClick = (seatNumber: number) => {
-    setSeatToDelete(seatNumber);
-    setDeleteSeatConfirmOpen(true);
-  };
-
-  const executeDeleteSeat = async () => {
-    if (seatToDelete !== null) {
-      const seatVersion = trip?.seats.find((s) => s.seat_number === seatToDelete)?.version;
-      await removeSeatMutation.mutateAsync(seatToDelete, seatVersion);
-      setDeleteSeatConfirmOpen(false);
-      setSeatToDelete(null);
-    }
-  };
-
-  // --- PARCELS LOGIC ---
-  const _addParcelMutation = useAddTripParcelMutation();
-  const addParcelMutation = {
-    ..._addParcelMutation,
-    mutate: (payload: {
-      first_name: string;
-      last_name: string;
-      phone: string;
-      weight: number;
-      description?: string;
-      delivery_address: string;
-    }) =>
-      _addParcelMutation.mutate(
-        { tripId, payload },
-        {
-          onSuccess: () => {
-            toast.success('Передачу додано');
-            setIsParcelModalOpen(false);
-          },
-        },
-      ),
-  };
-
-  const _updateParcelMutation = useUpdateTripParcelMutation();
-  const updateParcelMutation = {
-    ..._updateParcelMutation,
-    mutate: (vars: { parcelId: number; payload: Record<string, unknown>; version?: number }) =>
-      _updateParcelMutation.mutate(
-        { tripId, ...vars },
-        {
-          onSuccess: () => {
-            toast.success('Передачу оновлено');
-            setIsParcelModalOpen(false);
-          },
-        },
-      ),
-  };
-
-  const _removeParcelMutation = useRemoveTripParcelMutation();
-  const removeParcelMutation = {
-    ..._removeParcelMutation,
-    mutateAsync: (parcelId: number, version?: number) =>
-      _removeParcelMutation.mutateAsync(
-        { tripId, parcelId, version },
-        {
-          onSuccess: () => {
-            toast.success('Передачу видалено');
-            setDeleteParcelConfirmOpen(false);
-            setParcelToDelete(null);
-          },
-        },
-      ),
-  };
-
-  const handleOpenParcelModal = (parcel?: TripParcel) => {
-    if (parcel) {
-      setEditingParcelId(parcel.id);
-      setParcelForm({
-        first_name: parcel.first_name,
-        last_name: parcel.last_name,
-        phone: parcel.phone,
-        weight: parcel.weight,
-        description: parcel.description || '',
-        delivery_address: parcel.delivery_address,
-      });
-    } else {
-      setEditingParcelId(null);
-      setParcelForm({
-        first_name: '',
-        last_name: '',
-        phone: '',
-        weight: 0,
-        description: '',
-        delivery_address: '',
-      });
-    }
-    setIsParcelModalOpen(true);
-  };
-
-  const handleSaveParcel = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (editingParcelId !== null) {
-      const parcelVersion = parcelsData?.data.find((p) => p.id === editingParcelId)?.version;
-      updateParcelMutation.mutate({
-        parcelId: editingParcelId,
-        version: parcelVersion,
-        payload: parcelForm,
-      });
-    } else {
-      addParcelMutation.mutate(parcelForm);
-    }
-  };
-
-  const handleToggleParcelDelivered = (parcel: TripParcel) => {
-    updateParcelMutation.mutate({
-      parcelId: parcel.id,
-      version: parcel.version,
-      payload: { is_delivered: !parcel.is_delivered },
-    });
-  };
-
-  const handleDeleteParcelClick = (parcelId: number) => {
-    setParcelToDelete(parcelId);
-    setDeleteParcelConfirmOpen(true);
-  };
-
-  const _completeTripMutation = useCompleteTripMutation();
-  const completeTripMutation = {
-    ..._completeTripMutation,
-    mutate: () =>
-      _completeTripMutation.mutate(
-        { tripId, version: trip?.version },
-        {
-          onSuccess: () => {
-            navigate('/');
-          },
-        },
-      ),
-    mutateAsync: async () =>
-      _completeTripMutation.mutateAsync(
-        { tripId, version: trip?.version },
-        {
-          onSuccess: () => {
-            navigate('/');
-          },
-        },
-      ),
-  };
+    // Operations
+    executeCompleteTrip,
+  } = useTripDetail(tripId);
 
   if (isLoadingTrip) return <PageLoader />;
   if (!trip) return <p className="text-destructive">Рейс не знайдено</p>;
-
-  const isClosed = trip.status === 'completed';
-
-  // Filter available drivers (users where is_driver is true and who are not already added)
-  const availableDrivers = allUsers?.filter(
-    (u) => u.is_driver && !trip.drivers.some((d) => d.user_id === u.id),
-  );
-
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
       {/* HEADER */}
@@ -481,8 +192,8 @@ export default function TripDetailPage() {
                     variant="destructive"
                     size="sm"
                     title="Видалити водія"
-                    onClick={() => removeDriverMutation.mutate(driver.user_id)}
-                    disabled={removeDriverMutation.isPending}
+                    onClick={() => removeDriver(driver.user_id)}
+                    disabled={removingDriver}
                   >
                     <Trash2 className="w-4 h-4" />
                   </Button>
@@ -518,9 +229,9 @@ export default function TripDetailPage() {
               </Select>
               <Button
                 onClick={() => {
-                  if (selectedDriverId) addDriverMutation.mutate(Number(selectedDriverId));
+                  if (selectedDriverId) addDriver(Number(selectedDriverId));
                 }}
-                disabled={!selectedDriverId || addDriverMutation.isPending}
+                disabled={!selectedDriverId || addingDriver}
               >
                 <UserPlus className="w-4 h-4 mr-2 text-indigo-400" />
                 Додати
@@ -537,7 +248,7 @@ export default function TripDetailPage() {
         description="Бронювання місць, багаж та інформація про пасажирів."
         headerAction={
           !isClosed && (
-            <Button variant="outline" size="sm" onClick={() => addSeatMutation.mutate()}>
+            <Button variant="outline" size="sm" onClick={() => addSeat()} disabled={addingSeat}>
               <Plus className="w-4 h-4 mr-1" /> Додати місце
             </Button>
           )
@@ -634,7 +345,7 @@ export default function TripDetailPage() {
                         size="sm"
                         title="Звільнити місце"
                         onClick={() => handleClearSeatClick(seat.seat_number)}
-                        disabled={updateSeatMutation.isPending}
+                        disabled={clearingSeat}
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
@@ -761,7 +472,7 @@ export default function TripDetailPage() {
               <Button type="button" variant="outline" onClick={() => setIsSeatModalOpen(false)}>
                 Скасувати
               </Button>
-              <Button type="submit" disabled={updateSeatMutation.isPending}>
+              <Button type="submit" disabled={savingSeat}>
                 Зберегти
               </Button>
             </DialogFooter>
@@ -1078,10 +789,7 @@ export default function TripDetailPage() {
               <Button type="button" variant="outline" onClick={() => setIsParcelModalOpen(false)}>
                 Скасувати
               </Button>
-              <Button
-                type="submit"
-                disabled={addParcelMutation.isPending || updateParcelMutation.isPending}
-              >
+              <Button type="submit" disabled={savingParcel}>
                 Зберегти
               </Button>
             </DialogFooter>
@@ -1098,7 +806,7 @@ export default function TripDetailPage() {
           <Button
             variant="destructive"
             onClick={() => setCompleteTripConfirmOpen(true)}
-            disabled={completeTripMutation.isPending}
+            disabled={completingTrip}
           >
             <CheckCircle className="w-4 h-4 mr-2" /> Завершити рейс
           </Button>
@@ -1113,7 +821,7 @@ export default function TripDetailPage() {
         confirmLabel="Звільнити"
         confirmVariant="destructive"
         onConfirm={executeClearSeat}
-        loading={updateSeatMutation.isPending}
+        loading={clearingSeat}
       />
 
       <ConfirmDialog
@@ -1124,7 +832,7 @@ export default function TripDetailPage() {
         confirmLabel="Видалити"
         confirmVariant="destructive"
         onConfirm={executeDeleteSeat}
-        loading={removeSeatMutation.isPending}
+        loading={deletingSeat}
       />
       <ConfirmDialog
         open={deleteParcelConfirmOpen}
@@ -1133,13 +841,8 @@ export default function TripDetailPage() {
         description="Ви дійсно хочете повністю видалити цю передачу з рейсу? Вона зникне назавжди."
         confirmLabel="Видалити"
         confirmVariant="destructive"
-        onConfirm={async () => {
-          if (parcelToDelete !== null) {
-            const parcelVersion = parcelsData?.data.find((p) => p.id === parcelToDelete)?.version;
-            await removeParcelMutation.mutateAsync(parcelToDelete, parcelVersion);
-          }
-        }}
-        loading={removeParcelMutation.isPending}
+        onConfirm={executeDeleteParcel}
+        loading={deletingParcel}
       />
 
       <ConfirmDialog
@@ -1149,10 +852,8 @@ export default function TripDetailPage() {
         description="Ви дійсно хочете завершити цей рейс? Поточний рейс буде переведено в архів, а для цього автобуса буде створено новий пустий рейс з 7 місцями."
         confirmLabel="Завершити рейс"
         confirmVariant="default"
-        onConfirm={async () => {
-          await completeTripMutation.mutateAsync();
-        }}
-        loading={completeTripMutation.isPending}
+        onConfirm={executeCompleteTrip}
+        loading={completingTrip}
       />
 
       <EntityHistoryModal

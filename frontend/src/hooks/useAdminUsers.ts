@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import {
@@ -58,40 +58,46 @@ export function useAdminUsers() {
 
   // 4. Оновлення користувача
   const _updateMutation = useUpdateUserMutation();
-  const updateMutation = {
-    ..._updateMutation,
-    mutate: (vars: { id: number; payload: UpdateUserDto }) => {
-      _updateMutation.mutate(vars, {
-        onSuccess: async (updatedUser) => {
-          if (updatedUser.id === currentUser?.id) {
-            await bootstrap();
-          }
-          setEditingUser(null);
-        },
-        onError: (err: unknown) => {
-          const msg = err instanceof Error ? err.message : 'Помилка оновлення';
-          setEditError(msg);
-        },
-      });
-    },
-  };
+  const updateMutation = useMemo(
+    () => ({
+      ..._updateMutation,
+      mutate: (vars: { id: number; payload: UpdateUserDto }) => {
+        _updateMutation.mutate(vars, {
+          onSuccess: async (updatedUser) => {
+            if (updatedUser.id === currentUser?.id) {
+              await bootstrap();
+            }
+            setEditingUser(null);
+          },
+          onError: (err: unknown) => {
+            const msg = err instanceof Error ? err.message : 'Помилка оновлення';
+            setEditError(msg);
+          },
+        });
+      },
+    }),
+    [_updateMutation, currentUser?.id, bootstrap],
+  );
 
   // 5. Створення користувача
   const _createMutation = useCreateUserMutation();
-  const createMutation = {
-    ..._createMutation,
-    mutate: (payload: CreateUserDto) => {
-      _createMutation.mutate(payload, {
-        onSuccess: () => {
-          setCreateDialogOpen(false);
-        },
-        onError: (err: unknown) => {
-          const msg = err instanceof Error ? err.message : 'Помилка створення';
-          setCreateError(msg);
-        },
-      });
-    },
-  };
+  const createMutation = useMemo(
+    () => ({
+      ..._createMutation,
+      mutate: (payload: CreateUserDto) => {
+        _createMutation.mutate(payload, {
+          onSuccess: () => {
+            setCreateDialogOpen(false);
+          },
+          onError: (err: unknown) => {
+            const msg = err instanceof Error ? err.message : 'Помилка створення';
+            setCreateError(msg);
+          },
+        });
+      },
+    }),
+    [_createMutation],
+  );
 
   const openDeleteConfirm = useCallback((targetUser: UserListItemDto) => {
     setConfirm({
