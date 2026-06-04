@@ -20,18 +20,19 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
     const pool = new Pool({ connectionString: databaseUrl });
     const adapter = new PrismaPg(pool);
 
-    // ВАЖЛИВО: Передаємо databaseUrl безпосередньо в рушій Prisma, 
+    // ВАЖЛИВО: Передаємо databaseUrl безпосередньо в рушій Prisma,
     // щоб він знав, що треба робити префікс "staging"."users"
-    // @ts-expect-error - TS може сваритися на datasources, але під капотом Prisma це підтримує
-    super({ 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const options: any = {
       adapter,
       datasources: {
         db: {
           url: databaseUrl,
         },
       },
-    });
-    
+    };
+    super(options);
+
     this.pool = pool;
   }
   async onModuleInit() {
