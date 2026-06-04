@@ -1,4 +1,5 @@
 import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Request } from 'express';
 import { PublicUser } from '../users/users.service';
@@ -17,6 +18,7 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   // Обробляє POST запит на логін.
+  @Throttle({ default: { limit: 20, ttl: 60000 } })
   @Post('login')
   @ApiOperation({ summary: 'Login' })
   @ApiBody({ type: LoginDto })
