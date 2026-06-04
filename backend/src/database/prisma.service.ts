@@ -9,7 +9,7 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
   constructor() {
     const dbUser = process.env.DB_USER || 'logistic';
     const dbPassword = process.env.DB_PASSWORD || 'logistic';
-    const dbHost = process.env.DB_HOST === 'db' ? 'localhost' : process.env.DB_HOST || 'localhost';
+    const dbHost = process.env.DB_HOST || 'localhost';
     const dbPort = process.env.DB_PORT || '5432';
     const dbName = process.env.DB_NAME || 'logistic';
 

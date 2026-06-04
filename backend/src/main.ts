@@ -8,26 +8,46 @@ import morgan from 'morgan';
 import { AppModule } from './app.module';
 
 // Ця функція визначає, з яких веб-сайтів дозволено робити запити до нашого бекенду.
-// Це механізм CORS (Cross-Origin Resource Sharing) - базовий захист браузерів.
-function getCorsOrigins(): string[] {
+// Для локальної розробки дозволяємо будь-який порт на localhost (5173, 5174, 5175...).
+// Для production — суворий список з CORS_ORIGINS env-змінної.
+type CorsOriginFn = (
+  origin: string | undefined,
+  callback: (err: Error | null, allow?: boolean) => void,
+) => void;
+
+function getCorsOriginHandler(): string[] | CorsOriginFn {
   const raw = process.env.CORS_ORIGINS;
 
-  // В production CORS_ORIGINS обов'язково має бути задано (щоб ніхто чужий не стукав до нас)
+  // В production CORS_ORIGINS обов'язково має бути задано
   if (!raw && process.env.NODE_ENV === 'production') {
     throw new Error(
       'CORS_ORIGINS must be set in production (comma-separated list of allowed origins)',
     );
   }
 
-  // Для локальної розробки (на вашому комп'ютері) дозволяємо запити з локального фронтенду
-  if (!raw) {
-    return ['http://localhost:5173', 'http://localhost:8080'];
+  // Для локальної розробки — динамічна перевірка
+  if (!raw || process.env.NODE_ENV !== 'production') {
+    return (origin, callback) => {
+      // Запити без origin (curl, Postman) — дозволяємо
+      if (!origin) return callback(null, true);
+      // Будь-який localhost незалежно від порту
+      if (/^https?:\/\/localhost(:\d+)?$/.test(origin)) return callback(null, true);
+      // Якщо env заданий — перевіряємо також список
+      if (raw) {
+        const allowed = raw
+          .split(',')
+          .map((o) => o.trim())
+          .filter(Boolean);
+        if (allowed.includes(origin)) return callback(null, true);
+      }
+      callback(new Error(`CORS: origin ${origin} not allowed`));
+    };
   }
 
-  // Розбиваємо рядок з Render (наприклад "https://site1.com,https://site2.com") на масив
+  // Production — строгий список
   return raw
     .split(',')
-    .map((origin) => origin.trim())
+    .map((o) => o.trim())
     .filter(Boolean);
 }
 
@@ -51,7 +71,7 @@ async function bootstrap() {
 
   // 2. CORS: Дозволяємо лише нашому фронтенду (Vercel) робити запити сюди
   app.enableCors({
-    origin: getCorsOrigins(),
+    origin: getCorsOriginHandler(),
     methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     maxAge: 86400, // Кешувати preflight 24 години
