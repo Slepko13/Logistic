@@ -92,4 +92,3 @@ async function bootstrap() {
 }
 
 bootstrap();
-// force restart
