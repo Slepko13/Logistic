@@ -18,20 +18,16 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
       `postgresql://${dbUser}:${dbPassword}@${dbHost}:${dbPort}/${dbName}?schema=public`;
 
     const pool = new Pool({ connectionString: databaseUrl });
-    const adapter = new PrismaPg(pool);
 
-    // ВАЖЛИВО: Передаємо databaseUrl безпосередньо в рушій Prisma,
-    // щоб він знав, що треба робити префікс "staging"."users"
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const options: any = {
-      adapter,
-      datasources: {
-        db: {
-          url: databaseUrl,
-        },
-      },
-    };
-    super(options);
+    // Витягуємо схему з URL (наприклад, ?schema=staging)
+    const url = new URL(databaseUrl);
+    const schemaName = url.searchParams.get('schema') || 'public';
+
+    // ВАЖЛИВО: Оскільки ми використовуємо Driver Adapter (@prisma/adapter-pg),
+    // Prisma ігнорує схему в URL і вимагає передавати її другим аргументом в адаптер
+    const adapter = new PrismaPg(pool, { schema: schemaName });
+
+    super({ adapter });
 
     this.pool = pool;
   }
