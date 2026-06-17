@@ -1,0 +1,14 @@
+name: Keep Supabase Awake
+
+on:
+  schedule:
+    # Запуск кожні 5 днів опівночі (00:00 UTC)
+    - cron: '0 0 */5 * *'
+  workflow_dispatch: # Дозволяє запустити скрипт вручну з інтерфейсу GitHub
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Staging Backend Health Endpoint
+        run: curl -f https://logistic-api-tipg.onrender.com/api/health
