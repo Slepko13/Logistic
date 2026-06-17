@@ -38,7 +38,7 @@ export function CollapsibleCard({
             </CollapsibleTrigger>
             {description && <CardDescription className="mt-1">{description}</CardDescription>}
           </div>
-          {headerAction && <div className="ml-4">{headerAction}</div>}
+          {headerAction && isOpen && <div className="ml-4">{headerAction}</div>}
         </CardHeader>
         <CollapsibleContent>
           <CardContent>{children}</CardContent>
